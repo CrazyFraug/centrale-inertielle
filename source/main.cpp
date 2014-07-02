@@ -51,9 +51,10 @@ reconnect:
 
 	while(!remote.Button.Home())
 	{
+		Sleep (15);
 
 		while(remote.RefreshState() == NO_CHANGE)
-			Sleep(2);
+			Sleep(5);
 
 		SetConsoleCursorPosition(console, cursor_pos);
 
