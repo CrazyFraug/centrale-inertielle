@@ -99,7 +99,7 @@ reconnect:
 		//affichage valeurs :
 		manette.afficher_mobile();
 		RED; _tprintf(_T("valeur angle = %d \n %d \n ",
-			remote.Acceleration.Orientation.Pitch
+			remote.Acceleration.Orientation.Pitch,
 			remote.Acceleration.Orientation.Roll));
 
 	}
