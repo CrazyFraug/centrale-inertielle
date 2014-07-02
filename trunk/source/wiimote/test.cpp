@@ -123,7 +123,7 @@ void on_state_change (wiimote			  &remote,
 		}
 	}
 
-int main(void)
+int test(void)
 {
 
 	SetConsoleTitle(_T("- WiiYourself! - Demo: "));
