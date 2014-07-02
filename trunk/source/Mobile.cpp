@@ -25,19 +25,17 @@ using namespace std;
 		t_v_tr = clock();
 	}
 
-	void Mobile::maj_position() {
-		double dt = (clock() - t_position)/CLOCKS_PER_SEC;
-		position.x += dt*v_tr.v_x;
-		position.y += dt*v_tr.v_y;
-		position.z += dt*v_tr.v_z;
+	void Mobile::maj_position(double x, double y, double z) {
+		position.x = x;
+		position.y = y;
+		position.z = z;
 
 	}
 
-	void Mobile::maj_orientation() {
-		double dt = (clock() - t_orientation)/CLOCKS_PER_SEC;
-		orientation.phi += dt*v_rot.v_phi;
-		orientation.teta += dt*v_rot.v_teta;
-		orientation.psi += dt*v_rot.v_psi;
+	void Mobile::maj_orientation(double phi, double teta, double psi) {
+		orientation.phi = phi;
+		orientation.teta = teta;
+		orientation.psi = psi;
 	}
 	
 	void Mobile::calcul_vitesse(accel_translation translation) {

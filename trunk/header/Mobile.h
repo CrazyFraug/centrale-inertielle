@@ -55,8 +55,8 @@ private :
 
 public:
 	Mobile();	
-	void maj_position();
-	void maj_orientation();
+	void maj_position(double x, double y, double z);
+	void maj_orientation(double phi, double teta, double psi);
 	void calcul_vitesse(accel_translation translation);
 	//void calcul_v_rot(accel_rotation rotation);
 	void afficher_mobile(void);
