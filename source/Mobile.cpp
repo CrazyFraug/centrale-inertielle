@@ -50,7 +50,7 @@ using namespace std;
 	void Mobile::afficher_mobile()
 	{
 		cout << "angles : " << endl << "phi = " << orientation.phi << endl ;
-		cout << "angles : " << endl << "teta = " << orientation.teta<< endl ;
-		cout << "angles : " << endl << "psi = " << orientation.psi << endl ;
+		cout << "teta = " << orientation.teta<< endl ;
+		cout << "psi = " << orientation.psi << endl ;
 
 	}
