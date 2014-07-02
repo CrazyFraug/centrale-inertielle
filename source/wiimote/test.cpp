@@ -30,6 +30,8 @@ void on_state_change (wiimote			  &remote,
 					  state_change_flags  changed,
 					  const wiimote_state &new_state)
 	{
+
+		//_tprintf(_T("\ntetshcdfskjqvfqkvnfjq\n"));
 	// we use this callback to set report types etc. to respond to key events
 	//  (like the wiimote connecting or extensions (dis)connecting).
 	

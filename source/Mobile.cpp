@@ -49,8 +49,11 @@ using namespace std;
 
 	void Mobile::afficher_mobile()
 	{
-		cout << "angles : " << endl << "phi = " << orientation.phi << endl ;
-		cout << "teta = " << orientation.teta<< endl ;
-		cout << "psi = " << orientation.psi << endl ;
+		//cout.width(4);
+		//cout.fill('0');
+		cout << "angles : " << endl ;
+		cout << "phi  = " << setw(4) << right << (int)orientation.phi << endl ;
+		cout << "teta = " << setw(4) << right << (int)orientation.teta << endl ;
+		cout << "psi  = " << orientation.psi << endl ;
 
 	}

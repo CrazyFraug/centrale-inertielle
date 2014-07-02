@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <time.h>
 #include <iostream>
+#include <iomanip>
 
 struct accel_translation {
 	float accel_x;

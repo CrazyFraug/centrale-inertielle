@@ -21,7 +21,8 @@ int main (int argc, char *argv[])
 														EXTENSION_CHANGED | 
 														MOTIONPLUS_CHANGED |
 														ACCEL_CHANGED |
-														ORIENTATION_CHANGED);
+														ORIENTATION_CHANGED |
+														BUTTONS_CHANGED);
 
 //label for reconnection procedure
 reconnect:
@@ -98,9 +99,6 @@ reconnect:
 								remote.Acceleration.Orientation.Z);
 		//affichage valeurs :
 		manette.afficher_mobile();
-		RED; _tprintf(_T("valeur angle = %d \n %d \n ",
-			remote.Acceleration.Orientation.Pitch,
-			remote.Acceleration.Orientation.Roll));
 
 	}
 
