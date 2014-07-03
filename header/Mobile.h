@@ -39,9 +39,9 @@ struct repere_angle {
 };
 
 struct repere_distance {
-	float x;
-	float y;
-	float z;
+	double x;
+	double y;
+	double z;
 };
 
 
