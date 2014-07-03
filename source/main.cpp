@@ -51,10 +51,11 @@ reconnect:
 
 	while(!remote.Button.Home())
 	{
-		Sleep (15);
+		cout << "clock " << clock() << endl;
+		//Sleep (15);
 
 		while(remote.RefreshState() == NO_CHANGE)
-			Sleep(5);
+			Sleep(1);
 
 		SetConsoleCursorPosition(console, cursor_pos);
 
@@ -95,21 +96,22 @@ reconnect:
 								remote.Acceleration.Orientation.Roll, 
 								0);
 
-		manette.maj_position(	remote.Acceleration.Orientation.X,
+		/*manette.calcul_vitesse(	remote.Acceleration.Orientation.X,
 								remote.Acceleration.Orientation.Y,
-								remote.Acceleration.Orientation.Z);
+								remote.Acceleration.Orientation.Z);*/
 		//affichage valeurs :
 		manette.afficher_mobile();
-		cout << "Acc_X : " << remote.Acceleration.Orientation.X << endl;
-		cout << "Acc_Y : " << remote.Acceleration.Orientation.Y << endl;
-		cout << "Acc_Z : " << remote.Acceleration.Orientation.Z << endl;
-
+		cout << "Acc_X : " << remote.Acceleration.X << endl;
+		cout << "Acc_Y : " << remote.Acceleration.Y << endl;
+		cout << "Acc_Z : " << remote.Acceleration.Z << endl;
+		
+		manette.afficher_vitesse();
 		// CALCUL LA NOUVELLE POSITION
 
-        if (remote.Acceleration.Orientation.UpdateAge != 0){
-		manette.chgt_repere_translation(remote.Acceleration.Orientation.X,
-                                        remote.Acceleration.Orientation.Y,
-                                        remote.Acceleration.Orientation.Z
+        //if (remote.Acceleration.Orientation.UpdateAge != 0){
+		manette.chgt_repere_translation(remote.Acceleration.X,
+                                        remote.Acceleration.Y,
+                                        remote.Acceleration.Z
                                         );
 		//manette.chgt_repere_rotation(remote.Acceleration.Orientation.Pitch,
         //                             remote.Acceleration.Orientation.Roll,
@@ -118,7 +120,8 @@ reconnect:
 
 
         manette.afficher_position();
-		}
+		//}
+
 	}
 
 	// disconnect (auto-happens on wiimote destruction anyway, but let's play nice)
