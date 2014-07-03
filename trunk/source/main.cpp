@@ -100,7 +100,24 @@ reconnect:
 								remote.Acceleration.Orientation.Z);
 		//affichage valeurs :
 		manette.afficher_mobile();
+		cout << "Acc_X : " << remote.Acceleration.Orientation.X << endl;
+		cout << "Acc_Y : " << remote.Acceleration.Orientation.Y << endl;
+		cout << "Acc_Z : " << remote.Acceleration.Orientation.Z << endl;
 
+		// CALCUL LA NOUVELLE POSITION
+
+        if (remote.Acceleration.Orientation.UpdateAge != 0){
+		manette.chgt_repere_translation(remote.Acceleration.Orientation.X,
+                                        remote.Acceleration.Orientation.Y,
+                                        remote.Acceleration.Orientation.Z
+                                        );
+		//manette.chgt_repere_rotation(remote.Acceleration.Orientation.Pitch,
+        //                             remote.Acceleration.Orientation.Roll,
+        //                             remote.Acceleration.Orientation.Yaw
+        //                            );
+
+
+        manette.afficher_position();
 	}
 
 	// disconnect (auto-happens on wiimote destruction anyway, but let's play nice)
