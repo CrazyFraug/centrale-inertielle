@@ -23,6 +23,7 @@ using namespace std;
 		t_position = clock();
 		t_v_rot= clock();
 		t_v_tr = clock();
+//modif
 	}
 
 	void Mobile::maj_position(double x, double y, double z) {
