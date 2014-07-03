@@ -33,15 +33,15 @@ struct vitesse_rotation {
 
 
 struct repere_angle {
-	double phi;
-	double teta;
-	double psi;
+	float phi;
+	float teta;
+	float psi;
 };
 
 struct repere_distance {
-	double x;
-	double y;
-	double z;
+	float x;
+	float y;
+	float z;
 };
 
 
@@ -55,12 +55,15 @@ private :
 	clock_t t_orientation, t_position, t_v_rot, t_v_tr;
 
 public:
-	Mobile();	
+	Mobile();
 	void maj_position(double x, double y, double z);
 	void maj_orientation(double phi, double teta, double psi);
-	void calcul_vitesse(accel_translation translation);
+	void calcul_vitesse(accel_translation translation, float dt);
+	void chgt_repere_rotation(float teta_pitch, float teta_roll, float teta_yaw);
+	void chgt_repere_translation(float acc_x, float acc_y, float acc_z);
 	//void calcul_v_rot(accel_rotation rotation);
 	void afficher_mobile(void);
+	void afficher_position(void);
 
 };
 
