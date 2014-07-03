@@ -28,12 +28,15 @@ using namespace std;
 		orientation.psi = psi;
 	}
 
-	void Mobile::calcul_vitesse(accel_translation translation, float dt) {
+	void Mobile::calcul_vitesse(accel_translation translation, double dt) {
 		//float dt = (clock() - t_position)/CLOCKS_PER_SEC;
 		v_tr.v_x += translation.accel_x*dt;
 		v_tr.v_y += translation.accel_y*dt;
 		v_tr.v_z += translation.accel_z*dt;
-
+		v_tr.v_x /= 1000;
+		v_tr.v_y /= 1000;
+		v_tr.v_z /= 1000;
+		cout << "dt ---> " << dt << endl;
 	}
 
 
@@ -79,8 +82,8 @@ void Mobile::chgt_repere_rotation(float teta_pitch, float teta_roll, float teta_
  * Remarques : Erreur accéléromètre -> erreur de calcul -> Filtre de Kalman à calculer - 14h22 03/07/2014
 */
 void Mobile::chgt_repere_translation(float acc_x, float acc_y, float acc_z){
-    float dt = (clock() - t_position);
-    t_position = clock();
+    double dt = (clock() - t_position);
+	t_position = clock();
     accel_translation accelerometre;
     accelerometre.accel_x = acc_x;
     accelerometre.accel_y = acc_y;
@@ -96,8 +99,18 @@ void Mobile::afficher_position()
 		//cout.width(4);
 		//cout.fill('0');
 		cout << "Position : " << endl ;
-		cout << "X  = " << setw(4) << right << (int)position.x << endl ;
-		cout << "Y = " << setw(4) << right << (int)position.y<< endl ;
+		cout << "X  = " << position.x << endl ;
+		cout << "Y = " << position.y<< endl ;
 		cout << "Z  = " << position.z << endl ;
+
+	}
+
+void Mobile::afficher_vitesse()
+	{
+		cout << "Vitesse : " << endl ;
+		cout << "Vitesse X  = " << v_tr.v_x<< endl ;
+		cout << "Vitesse Y = " << v_tr.v_y<< endl ;
+		cout << "Vitesse Z  = " << v_tr.v_z<< endl ;
+		cout << "t_position :" << t_position << endl;
 
 	}

@@ -33,9 +33,9 @@ struct vitesse_rotation {
 
 
 struct repere_angle {
-	float phi;
-	float teta;
-	float psi;
+	double phi;
+	double teta;
+	double psi;
 };
 
 struct repere_distance {
@@ -58,12 +58,13 @@ public:
 	Mobile();
 	void maj_position(double x, double y, double z);
 	void maj_orientation(double phi, double teta, double psi);
-	void calcul_vitesse(accel_translation translation, float dt);
+	void calcul_vitesse(accel_translation translation, double dt);
 	void chgt_repere_rotation(float teta_pitch, float teta_roll, float teta_yaw);
 	void chgt_repere_translation(float acc_x, float acc_y, float acc_z);
 	//void calcul_v_rot(accel_rotation rotation);
 	void afficher_mobile(void);
 	void afficher_position(void);
+	void afficher_vitesse(void);
 
 };
 
