@@ -118,6 +118,7 @@ reconnect:
 
 
         manette.afficher_position();
+		}
 	}
 
 	// disconnect (auto-happens on wiimote destruction anyway, but let's play nice)
