@@ -58,6 +58,7 @@ public:
 	Mobile();
 	void maj_position(double x, double y, double z);
 	void maj_orientation(double phi, double teta, double psi);
+	void set_vitesse (double v_x, double v_y, double v_z);
 	void calcul_vitesse(accel_translation translation, double dt);
 	void chgt_repere_rotation(float teta_pitch, float teta_roll, float teta_yaw);
 	void chgt_repere_translation(float acc_x, float acc_y, float acc_z);

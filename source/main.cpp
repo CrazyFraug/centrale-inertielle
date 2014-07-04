@@ -108,7 +108,7 @@ reconnect:
 		manette.afficher_vitesse();
 		// CALCUL LA NOUVELLE POSITION
 
-        //if (remote.Acceleration.Orientation.UpdateAge != 0){
+        if (remote.Acceleration.Orientation.UpdateAge != 0){
 		manette.chgt_repere_translation(remote.Acceleration.X,
                                         remote.Acceleration.Y,
                                         remote.Acceleration.Z
@@ -119,8 +119,12 @@ reconnect:
         //                            );
 
 
-        manette.afficher_position();
-		//}
+
+		}else{
+		manette.set_vitesse(0,0,0);
+
+		}
+		manette.afficher_position();
 
 	}
 
