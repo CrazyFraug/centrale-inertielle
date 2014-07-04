@@ -5,6 +5,10 @@
 #include <time.h>
 #include <iostream>
 #include <iomanip>
+#include <math.h>
+
+#define _USE_MATH_DEFINES
+#define g 9.81
 
 struct accel_translation {
 	float accel_x;
@@ -53,6 +57,7 @@ private :
 	vitesse_rotation v_rot;
 	vitesse_translation v_tr;
 	clock_t t_orientation, t_position, t_v_rot, t_v_tr;
+	accel_translation accel_initiale;
 
 public:
 	Mobile();
@@ -66,7 +71,10 @@ public:
 	void afficher_mobile(void);
 	void afficher_position(void);
 	void afficher_vitesse(void);
-
+	void calibrer(float x, float y, float z);
+	accel_translation get_biais(void);
+	void activer_clock();
+	float force_roulis(); //determination de proj de g sur x grace a teta
 };
 
 #endif

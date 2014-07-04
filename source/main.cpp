@@ -28,7 +28,7 @@ int main (int argc, char *argv[])
 reconnect:
 
 	COORD pos = { 0, 1 };	
-	COORD cursor_pos = { 0, 3 };
+	COORD cursor_pos = { 0, 5 };
 	
 	//"Looking for a wiimote" waiting screen:
 	SetConsoleCursorPosition(console, pos);
@@ -49,15 +49,27 @@ reconnect:
 
 //end reconnect
 
+
+	//Calibration de  la manette
+	manette.calibrer(remote.Acceleration.X, remote.Acceleration.Y, remote.Acceleration.Z);
+	cout << endl;
+	CYAN; cout << "Acc_X initiale: " << (remote.Acceleration.X) << endl;
+	cout << "Acc_Y : initiale " << (remote.Acceleration.Y) << endl;
+	cout << "Acc_Z initiales : " << (remote.Acceleration.Z) << endl;
+
+	manette.activer_clock();
+
+	//boucle principale
 	while(!remote.Button.Home())
 	{
+		
+		SetConsoleCursorPosition(console, cursor_pos);
+
+		RED; cout << "Acc_X initiale: " << (remote.Acceleration.X) << endl;
 		cout << "clock " << clock() << endl;
-		//Sleep (15);
 
 		while(remote.RefreshState() == NO_CHANGE)
 			Sleep(1);
-
-		SetConsoleCursorPosition(console, cursor_pos);
 
 		// In case of connection lost: jump to reconnect
 		if(remote.ConnectionLost())
@@ -67,7 +79,12 @@ reconnect:
 			goto reconnect;
 			}
 
-				// Buttons:
+		if(remote.Button.A()) {
+			manette.calibrer(remote.Acceleration.X, remote.Acceleration.Y, remote.Acceleration.Z);
+		cout << "calibrer";
+		}
+
+		// Buttons:
 		CYAN; _tprintf(_T("  Buttons: ")); WHITE; _tprintf(_T("["));
 		for(unsigned bit=0; bit<16; bit++)
 			{
@@ -101,14 +118,13 @@ reconnect:
 								remote.Acceleration.Orientation.Z);*/
 		//affichage valeurs :
 		manette.afficher_mobile();
-		cout << "Acc_X : " << remote.Acceleration.X << endl;
-		cout << "Acc_Y : " << remote.Acceleration.Y << endl;
-		cout << "Acc_Z : " << remote.Acceleration.Z << endl;
 		
+
 		manette.afficher_vitesse();
+
 		// CALCUL LA NOUVELLE POSITION
 
-        if (remote.Acceleration.Orientation.UpdateAge != 0){
+       // if (remote.Acceleration.Orientation.UpdateAge != 0){
 		manette.chgt_repere_translation(remote.Acceleration.X,
                                         remote.Acceleration.Y,
                                         remote.Acceleration.Z
@@ -120,10 +136,12 @@ reconnect:
 
 
 
-		}else{
-		manette.set_vitesse(0,0,0);
+		//}
+		//else{
+		//manette.set_vitesse(0,0,0);
 
-		}
+		//}
+
 		manette.afficher_position();
 
 	}

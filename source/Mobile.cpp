@@ -15,6 +15,10 @@ using namespace std;
 		t_position = clock();
 	}
 
+	void Mobile::activer_clock() {
+		t_position = clock();
+	}
+
 	void Mobile::maj_position(double x, double y, double z) {
 		position.x = x;
 		position.y = y;
@@ -88,15 +92,31 @@ void Mobile::chgt_repere_rotation(float teta_pitch, float teta_roll, float teta_
 */
 void Mobile::chgt_repere_translation(float acc_x, float acc_y, float acc_z){
     double dt = (clock() - t_position);
-	t_position = clock();
+	cout << "dt : " << dt << endl;
     accel_translation accelerometre;
-    accelerometre.accel_x = acc_x;
-    accelerometre.accel_y = acc_y;
-    accelerometre.accel_z = acc_z;
+	//prise en compte de la calibration
+    accelerometre.accel_x = (acc_x - accel_initiale.accel_x)/1000;
+    accelerometre.accel_y = (acc_y - accel_initiale.accel_y)/1000;
+    accelerometre.accel_z = (acc_z - accel_initiale.accel_z)/1000;
+
+	t_position = clock();
+
+	//mise à jour de la position
+    position.x += v_tr.v_x*dt + accelerometre.accel_x*pow(dt,2)/2;
+    position.y += v_tr.v_y*dt + accelerometre.accel_y*pow(dt,2)/2;
+    position.z += v_tr.v_z*dt + accelerometre.accel_z*pow(dt,2)/2;
+
+	//mise à jour de la nouvelle vitesse
     calcul_vitesse(accelerometre,dt);
-    position.x += v_tr.v_x*dt;
-    position.y += v_tr.v_y*dt;
-    position.z += v_tr.v_z*dt;
+
+	cout << "Acc_X : " << (acc_x - accel_initiale.accel_x) << endl;
+	cout << "Acc_Y : " << (acc_y - accel_initiale.accel_y) << endl;
+	cout << "Acc_Z : " << (acc_z - accel_initiale.accel_z) << endl;
+
+	//cout << "val initiales : " << endl << "ax = " << accel_initiale.accel_x << endl;
+	//cout << "ay = " << accel_initiale.accel_y << endl;
+	//cout << "az = " << accel_initiale.accel_z << endl;
+
 }
 
 void Mobile::afficher_position()
@@ -116,6 +136,20 @@ void Mobile::afficher_vitesse()
 		cout << "Vitesse X  = " << v_tr.v_x<< endl ;
 		cout << "Vitesse Y = " << v_tr.v_y<< endl ;
 		cout << "Vitesse Z  = " << v_tr.v_z<< endl ;
-		cout << "t_position :" << t_position << endl;
+		//cout << "t_position :" << t_position << endl;
 
 	}
+
+void Mobile::calibrer(float x, float y, float z) {
+	accel_initiale.accel_x = x;
+	accel_initiale.accel_y = y;
+	accel_initiale.accel_z = z;
+}
+
+accel_translation Mobile::get_biais(void) {
+	return accel_initiale;
+}
+
+float Mobile::force_roulis() {
+	return g*cos(M_PI/2 - orientation.teta);
+}
