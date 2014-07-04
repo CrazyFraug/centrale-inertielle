@@ -28,6 +28,11 @@ using namespace std;
 		orientation.psi = psi;
 	}
 
+void Mobile :: set_vitesse (double v_x, double v_y, double v_z){
+        v_tr.v_x = v_x;
+        v_tr.v_y = v_y;
+        v_tr.v_z = v_z;
+}
 	void Mobile::calcul_vitesse(accel_translation translation, double dt) {
 		//float dt = (clock() - t_position)/CLOCKS_PER_SEC;
 		v_tr.v_x += translation.accel_x*dt;
@@ -36,7 +41,7 @@ using namespace std;
 		v_tr.v_x /= 1000;
 		v_tr.v_y /= 1000;
 		v_tr.v_z /= 1000;
-		cout << "dt ---> " << dt << endl;
+		//cout << "dt ---> " << dt << endl;
 	}
 
 
