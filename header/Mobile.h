@@ -8,9 +8,9 @@
 #include "repere.h"
 
 struct accel_translation {
-	float accel_x;
-	float accel_y;
-	float accel_z;
+	double accel_x;
+	double accel_y;
+	double accel_z;
 };
 
 struct accel_rotation {
@@ -65,7 +65,7 @@ public:
 	void set_vitesse (double v_x, double v_y, double v_z);
 	void calcul_vitesse(accel_translation translation, double dt);
 	void chgt_repere_rotation(double teta_pitch, double teta_roll, double teta_yaw);
-	void chgt_repere_translation(float acc_x, float acc_y, float acc_z);
+	void chgt_repere_translation(double acc_x, double acc_y, double acc_z);
 	//void calcul_v_rot(accel_rotation rotation);
 	void afficher_mobile(void);
 	void afficher_position(void);
