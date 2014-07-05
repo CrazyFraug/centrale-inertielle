@@ -5,10 +5,7 @@
 #include <time.h>
 #include <iostream>
 #include <iomanip>
-#include <math.h>
-
-#define _USE_MATH_DEFINES
-#define g 9.81
+#include "repere.h"
 
 struct accel_translation {
 	float accel_x;
@@ -42,6 +39,7 @@ struct repere_angle {
 	double psi;
 };
 
+
 struct repere_distance {
 	double x;
 	double y;
@@ -52,29 +50,27 @@ struct repere_distance {
 class Mobile {
 
 private :
+    accel_translation acc_trans;
 	repere_angle orientation ;
-	repere_distance position ;
+	repere_distance position_absolue ;
+	repere_distance position_relative;
 	vitesse_rotation v_rot;
 	vitesse_translation v_tr;
-	clock_t t_orientation, t_position, t_v_rot, t_v_tr;
-	accel_translation accel_initiale;
-
+	clock_t t_acquisition, t_pred, t_act, t_orientation, t_position, t_v_rot, t_v_tr;
+    void norm_Angle(double alpha);
 public:
 	Mobile();
-	void maj_position(double x, double y, double z);
+	void set_Acceleration (double acc_x, double acc_y, double acc_z);
 	void maj_orientation(double phi, double teta, double psi);
 	void set_vitesse (double v_x, double v_y, double v_z);
 	void calcul_vitesse(accel_translation translation, double dt);
-	void chgt_repere_rotation(float teta_pitch, float teta_roll, float teta_yaw);
+	void chgt_repere_rotation(double teta_pitch, double teta_roll, double teta_yaw);
 	void chgt_repere_translation(float acc_x, float acc_y, float acc_z);
 	//void calcul_v_rot(accel_rotation rotation);
 	void afficher_mobile(void);
 	void afficher_position(void);
 	void afficher_vitesse(void);
-	void calibrer(float x, float y, float z);
-	accel_translation get_biais(void);
-	void activer_clock();
-	float force_roulis(); //determination de proj de g sur x grace a teta
+
 };
 
 #endif
