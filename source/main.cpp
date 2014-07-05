@@ -17,8 +17,8 @@ int main (int argc, char *argv[])
 
 	remote.ChangedCallback = on_state_change;
 
-	remote.CallbackTriggerFlags = (state_change_flags)(	CONNECTED | 
-														EXTENSION_CHANGED | 
+	remote.CallbackTriggerFlags = (state_change_flags)(	CONNECTED |
+														EXTENSION_CHANGED |
 														MOTIONPLUS_CHANGED |
 														ACCEL_CHANGED |
 														ORIENTATION_CHANGED |
@@ -27,16 +27,16 @@ int main (int argc, char *argv[])
 //label for reconnection procedure
 reconnect:
 
-	COORD pos = { 0, 1 };	
-	COORD cursor_pos = { 0, 5 };
-	
+	COORD pos = { 0, 1 };
+	COORD cursor_pos = { 0, 3 };
+
 	//"Looking for a wiimote" waiting screen:
 	SetConsoleCursorPosition(console, pos);
 	WHITE; _tprintf(_T("  Looking for a Wiimote     "));
 	static const TCHAR* wait_str[] = { _T(".  "), _T(".. "), _T("...") };
 	unsigned count = 0;
 	//"waiting dots" animation :
-	while(!remote.Connect(wiimote::FIRST_AVAILABLE)) 
+	while(!remote.Connect(wiimote::FIRST_AVAILABLE))
 	{
 		_tprintf(_T("\b\b\b%s"), wait_str[count%3]);
 		count++;
@@ -49,27 +49,14 @@ reconnect:
 
 //end reconnect
 
-
-	//Calibration de  la manette
-	manette.calibrer(remote.Acceleration.X, remote.Acceleration.Y, remote.Acceleration.Z);
-	cout << endl;
-	CYAN; cout << "Acc_X initiale: " << (remote.Acceleration.X) << endl;
-	cout << "Acc_Y : initiale " << (remote.Acceleration.Y) << endl;
-	cout << "Acc_Z initiales : " << (remote.Acceleration.Z) << endl;
-
-	manette.activer_clock();
-
-	//boucle principale
 	while(!remote.Button.Home())
 	{
-		
-		SetConsoleCursorPosition(console, cursor_pos);
-
-		RED; cout << "Acc_X initiale: " << (remote.Acceleration.X) << endl;
-		cout << "clock " << clock() << endl;
+		Sleep (15);
 
 		while(remote.RefreshState() == NO_CHANGE)
-			Sleep(1);
+			Sleep(5);
+
+		SetConsoleCursorPosition(console, cursor_pos);
 
 		// In case of connection lost: jump to reconnect
 		if(remote.ConnectionLost())
@@ -79,12 +66,7 @@ reconnect:
 			goto reconnect;
 			}
 
-		if(remote.Button.A()) {
-			manette.calibrer(remote.Acceleration.X, remote.Acceleration.Y, remote.Acceleration.Z);
-		cout << "calibrer";
-		}
-
-		// Buttons:
+				// Buttons:
 		CYAN; _tprintf(_T("  Buttons: ")); WHITE; _tprintf(_T("["));
 		for(unsigned bit=0; bit<16; bit++)
 			{
@@ -110,39 +92,46 @@ reconnect:
 
 		//MAJ attributs de l'objet "manette"
 		manette.maj_orientation(remote.Acceleration.Orientation.Pitch,
-								remote.Acceleration.Orientation.Roll, 
-								0);
+								remote.Acceleration.Orientation.Roll,
+								remote.Acceleration.Orientation.Yaw);
 
-		/*manette.calcul_vitesse(	remote.Acceleration.Orientation.X,
-								remote.Acceleration.Orientation.Y,
-								remote.Acceleration.Orientation.Z);*/
+		manette.set_Acceleration(remote.Acceleration.X,
+								remote.Acceleration.Y,
+								remote.Acceleration.Z);
 		//affichage valeurs :
 		manette.afficher_mobile();
-		
+		cout << "Acc_X : " << remote.Acceleration.X << endl;
+		cout << "Acc_Y : " << remote.Acceleration.Y << endl;
+		cout << "Acc_Z : " << remote.Acceleration.Z << endl;
+
+		cout << "Gyr_Pitch : " << remote.Acceleration.Orientation.Pitch << endl;
+		cout << "Gyr_Roll : " << remote.Acceleration.Orientation.Roll << endl;
+		cout << "Gyr_Yaw : " << remote.Acceleration.Orientation.Yaw << endl;
+
 
 		manette.afficher_vitesse();
-
 		// CALCUL LA NOUVELLE POSITION
 
-       // if (remote.Acceleration.Orientation.UpdateAge != 0){
+        if (remote.Acceleration.Orientation.UpdateAge != 0){
 		manette.chgt_repere_translation(remote.Acceleration.X,
                                         remote.Acceleration.Y,
                                         remote.Acceleration.Z
                                         );
-		//manette.chgt_repere_rotation(remote.Acceleration.Orientation.Pitch,
-        //                             remote.Acceleration.Orientation.Roll,
-        //                             remote.Acceleration.Orientation.Yaw
-        //                            );
+		manette.chgt_repere_rotation(remote.Acceleration.Orientation.Pitch,
+                                     remote.Acceleration.Orientation.Roll,
+                                     remote.Acceleration.Orientation.Yaw
+                                    );
 
 
 
-		//}
-		//else{
-		//manette.set_vitesse(0,0,0);
+		}
+		/*else{
+		manette.set_vitesse(0,0,0);
 
-		//}
-
+		}*/
 		manette.afficher_position();
+         //Sleep(500);
+
 
 	}
 
