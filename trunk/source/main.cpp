@@ -125,10 +125,10 @@ reconnect:
 
 
 		}
-		/*else{
+		else{
 		manette.set_vitesse(0,0,0);
 
-		}*/
+		}
 		manette.afficher_position();
          //Sleep(500);
 

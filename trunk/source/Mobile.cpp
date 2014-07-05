@@ -16,6 +16,7 @@ using namespace std;
 		v_tr.v_y=0;
 		v_tr.v_z=0;
 
+		t_acquisition = 0;
 		t_pred = clock();
 		t_act = clock();
 
@@ -73,9 +74,9 @@ void Mobile :: set_vitesse (double v_x, double v_y, double v_z){
  */
 void Mobile::calcul_vitesse(accel_translation translation, double dt) {
 		//float dt = (clock() - t_position)/CLOCKS_PER_SEC;
-		v_tr.v_x += translation.accel_x*dt*100;
-		v_tr.v_y += translation.accel_y*dt*100;
-		v_tr.v_z += translation.accel_z*dt*100;
+		v_tr.v_x += translation.accel_x*dt*100/CLOCKS_PER_SEC;
+		v_tr.v_y += translation.accel_y*dt*100/CLOCKS_PER_SEC;
+		v_tr.v_z += translation.accel_z*dt*100/CLOCKS_PER_SEC;
 		/*v_tr.v_x /= 1000;
 		v_tr.v_y /= 1000;
 		v_tr.v_z /= 1000;*/
