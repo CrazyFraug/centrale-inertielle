@@ -5,7 +5,7 @@
 #include <time.h>
 #include <iostream>
 #include <iomanip>
-#include "repere.h"
+//#include "repere.h"
 
 struct accel_translation {
 	double accel_x;
