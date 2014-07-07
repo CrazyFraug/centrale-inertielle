@@ -11,9 +11,9 @@ Quaternion::Quaternion()
 Quaternion::Quaternion(double q0, double q1, double q2, double q3)
 {
 	m_q0=q0;
-	m_q1=0;
-	m_q2=0;
-	m_q3=0;
+	m_q1=q1;
+	m_q2=q2;
+	m_q3=q3;
 }
 
 Quaternion::~Quaternion()
