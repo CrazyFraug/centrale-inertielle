@@ -96,6 +96,21 @@ void Mobile::calcul_vitesse(accel_translation translation, double dt) {
 	}
 
 
+void Mobile::calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3])
+{
+	CQRQuaternionHandle* quat_rotation;
+	CQRCreateEmptyQuaternion(quat_rotation);
+	CQRAngles2Quaternion(*quat_rotation, teta_pitch,teta_roll,teta_yaw);
+	CQRQuaternion2Matrix (matrice, *quat_rotation);
+}
+
+void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z)
+{
+	(*accel_x) = G*matrice[0][2];
+	(*accel_y) = G*matrice[1][2];
+	(*accel_z) = G*matrice[2][2];
+}
+
 /*
  * Fonction calcule le changement du repère absolu avec une rotation
  * In : teta_pitch, teta_roll, teta_yaw - les angles reçus du gyroscope
@@ -138,7 +153,7 @@ void Mobile::chgt_repere_rotation(double teta_pitch, double teta_roll, double te
  * Remarques : Erreur accéléromètre -> erreur de calcul -> Filtre de Kalman à calculer - 14h22 03/07/2014
  *             Redéfinir le dt (temps entre deux acquisitions d'accélération) - 05/07/2014
 */
-void Mobile::chgt_repere_translation(float acc_x, float acc_y, float acc_z){
+void Mobile::chgt_repere_translation(double acc_x, double acc_y, double acc_z){
     double dt = t_act - t_pred/CLOCKS_PER_SEC;
     set_Acceleration(acc_x,acc_y,acc_z);
     calcul_vitesse(acc_trans,dt);
