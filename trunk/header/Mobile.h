@@ -7,6 +7,8 @@
 #include <iomanip>
 //#include "repere.h"
 
+#define G 9.81
+
 struct accel_translation {
 	double accel_x;
 	double accel_y;
@@ -18,7 +20,6 @@ struct accel_rotation {
 	float accel_teta;
 	float accel_psi;
 };
-
 
 struct vitesse_translation {
 	double v_x;
@@ -32,13 +33,11 @@ struct vitesse_rotation {
 	float v_psi;
 };
 
-
 struct repere_angle {
 	double phi;
 	double teta;
 	double psi;
 };
-
 
 struct repere_distance {
 	double x;
@@ -70,6 +69,7 @@ public:
 	void afficher_mobile(void);
 	void afficher_position(void);
 	void afficher_vitesse(void);
+	void calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3]);
 
 };
 
