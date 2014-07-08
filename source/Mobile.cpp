@@ -1,6 +1,7 @@
 #include "Mobile.h"
 #include <math.h>
 #include "cqrlib.h"
+
 using namespace std;
 
 	Mobile::Mobile() {
