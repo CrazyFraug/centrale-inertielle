@@ -3,12 +3,21 @@
 #include <iostream>
 #include "Mobile.h"
 #include "test.h"
+#include "Quaternion.h"
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
 using namespace std;
-
+using namespace boost::numeric::ublas;
 
 int main (int argc, char *argv[])
 {
+
+	double* tmp = eulerToQuat(0,90,0);
+	Quaternion Q1(tmp[0], tmp[1], tmp[2], tmp[3]);
+	matrix<double> p = Q1.matricePassage();
+	cout << p <<endl;
 
 	SetConsoleTitle(_T("- Wiimote: "));
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);

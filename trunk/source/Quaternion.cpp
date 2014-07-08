@@ -36,7 +36,7 @@ double* eulerToQuat(double phi, double teta, double psi)
 	return Q1.get_q();
 }
 
-matrix<double> Quaternion::matricePassage(Quaternion Q) 
+matrix<double> Quaternion::matricePassage() 
 {
 	matrix<double> p(3,3);
 	p(0,0) = 2*(pow(m_q0,2) + pow(m_q1,2))-1;	p(0,1) = 2*(m_q1*m_q2-m_q0*m_q3);			p(0,2) = 2*(m_q1*m_q3 + m_q0*m_q2);
@@ -44,4 +44,5 @@ matrix<double> Quaternion::matricePassage(Quaternion Q)
 	p(2,0) = 2*(m_q1*m_q3 - m_q0*m_q2);			//p(2,1) = 2*(m_q2*m_q3 + m_q0*m_q1);			
 	p(2,2) = 2*(pow(m_q0,2)+pow(m_q3,2))-1;
 	p(2,1) = 12;
+	return p;
 }

@@ -101,7 +101,7 @@ struct wiimote_state
 			//    complex scenarios *
 			float	 Pitch;	// in degrees (-180 - +180)
 			float	 Roll;	// "
-			// float Yaw;	
+			float Yaw;	
 			} Orientation;
 		} Acceleration;
 
