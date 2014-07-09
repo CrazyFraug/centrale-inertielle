@@ -9,16 +9,16 @@
 //  wiimote.cpp  (tab = 4 spaces)
 
 // VC-specifics:
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
  // disable warning "C++ exception handler used, but unwind semantics are not enabled."
  //				     in <xstring> (I don't use it - or just enable C++ exceptions)
 # pragma warning(disable: 4530)
 //  auto-link with the necessary libs
-# pragma comment(lib, "setupapi.lib")	
+# pragma comment(lib, "setupapi.lib")
 # pragma comment(lib, "hid.lib")		// for HID API (from DDK)
 # pragma comment(lib, "winmm.lib")		// for timeGetTime()
 #endif // _MSC_VER
-
+#include <stdio.h>
 #include "wiimote.h"
 #include <setupapi.h>
 extern "C" {
@@ -110,7 +110,7 @@ unsigned	   wiimote::_TotalConnected		  = 0;
 hidwrite_ptr   wiimote::_HidD_SetOutputReport = NULL;
 
 // (keep in sync with 'speaker_freq'):
-const unsigned wiimote::FreqLookup [TOTAL_FREQUENCIES] = 
+const unsigned wiimote::FreqLookup [TOTAL_FREQUENCIES] =
 								{    0, 4200, 3920, 3640, 3360,
 								  3130,	2940, 2760, 2610, 2470 };
 
@@ -152,11 +152,11 @@ wiimote::wiimote ()
 	AsyncRumbleTimeout	 (0),
 	UniqueID			 (0)	// not _guaranteed_ unique, see comments in header
 #ifdef ID2_FROM_DEVICEPATH		// (see comments in header)
-	// UniqueID2			 (0)	
+	// UniqueID2			 (0)
 #endif
 	{
 	_ASSERT(DataRead != INVALID_HANDLE_VALUE);
-				
+
 	// if this is the first wiimote object, detect & enable HID write support
 	if(++_TotalCreated == 1)
 		{
@@ -193,7 +193,7 @@ wiimote::wiimote ()
 	InitializeCriticalSection(&StateLock);
 
 	// request millisecond timer accuracy
-	timeBeginPeriod(1);		
+	timeBeginPeriod(1);
 	}
 // ------------------------------------------------------------------------------------
 wiimote::~wiimote ()
@@ -209,7 +209,7 @@ wiimote::~wiimote ()
 	DeleteCriticalSection(&StateLock);
 
 	// tidy up timer accuracy request
-	timeEndPeriod(1);		
+	timeEndPeriod(1);
 
 	// release HID DLL (for dynamic HID write method)
 	if((--_TotalCreated == 0) && HidDLL)
@@ -248,7 +248,7 @@ bool wiimote::Connect (unsigned wiimote_index, bool force_hidwrites)
 	// enumerate the devices
 	SP_DEVICE_INTERFACE_DATA didata;
 	didata.cbSize = sizeof(didata);
-	
+
 	unsigned index			= 0;
 	unsigned wiimotes_found = 0;
 	while(SetupDiEnumDeviceInterfaces(dev_info, NULL, &guid, index, &didata))
@@ -277,11 +277,11 @@ bool wiimote::Connect (unsigned wiimote_index, bool force_hidwrites)
 		Handle = CreateFile(didetail->DevicePath, 0, FILE_SHARE_READ|FILE_SHARE_WRITE,
 												  NULL, OPEN_EXISTING, 0, NULL);
 		if(Handle == INVALID_HANDLE_VALUE) {
-			DEEP_TRACE(_T(".... failed with err %x (probably harmless)."), 
+			DEEP_TRACE(_T(".... failed with err %x (probably harmless)."),
 					   GetLastError());
 			goto skip;
 			}
-	
+
 		// get the device attributes
 		HIDD_ATTRIBUTES attrib;
 		attrib.Size = sizeof(attrib);
@@ -308,7 +308,7 @@ bool wiimote::Connect (unsigned wiimote_index, bool force_hidwrites)
 			//  (that way subsequent calls can still _discover_ wiimotes above, but
 			//   will correctly fail here if they're already connected)
 			CloseHandle(Handle);
-			
+
 			// note this also means that if another application has already opened
 			//  the device, the library can no longer connect it (this may happen
 			//  with software that enumerates all joysticks in the system, because
@@ -485,12 +485,12 @@ void wiimote::Disconnect ()
 		return;
 
 	TRACE(_T("Disconnect()."));
-	
+
 	if(IsConnected())
 		{
 		_ASSERT(_TotalConnected > 0); // sanity
 		_TotalConnected--;
-		
+
 		if(!bConnectionLost)
 			Reset();
 		}
@@ -539,7 +539,7 @@ void wiimote::Disconnect ()
 void wiimote::Reset ()
 	{
 	TRACE(_T("Resetting wiimote."));
-	
+
 	if(bMotionPlusEnabled)
 		DisableMotionPlus();
 
@@ -603,7 +603,7 @@ connection_lost:
 		if(remote.IsConnected() && !remote.bInitInProgress &&
 		   !remote.IsPlayingAudio())
 			{
-			// status request due? 
+			// status request due?
 			if(time > remote.NextStatusTime)
 				{
 #ifdef BEEP_ON_PERIODIC_STATUSREFRESH
@@ -652,7 +652,7 @@ connection_lost:
 			// deal with it straight away to avoid a longer delay
 			goto connection_lost;
 			}
-	
+
 		// data was received:
 #ifdef BEEP_DEBUG_READS
 		Beep(500,1);
@@ -784,7 +784,7 @@ void wiimote::SetLEDs (BYTE led_bits)
 
 	_ASSERT(led_bits <= 0x0f);
 	led_bits &= 0xf;
-	
+
 	BYTE buff [REPORT_LENGTH] = {0};
 	buff[0] = OUT_LEDs;
 	buff[1] = (led_bits<<4) | GetRumbleBit();
@@ -820,7 +820,7 @@ unsigned __stdcall wiimote::AsyncRumbleThreadfunc (void* param)
 	// auto-disables rumble after x milliseconds:
 	_ASSERT(param);
 	wiimote &remote = *(wiimote*)param;
-	
+
 	while(remote.IsConnected())
 		{
 		if(remote.AsyncRumbleTimeout)
@@ -975,7 +975,7 @@ int wiimote::ParseInput (BYTE* buff)
 			//  detection during Connect())
 			bStatusReceived = true;
 			break;
-		
+
 		default:
 			DEEP_TRACE(_T(".. ** unknown input ** (happens)."));
 			///_ASSERT(0);
@@ -1008,7 +1008,7 @@ int wiimote::ParseInput (BYTE* buff)
 		if(ChangedCallback)
 			ChangedCallback(*this, (state_change_flags)changed, Internal);
 		}
-	
+
 	DEEP_TRACE(_T(".. parse complete."));
 	return true;
 	}
@@ -1023,26 +1023,26 @@ state_change_flags wiimote::RefreshState ()
 	//  synchronise the interal state with the read/parse thread (we don't want
 	//   values changing during the copy)
 	EnterCriticalSection(&StateLock);
-	
+
 	// remember which state changed since the last call
 	state_change_flags changed = InternalChanged;
-	
+
 	// preserve the application-set deadzones (if any)
 	joystick::deadzone nunchuk_deadzone	     = Nunchuk.Joystick.DeadZone;
 	joystick::deadzone classic_joyl_deadzone = ClassicController.JoystickL.DeadZone;
 	joystick::deadzone classic_joyr_deadzone = ClassicController.JoystickR.DeadZone;
-		
+
 	 // copy the internal state to the public one
 	*(wiimote_state*)this = Internal;
 	InternalChanged		  = NO_CHANGE;
-	 
+
 	 // restore the application-set deadzones
 	Nunchuk.Joystick.DeadZone			 = nunchuk_deadzone;
 	ClassicController.JoystickL.DeadZone = classic_joyl_deadzone;
 	ClassicController.JoystickR.DeadZone = classic_joyr_deadzone;
 
 	LeaveCriticalSection(&StateLock);
-	
+
 	return changed;
 	}
 // ------------------------------------------------------------------------------------
@@ -1068,7 +1068,7 @@ bool wiimote::EnableMotionPlus ()
 		return true;
 
 	TRACE(_T("Enabling Motion Plus:"));
-	
+
 	bMotionPlusExtension = false;
 	bInitInProgress		 = true;
 	bEnablingMotionPlus	 = true;
@@ -1101,7 +1101,7 @@ void wiimote::InitializeExtension ()
 	// wibrew.org: The new way to initialize the extension is by writing 0x55 to
 	//	0x(4)A400F0, then writing 0x00 to 0x(4)A400FB. It works on all extensions, and
 	//  makes the extension type bytes unencrypted. This means that you no longer have
-	//  to decrypt the extension bytes using the transform listed above. 
+	//  to decrypt the extension bytes using the transform listed above.
 	bInitInProgress = true;
 _ASSERT(Internal.bExtension);
 	// only initialize if it's not a MotionPlus
@@ -1111,7 +1111,7 @@ _ASSERT(Internal.bExtension);
 		}
 	else
 		bEnablingMotionPlus = false;
-	
+
 	ReadAddress(REGISTER_EXTENSION_TYPE , 6);
 	}
 // ------------------------------------------------------------------------------------
@@ -1119,7 +1119,7 @@ int wiimote::ParseStatus (BYTE* buff)
 	{
 	// parse the buttons
 	int changed = ParseButtons(buff);
-			
+
 	// get the battery level
 	BYTE battery_raw = buff[6];
 	if(Internal.BatteryRaw != battery_raw)
@@ -1172,21 +1172,21 @@ int wiimote::ParseStatus (BYTE* buff)
 //			SetReportType(ReportType);
 			}
 		}
-	
+
 	return changed;
 	}
 // ------------------------------------------------------------------------------------
 int wiimote::ParseButtons (BYTE* buff)
 	{
 	int changed = 0;
-	
+
 //	WORD bits = *(WORD*)(buff+1);
 	WORD bits = *(WORD*)(buff+1) & Button.ALL;
 
 	if(bits != Internal.Button.Bits)
 		changed |= BUTTONS_CHANGED;
 	Internal.Button.Bits = bits;
-	
+
 	return changed;
 	}
 // ------------------------------------------------------------------------------------
@@ -1208,7 +1208,7 @@ bool wiimote::EstimateOrientationFrom (wiimote_state::acceleration &accel)
 		{
 		if(++WiimoteNearGUpdates < 2)
 			return false;
-		
+
 		// wiimote seems to be stationary:  normalize the current acceleration
 		//  (ie. the assumed gravity vector)
 		float inv_len = 1.f / sqrt(length_sq);
@@ -1275,7 +1275,7 @@ void wiimote::ApplyJoystickDeadZones (wiimote_state::joystick &joy)
 int wiimote::ParseAccel (BYTE* buff)
 	{
 	int changed = 0;
-	
+
 	BYTE raw_x = buff[3];
 	BYTE raw_y = buff[4];
 	BYTE raw_z = buff[5];
@@ -1284,7 +1284,7 @@ int wiimote::ParseAccel (BYTE* buff)
 	   (raw_y != Internal.Acceleration.RawY) ||
 	   (raw_z != Internal.Acceleration.RawZ))
 	   changed |= ACCEL_CHANGED;
-	
+
 	Internal.Acceleration.RawX = raw_x;
 	Internal.Acceleration.RawY = raw_y;
 	Internal.Acceleration.RawZ = raw_z;
@@ -1293,7 +1293,7 @@ int wiimote::ParseAccel (BYTE* buff)
 	if(Internal.CalibrationInfo.X0)
 		{
 		Internal.Acceleration.X =
-					((float)Internal.Acceleration.RawX  - Internal.CalibrationInfo.X0) / 
+					((float)Internal.Acceleration.RawX  - Internal.CalibrationInfo.X0) /
 					((float)Internal.CalibrationInfo.XG - Internal.CalibrationInfo.X0);
 		Internal.Acceleration.Y =
 					((float)Internal.Acceleration.RawY  - Internal.CalibrationInfo.Y0) /
@@ -1311,7 +1311,7 @@ int wiimote::ParseAccel (BYTE* buff)
 	// see if we can estimate the orientation from the current values
 	if(EstimateOrientationFrom(Internal.Acceleration))
 		changed |= ORIENTATION_CHANGED;
-	
+
 	return changed;
 	}
 // ------------------------------------------------------------------------------------
@@ -1342,7 +1342,7 @@ int wiimote::ParseIR (BYTE* buff)
 
 				dot0.bVisible = !(buff[offs  ] == 0xff && buff[offs+1] == 0xff);
 				dot1.bVisible = !(buff[offs+3] == 0xff && buff[offs+4] == 0xff);
-			
+
 				if(dot0.bVisible) {
 					dot0.RawX = buff[offs  ] | ((buff[offs+2] >> 4) & 0x03) << 8;;
 					dot0.RawY = buff[offs+1] | ((buff[offs+2] >> 6) & 0x03) << 8;;
@@ -1357,14 +1357,14 @@ int wiimote::ParseIR (BYTE* buff)
 					}
 				}
 			break;
-		
+
 		case wiimote_state::ir::EXTENDED:
 			// each dot is encoded into 3 bytes
 			for(unsigned index=0; index<4; index++)
 				{
 				ir::dot &dot = Internal.IR.Dot[index];
 				const unsigned offs = 6 + (index * 3);
-			
+
 				dot.bVisible = !(buff[offs  ]==0xff && buff[offs+1]==0xff &&
 							   buff[offs+2]==0xff);
 				if(dot.bVisible) {
@@ -1393,7 +1393,7 @@ inline float wiimote::GetBalanceValue (short sensor, short min, short mid, short
 	float val = (sensor < mid)?
 					68.0f * ((float)(sensor - min) / (mid - min)) :
 					68.0f * ((float)(sensor - mid) / (max - mid)) + 68.0f;
-	
+
 	// divide by four (so that each sensor is correct)
 	return val * 0.25f;
 	}
@@ -1401,7 +1401,7 @@ inline float wiimote::GetBalanceValue (short sensor, short min, short mid, short
 int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 	{
 	int changed = 0;
-	
+
 	switch(Internal.ExtensionType)
 		{
 		case wiimote_state::NUNCHUK:
@@ -1409,17 +1409,17 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 			// buttons
 			bool c = (buff[offset+5] & 0x02) == 0;
 			bool z = (buff[offset+5] & 0x01) == 0;
-			
+
 			if((c != Internal.Nunchuk.C) || (z != Internal.Nunchuk.Z))
 				changed |= NUNCHUK_BUTTONS_CHANGED;
-			
+
 			Internal.Nunchuk.C = c;
 			Internal.Nunchuk.Z = z;
 
 			// acceleration
 			{
 			wiimote_state::acceleration &accel = Internal.Nunchuk.Acceleration;
-			
+
 			BYTE raw_x = buff[offset+2];
 			BYTE raw_y = buff[offset+3];
 			BYTE raw_z = buff[offset+4];
@@ -1446,7 +1446,7 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 
 			float raw_x = buff[offset+0];
 			float raw_y = buff[offset+1];
-			
+
 			if((raw_x != joy.RawX) || (raw_y != joy.RawY))
 				changed |= NUNCHUK_JOYSTICK_CHANGED;
 
@@ -1471,7 +1471,7 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 			}
 			}
 			break;
-		
+
 		case wiimote_state::CLASSIC:
 		case wiimote_state::GH3_GHWT_GUITAR:
 		case wiimote_state::GHWT_DRUMS:
@@ -1530,21 +1530,21 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 			BYTE raw_trigger_l = ((buff[offset+2] & 0x60) >> 2) |
 								  (buff[offset+3]		  >> 5);
 			BYTE raw_trigger_r =   buff[offset+3] & 0x1f;
-			
+
 			if((raw_trigger_l != Internal.ClassicController.RawTriggerL) ||
 			   (raw_trigger_r != Internal.ClassicController.RawTriggerR))
 			   changed |= CLASSIC_TRIGGERS_CHANGED;
-			
+
 			Internal.ClassicController.RawTriggerL  = raw_trigger_l;
 			Internal.ClassicController.RawTriggerR  = raw_trigger_r;
 
 			if(calib.MaxTriggerL != 0x00)
 				Internal.ClassicController.TriggerL =
-									 (float)Internal.ClassicController.RawTriggerL / 
+									 (float)Internal.ClassicController.RawTriggerL /
 									((float)calib.MaxTriggerL -	calib.MinTriggerL);
 			if(calib.MaxTriggerR != 0x00)
 				Internal.ClassicController.TriggerR =
-									 (float)Internal.ClassicController.RawTriggerR / 
+									 (float)Internal.ClassicController.RawTriggerR /
 									((float)calib.MaxTriggerR - calib.MinTriggerR);
 			}
 			break;
@@ -1588,7 +1588,7 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 								Internal.BalanceBoard.CalibrationInfo.Kg0 .BottomR,
 								Internal.BalanceBoard.CalibrationInfo.Kg17.BottomR,
 								Internal.BalanceBoard.CalibrationInfo.Kg34.BottomR);
-			
+
 			// uses these as the 'at rest' offsets? (immediately after Connect(),
 			//  or if the app called CalibrateAtRest())
 			if(bCalibrateAtRest) {
@@ -1636,14 +1636,14 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 			if((yaw != 0x3fff) || (pitch != 0x3fff) || (roll != 0x3fff))
 				{
 				wiimote_state::motion_plus::sensors_raw &raw = Internal.MotionPlus.Raw;
-	
+
 				if((raw.Yaw != yaw) || (raw.Pitch != pitch) || (raw.Roll  != roll))
 					changed |= MOTIONPLUS_SPEED_CHANGED;
 
 				raw.Yaw   = yaw;
 				raw.Pitch = pitch;
 				raw.Roll  = roll;
-	
+
 				// convert to float values
 				bool    yaw_slow = (buff[offset+3] & 0x2) == 0x2;
 				bool  pitch_slow = (buff[offset+3] & 0x1) == 0x1;
@@ -1651,11 +1651,11 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 				float y_scale    =   yaw_slow? 0.05f : 0.25f;
 				float p_scale    = pitch_slow? 0.05f : 0.25f;
 				float r_scale    =  roll_slow? 0.05f : 0.25f;
-			
+
 				Internal.MotionPlus.Speed.Yaw   = -(raw.Yaw   - 0x1F7F) * y_scale;
 		        Internal.MotionPlus.Speed.Pitch = -(raw.Pitch - 0x1F7F) * p_scale;
 			    Internal.MotionPlus.Speed.Roll  = -(raw.Roll  - 0x1F7F) * r_scale;
-	
+
 				// show if there's an extension plugged into the MotionPlus:
 				bool extension = buff[offset+4] & 1;
 				if(extension != bMotionPlusExtension)
@@ -1676,7 +1676,7 @@ int wiimote::ParseExtension (BYTE *buff, unsigned offset)
 			}
 			break;
 		}
-	
+
 	return changed;
 	}
 // ------------------------------------------------------------------------------------
@@ -1737,10 +1737,10 @@ int wiimote::ParseReadAddress (BYTE* buff)
 			Internal.CalibrationInfo.XG = buff[4];
 			Internal.CalibrationInfo.YG = buff[5];
 			Internal.CalibrationInfo.ZG = buff[6];
-			//changed |= CALIBRATION_CHANGED;	
+			//changed |= CALIBRATION_CHANGED;
 			}
 			break;
-			
+
 		// note: this covers both the normal extension and motion plus extension
 		//        addresses (0x4a400fa / 0x4a600fa)
 		case (REGISTER_EXTENSION_TYPE & 0xffff):
@@ -1834,7 +1834,7 @@ int wiimote::ParseReadAddress (BYTE* buff)
 				}
 			}
 			break;
-		
+
 		case (REGISTER_EXTENSION_CALIBRATION & 0xffff):
 		case (REGISTER_BALANCE_CALIBRATION   & 0xffff):
 			{
@@ -1866,14 +1866,14 @@ int wiimote::ParseReadAddress (BYTE* buff)
 //					SetReportType(ReportType);
 					}
 					break;
-				
+
 				case wiimote_state::CLASSIC:
 				case wiimote_state::GH3_GHWT_GUITAR:
 				case wiimote_state::GHWT_DRUMS:
 					{
 					wiimote_state::classic_controller::calibration_info
 						&calib = Internal.ClassicController.CalibrationInfo;
-					
+
 					calib.MaxXL = buff[ 0] >> 2;
 					calib.MinXL = buff[ 1] >> 2;
 					calib.MidXL = buff[ 2] >> 2;
@@ -1946,7 +1946,7 @@ int wiimote::ParseReadAddress (BYTE* buff)
 					calib.Kg34.BottomR = (short)((short)buff[2] << 8 | buff[3]);
 					calib.Kg34.TopL    = (short)((short)buff[4] << 8 | buff[5]);
 					calib.Kg34.BottomL = (short)((short)buff[6] << 8 | buff[7]);
-						
+
 					changed |= BALANCE_CONNECTED;
 					// reenable reports
 					SetReportType(IN_BUTTONS_BALANCE_BOARD);
@@ -1961,7 +1961,7 @@ int wiimote::ParseReadAddress (BYTE* buff)
 //			_ASSERT(0); // shouldn't happen
 			break;
 		}
-	
+
 	return changed;
 	}
 // ------------------------------------------------------------------------------------
@@ -2241,11 +2241,11 @@ unsigned __stdcall wiimote::SampleStreamThreadfunc (void* param)
 	TRACE(_T("(starting sample thread)"));
 	// sends a simple square wave sample stream
 	wiimote &remote = *(wiimote*)param;
-	
+
 	static BYTE squarewave_report[REPORT_LENGTH] =
 		{ OUT_SPEAKER_DATA, 20<<3, 0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,
 								   0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3,0xC3, };
-	static BYTE sample_report [REPORT_LENGTH] = 
+	static BYTE sample_report [REPORT_LENGTH] =
 		{ OUT_SPEAKER_DATA, 0 };
 
 	bool		   last_playing    = false;
@@ -2254,12 +2254,12 @@ unsigned __stdcall wiimote::SampleStreamThreadfunc (void* param)
 	unsigned	   total_samples   = 0;
 	unsigned	   sample_index	   = 0;
 	wiimote_sample *current_sample = NULL;
-	
+
 	// TODO: duration!!
 	while(remote.IsConnected())
 		{
 		bool playing = remote.IsPlayingAudio();
-		
+
 		if(!playing)
 			Sleep(1);
 		else{
@@ -2300,7 +2300,7 @@ unsigned __stdcall wiimote::SampleStreamThreadfunc (void* param)
 					unsigned report_samples = min(samples_left, (unsigned)40);
 					// round the entries up to the nearest multiple of 2
 					unsigned report_entries = (report_samples+1) >> 1;
-					
+
 					sample_report[1] = (BYTE)((report_entries<<3) |
 											  remote.GetRumbleBit());
 #ifdef FIRSTFRAME_IS_SILENT
@@ -2354,7 +2354,7 @@ unsigned __stdcall wiimote::SampleStreamThreadfunc (void* param)
 
 		last_playing = playing;
 		}
-	
+
 	TRACE(_T("(ending sample thread)"));
 	return 0;
 	}
@@ -2425,7 +2425,7 @@ bool wiimote::Load16bitMonoSampleWAV (const TCHAR* filepath, wiimote_sample &out
 	while(1)
 		{
 		READ(chunk_header);
-		
+
 		if(!strncmp(chunk_header.ckID, "fmt ", 4))
 			{
 			// not a valid .wav file?
@@ -2458,7 +2458,7 @@ bool wiimote::Load16bitMonoSampleWAV (const TCHAR* filepath, wiimote_sample &out
 			//  tolerance, especially as the speaker freq values aren't final yet):
 			unsigned	   sample_freq = wf.x.nSamplesPerSec;
 			const unsigned epsilon	   = 100; // for now
-			
+
 			for(unsigned index=1; index<ARRAY_ENTRIES(FreqLookup); index++)
 				{
 				if((sample_freq+epsilon) >= FreqLookup[index] &&
@@ -2484,7 +2484,7 @@ bool wiimote::Load16bitMonoSampleWAV (const TCHAR* filepath, wiimote_sample &out
 			unsigned total_samples = chunk_header.ckSize / wf.x.nBlockAlign;
 			if(total_samples == 0)
 				goto corrupt_file;
-			
+
 			short *samples = new short[total_samples];
 			size_t read = fread(samples, 2, total_samples, file);
 			fclose(file);
@@ -2543,7 +2543,7 @@ bool wiimote::Load16BitMonoSampleRAW (const TCHAR*   filepath,
 		WARN(_T("couldn't get filesize for '%s'"), filepath);
 		return false;
 		}
-	
+
 	DWORD len = file_info.st_size;
 	_ASSERT(len);
 	if(!len) {
@@ -2553,7 +2553,7 @@ bool wiimote::Load16BitMonoSampleRAW (const TCHAR*   filepath,
 
 	unsigned total_samples = (len+1) / 2; // round up just in case file is corrupt
 	// allocate a buffer to hold the samples to convert
-	short *samples = new short[total_samples]; 
+	short *samples = new short[total_samples];
 	_ASSERT(samples);
 	if(!samples) {
 		TRACE(_T("Couldn't open '%s"), filepath);
@@ -2666,7 +2666,7 @@ bool wiimote::Convert16bitMonoSamples (const short*   samples,
 	return true;
 	}
 // ------------------------------------------------------------------------------------
-bool wiimote::PlaySample (const wiimote_sample &sample, BYTE volume, 
+bool wiimote::PlaySample (const wiimote_sample &sample, BYTE volume,
 						  speaker_freq freq_override)
 	{
 	_ASSERT(IsConnected());
@@ -2684,14 +2684,14 @@ bool wiimote::PlaySample (const wiimote_sample &sample, BYTE volume,
 	BYTE bytes[9] = { 0x00, 0x00, 0x00, 10+freq, vol, 0x00, 0x00, 0x01, 0x01 };
 	WriteData(0x04a20001, sizeof(bytes), bytes);
 #else
-	// Write 0x01 to register 0x04a20009 
+	// Write 0x01 to register 0x04a20009
 	WriteData(0x04a20009, 0x01);
-	// Write 0x08 to register 0x04a20001 
+	// Write 0x08 to register 0x04a20001
 	WriteData(0x04a20001, 0x08);
-	// Write 7-byte configuration to registers 0x04a20001-0x04a20008 
+	// Write 7-byte configuration to registers 0x04a20001-0x04a20008
 	BYTE bytes[7] = { 0x00, 0x00, 0x00, 10+(BYTE)freq, volume, 0x00, 0x00 };
 	WriteData(0x04a20001, sizeof(bytes), bytes);
-	// + Write 0x01 to register 0x04a20008 
+	// + Write 0x01 to register 0x04a20008
 	WriteData(0x04a20008, 0x01);
 #endif
 
@@ -2715,7 +2715,7 @@ bool wiimote::StartSampleThread ()
 	if(!SampleThread) {
 		WARN(_T("couldn't create sample thread!"));
 		MuteSpeaker  (true);
-		EnableSpeaker(false);	
+		EnableSpeaker(false);
 		return false;
 		}
 	SetThreadPriority(SampleThread, WORKER_THREAD_PRIORITY);
@@ -2748,15 +2748,15 @@ bool wiimote::PlaySquareWave (speaker_freq freq, BYTE volume)
 	BYTE bytes[9] = { 0x00, 0x00, 0x00, freq, volume, 0x00, 0x00, 0x01, 0x1 };
 	WriteData(0x04a20001, sizeof(bytes), bytes);
 #else
-	// write 0x01 to register 0xa20009 
+	// write 0x01 to register 0xa20009
 	WriteData(0x04a20009, 0x01);
-	// write 0x08 to register 0xa20001 
+	// write 0x08 to register 0xa20001
 	WriteData(0x04a20001, 0x08);
 	// write default sound mode (4bit ADPCM, we assume) 7-byte configuration
-	//  to registers 0xa20001-0xa20008 
+	//  to registers 0xa20001-0xa20008
 	BYTE bytes[7] = { 0x00, 0x00, 0x00, 10+(BYTE)freq, volume, 0x00, 0x00 };
 	WriteData(0x04a20001, sizeof(bytes), bytes);
-	// write 0x01 to register 0xa20008 
+	// write 0x01 to register 0xa20008
 	WriteData(0x04a20008, 0x01);
 #endif
 
@@ -2779,7 +2779,7 @@ void wiimote::RecordState (state_history	  &events_out,
 	if(!events_out.empty())
 		events_out.clear();
 
-	// start recording 
+	// start recording
 	Recording.StateHistory = &events_out;
 	Recording.StartTimeMS  = timeGetTime();
 	Recording.EndTimeMS    = Recording.StartTimeMS + max_time_ms;

@@ -1,28 +1,28 @@
 #include "test.h"
-
+#include <stdio.h>
 
 //work in progress
-/*void display_state(string changed_state, int new_val)		
-	{													
+/*void display_state(string changed_state, int new_val)
+	{
 
-	switch(changed_state)								
-			{	case _T("A"): cursor_pos.Y = 5;			
-					break;								
-				case _T("B"): cursor_pos.Y = 6;			
-					break;								
-				case _T("Plus"): cursor_pos.Y = 7;		
-					break;								
-				case _T("Minus"): cursor_pos.Y = 8;		
-					break;								
-				case _T("One"): cursor_pos.Y = 9;		
-					break;								
-				case _T("Two"): cursor_pos.Y = 10;		
-					break;								
-			}											
+	switch(changed_state)
+			{	case _T("A"): cursor_pos.Y = 5;
+					break;
+				case _T("B"): cursor_pos.Y = 6;
+					break;
+				case _T("Plus"): cursor_pos.Y = 7;
+					break;
+				case _T("Minus"): cursor_pos.Y = 8;
+					break;
+				case _T("One"): cursor_pos.Y = 9;
+					break;
+				case _T("Two"): cursor_pos.Y = 10;
+					break;
+			}
 
 		SetConsoleCursorPosition(console, cursor_pos);	\
-		_tprintf(_T(changed_state + " :"+ new_val + "\r\n"));	\			
-		}		*/		
+		_tprintf(_T(changed_state + " :"+ new_val + "\r\n"));	\
+		}		*/
 
 
 
@@ -34,7 +34,7 @@ void on_state_change (wiimote			  &remote,
 		//_tprintf(_T("\ntetshcdfskjqvfqkvnfjq\n"));
 	// we use this callback to set report types etc. to respond to key events
 	//  (like the wiimote connecting or extensions (dis)connecting).
-	
+
 	// NOTE: don't access the public state from the 'remote' object here, as it will
 	//		  be out-of-date (it's only updated via RefreshState() calls, and these
 	//		  are reserved for the main application so it can be sure the values
@@ -49,7 +49,7 @@ void on_state_change (wiimote			  &remote,
 
 		// note1: you don't need to set a report type for Balance Boards - the
 		//		   library does it automatically.
-		
+
 		// note2: for wiimotes, the report mode that includes the extension data
 		//		   unfortunately only reports the 'BASIC' IR info (ie. no dot sizes),
 		//		   so let's choose the best mode based on the extension status:
@@ -136,8 +136,8 @@ int test(accel_translation translation, repere_angle orientation)
 	remote.ChangedCallback = on_state_change;
 	//  notify us only when the wiimote connected sucessfully, or something
 	//   related to extensions changes
-	remote.CallbackTriggerFlags = (state_change_flags)(	CONNECTED | 
-														EXTENSION_CHANGED | 
+	remote.CallbackTriggerFlags = (state_change_flags)(	CONNECTED |
+														EXTENSION_CHANGED |
 														MOTIONPLUS_CHANGED);
 
 	//action when a button is pressed/released:
@@ -159,9 +159,9 @@ int test(accel_translation translation, repere_angle orientation)
 
 reconnect:
 
-	COORD pos = { 0, 1 };	
+	COORD pos = { 0, 1 };
 	COORD cursor_pos = { 0, 3 };
-	
+
 	SetConsoleCursorPosition(console, pos);
 
 	//"Looking for a wiimote" waiting screen:
@@ -185,7 +185,7 @@ reconnect:
 	// display the wiimote state data until 'Home' is pressed:
 	while(!remote.Button.Home())// && !GetAsyncKeyState(VK_ESCAPE))
 	{
-		
+
 		while(remote.RefreshState() == NO_CHANGE)
 			Sleep(1);
 
@@ -214,7 +214,7 @@ reconnect:
 // Output method:
 	    CYAN; _tprintf( _T("        using %s\n"), (remote.IsUsingHIDwrites()?
 											   _T("HID writes") : _T("WriteFile()")));
-		
+
 		// 'Unique' IDs (not guaranteed to be unique, check the variable
 		//  defintion for details)
 		CYAN  ; _tprintf(_T("       ID: "));
@@ -256,17 +256,17 @@ reconnect:
 					remote.Acceleration.X,
 					remote.Acceleration.Y,
 					remote.Acceleration.Z);
-	
+
 		// Orientation estimate (shown red if last valid update is aging):
 		CYAN ; _tprintf(_T("   Orient:"));
 		remote.IsBalanceBoard()? RED : WHITE;
 		_tprintf(_T("  UpdateAge %3u  "), remote.Acceleration.Orientation.UpdateAge);
-		
+
 		//  show if the last orientation update is considered out-of-date
 		//   (using an arbitrary threshold)
 		if(remote.Acceleration.Orientation.UpdateAge > 10)
 			RED;
-			
+
 		_tprintf(_T("Pitch:%4ddeg  Roll:%4ddeg  \n")
 			     _T("                           (X %+.3f  Y %+.3f  Z %+.3f)      \n"),
 				 (int)remote.Acceleration.Orientation.Pitch,
