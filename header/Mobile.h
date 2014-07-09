@@ -49,7 +49,9 @@ struct repere_distance {
 class Mobile {
 
 private :
-    accel_translation acc_trans;
+    double acc_x_stock[4];
+    double acc_y_stock[4];
+    double acc_z_stock[4];
 	repere_angle orientation ;
 	repere_distance position_absolue ;
 	repere_distance position_relative;
@@ -60,6 +62,7 @@ private :
 public:
 	Mobile();
 	void set_Acceleration (double acc_x, double acc_y, double acc_z);
+	void get_Acceleration(double acc_x, double acc_y, double acc_z, int i);
 	void maj_orientation(double phi, double teta, double psi);
 	void set_vitesse (double v_x, double v_y, double v_z);
 	void calcul_vitesse(accel_translation translation, double dt);
@@ -70,6 +73,10 @@ public:
 	void afficher_position(void);
 	void afficher_vitesse(void);
 	void calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3]);
+	double best_Value_x (void);
+	double best_Value_y (void);
+	double best_Value_z (void);
+	accel_translation acc_trans;
 
 };
 
