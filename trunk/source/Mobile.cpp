@@ -1,7 +1,6 @@
 #include "Mobile.h"
 #include <math.h>
 #include "cqrlib.h"
-
 using namespace std;
 
 	Mobile::Mobile() {
@@ -17,7 +16,7 @@ using namespace std;
 		v_tr.v_y=0;
 		v_tr.v_z=0;
 
-		t_acquisition = 0;
+        t_acquisition = 0;
 		t_pred = clock();
 		t_act = clock();
 
@@ -30,10 +29,11 @@ using namespace std;
 
 
 void Mobile::set_Acceleration (double acc_x, double acc_y, double acc_z){
+		t_pred = t_act;
 		acc_trans.accel_x = acc_x;
 		acc_trans.accel_y = acc_y;
 		acc_trans.accel_z = acc_z;
-		t_pred = t_act;
+        Sleep(20);
 		t_act = clock();
 }
 
@@ -45,8 +45,8 @@ void Mobile::norm_Angle(double alpha){
 	    }
 }
 
-/*
- * Fonction mettra à jour les angles d'orientation
+
+/** Fonction mettra à jour les angles d'orientation
  * In : phi,teta,psi - les angles reçus du gyroscope
  * Remarque : Ajout la normalisation - 05/07/2014
 */
@@ -67,8 +67,8 @@ void Mobile :: set_vitesse (double v_x, double v_y, double v_z){
 }
 
 
-/*
- * Fonction calcule la vitesse à partir de l'accélération
+
+/** Fonction calcule la vitesse à partir de l'accélération
  * In : accel_translation - accélération de translation
         dt                - la différence de temps entre 2 acquisitions
  * Remarque : la vitesse est calculé en cm/s (*100)  - 05/07/2014
@@ -96,23 +96,7 @@ void Mobile::calcul_vitesse(accel_translation translation, double dt) {
 	}
 
 
-void Mobile::calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3])
-{
-	CQRQuaternionHandle* quat_rotation;
-	CQRCreateEmptyQuaternion(quat_rotation);
-	CQRAngles2Quaternion(*quat_rotation, teta_pitch,teta_roll,teta_yaw);
-	CQRQuaternion2Matrix (matrice, *quat_rotation);
-}
-
-void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z)
-{
-	(*accel_x) = G*matrice[0][2];
-	(*accel_y) = G*matrice[1][2];
-	(*accel_z) = G*matrice[2][2];
-}
-
-/*
- * Fonction calcule le changement du repère absolu avec une rotation
+/** Fonction calcule le changement du repère absolu avec une rotation
  * In : teta_pitch, teta_roll, teta_yaw - les angles reçus du gyroscope
  * Remarque : Erreur d'algorithme -> Refaire des calculs!!!!! - 14h21 03/07/2014
  *            Passage en Quaternion -> Revoir la modif du repère - 05/07/2014
@@ -147,14 +131,56 @@ void Mobile::chgt_repere_rotation(double teta_pitch, double teta_roll, double te
     }*/
 }
 
-/*
- * Fonction calcule le changement du repère absolu avec une translation
+/**
+ *  Fonction pour récupérer plusieurs valeur d'accélération afin d'avoir une meilleur précision
+ *
+*/
+void Mobile::get_Acceleration(double acc_x, double acc_y, double acc_z, int i){
+    acc_x_stock[i] = acc_x;
+    acc_y_stock[i] = acc_y;
+    acc_z_stock[i] = acc_z;
+}
+
+/**
+ * Fonction pour trouver la moyenne des valeurs d'un tableau de valeur
+ * À généraliser!!!!!!!!!!!!!!!!!
+ */
+double Mobile::best_Value_x (void){
+    double mean_value;
+    double sum_table = 0;
+    for (int i = 0; i <= 4 ; i++){
+        sum_table += acc_x_stock[i];
+    }
+    mean_value = sum_table/4;
+    return mean_value;
+}
+double Mobile::best_Value_y (void){
+    double mean_value;
+    double sum_table = 0;
+    for (int i = 0; i <= 4 ; i++){
+        sum_table += acc_y_stock[i];
+    }
+    mean_value = sum_table/4;
+    return mean_value;
+}
+
+double Mobile::best_Value_z (void){
+    double mean_value;
+    double sum_table = 0;
+    for (int i = 0; i <= 4 ; i++){
+        sum_table += acc_z_stock[i];
+    }
+    mean_value = sum_table/4;
+    return mean_value;
+}
+/** Fonction calcule le changement du repère absolu avec une translation
  * In : acc_x, acc_y, acc_z - les accélérations reçus de l'accéléromètre
  * Remarques : Erreur accéléromètre -> erreur de calcul -> Filtre de Kalman à calculer - 14h22 03/07/2014
  *             Redéfinir le dt (temps entre deux acquisitions d'accélération) - 05/07/2014
 */
 void Mobile::chgt_repere_translation(double acc_x, double acc_y, double acc_z){
-    double dt = t_act - t_pred/CLOCKS_PER_SEC;
+    double dt = (t_act - t_pred);
+    t_acquisition = dt;
     set_Acceleration(acc_x,acc_y,acc_z);
     calcul_vitesse(acc_trans,dt);
     //cout << "dt : " << dt << endl;
@@ -179,5 +205,7 @@ void Mobile::afficher_vitesse()
 		cout << "Vitesse X  = " << v_tr.v_x<< endl ;
 		cout << "Vitesse Y = " << v_tr.v_y<< endl ;
 		cout << "Vitesse Z  = " << v_tr.v_z<< endl ;
-		cout << "t_position :" << t_position << endl;
+		cout << "t_acquisition :" << t_acquisition << endl;
+		cout << "t_pred :" << t_pred<< endl;
+		cout << "t_actuel :" << t_act << endl;
 	}

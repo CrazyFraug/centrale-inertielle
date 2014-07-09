@@ -3,27 +3,17 @@
 #include <iostream>
 #include "Mobile.h"
 #include "test.h"
-#include "Quaternion.h"
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 using namespace std;
-using namespace boost::numeric::ublas;
+
 
 int main (int argc, char *argv[])
 {
-
-	double* tmp = eulerToQuat(0,90,0);
-	Quaternion Q1(tmp[0], tmp[1], tmp[2], tmp[3]);
-	matrix<double> p = Q1.matricePassage();
-	cout << p <<endl;
 
 	SetConsoleTitle(_T("- Wiimote: "));
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	wiimote remote;
 	Mobile manette;
-
 	remote.ChangedCallback = on_state_change;
 
 	remote.CallbackTriggerFlags = (state_change_flags)(	CONNECTED |
@@ -103,15 +93,33 @@ reconnect:
 		manette.maj_orientation(remote.Acceleration.Orientation.Pitch,
 								remote.Acceleration.Orientation.Roll,
 								remote.Acceleration.Orientation.Yaw);
-
-		manette.set_Acceleration(remote.Acceleration.X,
+        int i = 0;
+        while (i<=4){
+            manette.get_Acceleration(remote.Acceleration.X,
 								remote.Acceleration.Y,
-								remote.Acceleration.Z);
+								remote.Acceleration.Z,i);
+			i++;
+        }
+
+        double best_x, best_y, best_z;
+        best_x = manette.best_Value_x();
+        best_y = manette.best_Value_y();
+        best_z = manette.best_Value_z();
+
+        cout << "Best_ACC_X :  " << best_x << endl;
+        cout << "Best_ACC_Y :  " << best_y << endl;
+        cout << "Best_ACC_Z :  " << best_z << endl;
+
+
+		manette.set_Acceleration(best_x, best_y, best_z);
+		/*manette.set_Acceleration(remote.Acceleration.X,
+								remote.Acceleration.Y,
+								remote.Acceleration.Z);*/
 		//affichage valeurs :
 		manette.afficher_mobile();
-		cout << "Acc_X : " << remote.Acceleration.X << endl;
-		cout << "Acc_Y : " << remote.Acceleration.Y << endl;
-		cout << "Acc_Z : " << remote.Acceleration.Z << endl;
+		cout << "Acc_X : " << manette.acc_trans.accel_x << endl;
+		cout << "Acc_Y : " << manette.acc_trans.accel_y << endl;
+		cout << "Acc_Z : " << manette.acc_trans.accel_z << endl;
 
 		cout << "Gyr_Pitch : " << remote.Acceleration.Orientation.Pitch << endl;
 		cout << "Gyr_Roll : " << remote.Acceleration.Orientation.Roll << endl;
@@ -126,10 +134,10 @@ reconnect:
                                         remote.Acceleration.Y,
                                         remote.Acceleration.Z
                                         );
-		manette.chgt_repere_rotation(remote.Acceleration.Orientation.Pitch,
+		/*manette.chgt_repere_rotation(remote.Acceleration.Orientation.Pitch,
                                      remote.Acceleration.Orientation.Roll,
                                      remote.Acceleration.Orientation.Yaw
-                                    );
+                                    );*/
 
 
 
@@ -139,7 +147,7 @@ reconnect:
 
 		}
 		manette.afficher_position();
-         //Sleep(500);
+         //Sleep(40);
 
 
 	}
