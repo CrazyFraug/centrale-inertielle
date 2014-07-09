@@ -14,6 +14,10 @@ int main (int argc, char *argv[])
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	wiimote remote;
 	Mobile manette;
+
+	double matrice[3][3];
+	double v[3], w[3];
+
 	remote.ChangedCallback = on_state_change;
 
 	remote.CallbackTriggerFlags = (state_change_flags)(	CONNECTED |
@@ -22,6 +26,11 @@ int main (int argc, char *argv[])
 														ACCEL_CHANGED |
 														ORIENTATION_CHANGED |
 														BUTTONS_CHANGED);
+	cout << cos(45) << endl;
+	manette.rotate_vector(*manette.calculerOrientation(0,45,0, matrice), w, v);
+	cout << "w = " << endl;
+
+	system("PAUSE");
 
 //label for reconnection procedure
 reconnect:
@@ -139,12 +148,9 @@ reconnect:
                                      remote.Acceleration.Orientation.Yaw
                                     );*/
 
-
-
 		}
 		else{
-		manette.set_vitesse(0,0,0);
-
+			manette.set_vitesse(0,0,0);
 		}
 		manette.afficher_position();
          //Sleep(40);
