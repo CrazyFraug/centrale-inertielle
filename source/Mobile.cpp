@@ -76,6 +76,7 @@ void Mobile::norm_Angle(double alpha){
 CQRQuaternionHandle* Mobile::calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3])
 {
 	CQRQuaternionHandle* quat_rotation;
+	quat_rotation = new CQRQuaternionHandle;
 	CQRCreateEmptyQuaternion(quat_rotation);
 	if (CQRAngles2Quaternion(*quat_rotation, teta_pitch,teta_roll,teta_yaw) == CQR_SUCCESS) {
 		CQRQuaternion2Matrix (matrice, *quat_rotation);
@@ -181,7 +182,7 @@ double Mobile::best_Value_z (void){
 */
 void Mobile::chgt_repere_translation(double acc_x, double acc_y, double acc_z){
     double dt = (t_act - t_pred);
-    t_acquisition = dt;
+    t_acquisition = (double)dt;
     set_Acceleration(acc_x,acc_y,acc_z);
     calcul_vitesse(acc_trans,dt);
     //cout << "dt : " << dt << endl;
