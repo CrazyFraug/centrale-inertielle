@@ -60,12 +60,27 @@ void Mobile::norm_Angle(double alpha){
 		orientation.psi = psi;
 	}
 
+
+void Mobile::calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3])
+{
+	CQRQuaternionHandle* quat_rotation;
+	CQRCreateEmptyQuaternion(quat_rotation);
+	CQRAngles2Quaternion(*quat_rotation, teta_pitch,teta_roll,teta_yaw);
+	CQRQuaternion2Matrix (matrice, *quat_rotation);
+}
+
+void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z)
+{
+	(*accel_x) = G*matrice[0][2];
+	(*accel_y) = G*matrice[1][2];
+	(*accel_z) = G*matrice[2][2];
+}
+
 void Mobile :: set_vitesse (double v_x, double v_y, double v_z){
         v_tr.v_x = v_x;
         v_tr.v_y = v_y;
         v_tr.v_z = v_z;
 }
-
 
 
 /** Fonction calcule la vitesse à partir de l'accélération

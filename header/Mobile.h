@@ -45,6 +45,7 @@ struct repere_distance {
 	double z;
 };
 
+void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z);
 
 class Mobile {
 
