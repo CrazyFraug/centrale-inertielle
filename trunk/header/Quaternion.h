@@ -2,8 +2,8 @@
 #define DEF_QUATERNION
 
 #include "Mobile.h"
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
+//#include <boost/numeric/ublas/matrix.hpp>
+//#include <boost/numeric/ublas/io.hpp>
 
 struct struct_eulerAngle {
 	double phi,teta,psi;
@@ -16,7 +16,7 @@ public:
 	Quaternion(double, double, double, double);
 	~Quaternion();
 	double* get_q();
-	boost::numeric::ublas::matrix<double> matricePassage();
+	//boost::numeric::ublas::matrix<double> matricePassage();
 
 private:
 	double m_q0, m_q1, m_q2, m_q3;
