@@ -1,9 +1,11 @@
 #include "Mobile.h"
 #include <math.h>
-#include "cqrlib.h"
+
 using namespace std;
 
 	Mobile::Mobile() {
+
+		double tmp[3] = {-1,0,0}; //sert à initialiser le tableau dynamique
 		position_absolue.x = 0;
 		position_absolue.y = 0;
 		position_absolue.z = 0;
@@ -20,13 +22,23 @@ using namespace std;
 		t_pred = clock();
 		t_act = clock();
 
+		vecteur_orientation = new double[3];
+		vecteur_orientation = tmp;
+
 	}
+
+	Mobile::~Mobile() {
+		delete[] vecteur_orientation;
+	}
+
+	double* Mobile::get_VectOrient() {return vecteur_orientation;}
+
+	void Mobile::set_VectOrient(double* val) {vecteur_orientation = val;}
 
 /** Fonction mettre à jour l'attribut accélération
  *  In : acc_x, acc_y, acc_z - les accélérations selon 3 axes
  *  Remarques : mettre à jour le temps de l'acquisition
  */
-
 
 void Mobile::set_Acceleration (double acc_x, double acc_y, double acc_z){
 		t_pred = t_act;
@@ -38,10 +50,10 @@ void Mobile::set_Acceleration (double acc_x, double acc_y, double acc_z){
 }
 
 void Mobile::norm_Angle(double alpha){
-        if (alpha > 360){
-            alpha -=360;
-	    }else if (alpha< -360){
-            alpha +=360;
+        if (alpha > 180){
+            alpha -= 360;
+	    }else if (alpha< -180){
+            alpha += 360;
 	    }
 }
 
@@ -61,13 +73,30 @@ void Mobile::norm_Angle(double alpha){
 	}
 
 
-void Mobile::calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3])
+CQRQuaternionHandle* Mobile::calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3])
 {
 	CQRQuaternionHandle* quat_rotation;
 	CQRCreateEmptyQuaternion(quat_rotation);
-	CQRAngles2Quaternion(*quat_rotation, teta_pitch,teta_roll,teta_yaw);
-	CQRQuaternion2Matrix (matrice, *quat_rotation);
+	if (CQRAngles2Quaternion(*quat_rotation, teta_pitch,teta_roll,teta_yaw) == CQR_SUCCESS) {
+		CQRQuaternion2Matrix (matrice, *quat_rotation);
+	}
+	return quat_rotation;
 }
+
+
+/** Fonction calcule le changement de coordonnées du vecteur à partir d'un quat rotation
+ * In : CQRQuaternionHandle quat_rotation, double* w, double* v -> v le vecteur d'origine, et w le vecteur après rotation
+ * Out: 0 if succcess
+ * Remarque : 
+*/
+
+int Mobile::rotate_vector(CQRQuaternionHandle quat_rotation, double* w, double* v)
+{
+        return CQRRotateByQuaternion(w,quat_rotation,v);
+}
+
+
+/** Soustraction de l'influence de l'accélération g sur chacun des axes de l'accéléromètre*/
 
 void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z)
 {
@@ -89,62 +118,19 @@ void Mobile :: set_vitesse (double v_x, double v_y, double v_z){
  * Remarque : la vitesse est calculé en cm/s (*100)  - 05/07/2014
  */
 void Mobile::calcul_vitesse(accel_translation translation, double dt) {
-		//float dt = (clock() - t_position)/CLOCKS_PER_SEC;
 		v_tr.v_x += translation.accel_x*dt*100/CLOCKS_PER_SEC;
 		v_tr.v_y += translation.accel_y*dt*100/CLOCKS_PER_SEC;
 		v_tr.v_z += translation.accel_z*dt*100/CLOCKS_PER_SEC;
-		/*v_tr.v_x /= 1000;
-		v_tr.v_y /= 1000;
-		v_tr.v_z /= 1000;*/
-		//cout << "dt ---> " << dt << endl;
 	}
 
 	void Mobile::afficher_mobile()
 	{
-		//cout.width(4);
-		//cout.fill('0');
 		cout << "angles : " << endl ;
 		cout << "phi  = " << orientation.phi << endl ;
 		cout << "teta = " << orientation.teta << endl ;
 		cout << "psi  = " << orientation.psi << endl ;
-
 	}
 
-
-/** Fonction calcule le changement du repère absolu avec une rotation
- * In : teta_pitch, teta_roll, teta_yaw - les angles reçus du gyroscope
- * Remarque : Erreur d'algorithme -> Refaire des calculs!!!!! - 14h21 03/07/2014
- *            Passage en Quaternion -> Revoir la modif du repère - 05/07/2014
-*/
-void Mobile::chgt_repere_rotation(double teta_pitch, double teta_roll, double teta_yaw)
-{
-    CQRQuaternionHandle quat_rotation;
-    CQRCreateEmptyQuaternion(&quat_rotation);
-    if (CQRAngles2Quaternion(quat_rotation, teta_pitch,teta_roll,teta_yaw) == 0){
-        double result[3] = {0,0,0};
-        double vect [3] = {position_absolue.x, position_absolue.y, position_absolue.z};
-        CQRRotateByQuaternion(result,quat_rotation,vect);
-        //maj_position(result[0], result[1], result[2]);
-        //return 0;
-    }else {
-        //return 1;
-    }
-    /*if (teta_pitch!=0){
-        //cout << "Il y a une rotation selon l'axe Ox" << endl;
-        position.y *= cos(teta_pitch);
-        position.z *= cos(teta_pitch);
-    }
-    if (teta_roll!=0){
-        //cout << "Il y a une rotation selon l'axe Oy" << endl;
-        position.x *= cos(teta_roll);
-        position.z *= cos(teta_roll);
-    }
-    if (teta_yaw!=0){
-        //cout << "Il y a une rotation selon l'axe Oz" << endl;
-        position.x *= cos(teta_yaw);
-        position.y *= cos(teta_yaw);
-    }*/
-}
 
 /**
  *  Fonction pour récupérer plusieurs valeur d'accélération afin d'avoir une meilleur précision
@@ -224,3 +210,9 @@ void Mobile::afficher_vitesse()
 		cout << "t_pred :" << t_pred<< endl;
 		cout << "t_actuel :" << t_act << endl;
 	}
+
+void Mobile::afficher_angle(void) {
+	cout << "phi : " << orientation.phi << endl;
+	cout << "teta : " << orientation.teta << endl;
+	cout << "psi : " << orientation.psi << endl;
+}
