@@ -106,12 +106,42 @@ reconnect:
 								remote.Acceleration.Orientation.Roll,
 								remote.Acceleration.Orientation.Yaw);
         int i = 0;
-        while (i<=4){
-            manette.get_Acceleration(remote.Acceleration.X,
+        while (i<4){
+               SetConsoleCursorPosition(console, {0,5});
+               cout << "principal" << i << endl;
+
+            if (i!=0){
+                SetConsoleCursorPosition(console, {0,10});
+                cout << "Acc_X : " << remote.Acceleration.X << endl;
+                cout << "Acc_Y : " << remote.Acceleration.Y << endl;
+                cout << "Acc_Z : " << remote.Acceleration.Z << endl;
+                cout << "test i" << i << endl;
+                while(remote.RefreshState() == ACCEL_CHANGED)
+                Sleep(5);
+                //i++;
+              if ((remote.Acceleration.X != manette.acc_x_stock[i-1])||
+                  (remote.Acceleration.Y != manette.acc_y_stock[i-1])||
+                  (remote.Acceleration.Z != manette.acc_z_stock[i-1])){
+                    manette.get_Acceleration(remote.Acceleration.X,
 								remote.Acceleration.Y,
 								remote.Acceleration.Z,i);
-			i++;
+								cout<<"if i: "<< i <<endl;
+                  i++;
+
+                  }
+            }else{
+            manette.get_Acceleration(remote.Acceleration.X,
+								remote.Acceleration.Y,
+								remote.Acceleration.Z,0);
+            cout<<"0i: "<< i <<endl;
+            i++;
+            cout<<"1i: "<< i <<endl;
+            SetConsoleCursorPosition(console, {0,14});
+            manette.afficher_acc_stock();
+            }
         }
+
+
 
         double best_x, best_y, best_z;
         best_x = manette.best_Value_x();
