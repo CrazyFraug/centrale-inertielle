@@ -5,6 +5,8 @@
 #include <time.h>
 #include <iostream>
 #include <iomanip>
+#include <math.h>
+
 #include "cqrlib.h"
 
 #define G 9.81

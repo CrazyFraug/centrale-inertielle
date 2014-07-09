@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <math.h>
 #include "Mobile.h"
 #include "test.h"
 
 using namespace std;
-
 
 int main (int argc, char *argv[])
 {
@@ -16,7 +16,8 @@ int main (int argc, char *argv[])
 	Mobile manette;
 
 	double matrice[3][3];
-	double v[3], w[3];
+	double v[3] = {-1,0,0}; 
+	double w[3] = {0,0,0};
 
 	remote.ChangedCallback = on_state_change;
 
@@ -27,20 +28,22 @@ int main (int argc, char *argv[])
 														ORIENTATION_CHANGED |
 														BUTTONS_CHANGED);
 	cout << cos(45) << endl;
-	manette.rotate_vector(*manette.calculerOrientation(0,45,0, matrice), w, v);
-	cout << "w = " << endl;
+	manette.rotate_vector(*manette.calculerOrientation(0, 3.1415/4, 0, matrice), w, v);
+	cout << "w = " << w[0] << endl;
+	cout << w[1] << endl;
+	cout << w[2] << endl;
 
 	system("PAUSE");
 
 //label for reconnection procedure
 reconnect:
 
-	COORD pos = { 0, 1 };
-	COORD cursor_pos = { 0, 3 };
+	COORD pos = {0, 6};
+	COORD cursor_pos = {0, 7};
 
 	//"Looking for a wiimote" waiting screen:
 	SetConsoleCursorPosition(console, pos);
-	WHITE; _tprintf(_T("  Looking for a Wiimote     "));
+	CYAN; _tprintf(_T("  Looking for a Wiimote     "));
 	static const TCHAR* wait_str[] = { _T(".  "), _T(".. "), _T("...") };
 	unsigned count = 0;
 	//"waiting dots" animation :

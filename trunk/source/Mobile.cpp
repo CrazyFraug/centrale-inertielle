@@ -1,5 +1,4 @@
 #include "Mobile.h"
-#include <math.h>
 
 using namespace std;
 
@@ -182,7 +181,7 @@ double Mobile::best_Value_z (void){
 */
 void Mobile::chgt_repere_translation(double acc_x, double acc_y, double acc_z){
     double dt = (t_act - t_pred);
-    t_acquisition = (double)dt;
+    t_acquisition = dt;
     set_Acceleration(acc_x,acc_y,acc_z);
     calcul_vitesse(acc_trans,dt);
     //cout << "dt : " << dt << endl;
