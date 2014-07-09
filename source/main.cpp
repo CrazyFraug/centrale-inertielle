@@ -9,7 +9,7 @@ using namespace std;
 
 int main (int argc, char *argv[])
 {
-
+	cout << "fjkgjfseol"<< endl;
 	SetConsoleTitle(_T("- Wiimote: "));
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	wiimote remote;
