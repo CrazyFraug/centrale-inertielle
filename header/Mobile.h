@@ -57,7 +57,7 @@ private :
 	repere_distance position_relative;
 	vitesse_rotation v_rot;
 	vitesse_translation v_tr;
-	clock_t t_acquisition, t_pred, t_act, t_orientation, t_position, t_v_rot, t_v_tr;
+	clock_t t_acquisition, t_acqGyro, t_pred, t_act, t_orientation, t_position, t_v_rot, t_v_tr;
     void norm_Angle(double alpha);
 	double* vecteur_orientation;
 public:
@@ -86,6 +86,8 @@ public:
 	void afficher_angle (void);
 	double* get_VectOrient() ;
 	void set_VectOrient(double* val) ;
+	void get_angles(double vAngle_phi, double vAngle_teta, double vAngle_psi);
 };
 
 #endif
+
