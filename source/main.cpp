@@ -1,3 +1,4 @@
+#include "bth.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -9,7 +10,8 @@ using namespace std;
 
 int main (int argc, char *argv[])
 {
-	cout << "fjkgjfseol"<< endl;
+
+
 	SetConsoleTitle(_T("- Wiimote: "));
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	wiimote remote;
@@ -107,9 +109,11 @@ reconnect:
 								remote.Acceleration.Orientation.Yaw);
         int i = 0;
         while (i<4){
-               SetConsoleCursorPosition(console, {0,5});
+			cursor_pos.Y = 5;
+			SetConsoleCursorPosition(console, cursor_pos);
             if (i!=0){
-                SetConsoleCursorPosition(console, {0,10});
+                cursor_pos.Y = 10;
+				SetConsoleCursorPosition(console, cursor_pos);
                 cout << "Acc_X : " << remote.Acceleration.X << endl;
                 cout << "Acc_Y : " << remote.Acceleration.Y << endl;
                 cout << "Acc_Z : " << remote.Acceleration.Z << endl;
@@ -129,7 +133,8 @@ reconnect:
 								remote.Acceleration.Y,
 								remote.Acceleration.Z,0);
             i++;
-            SetConsoleCursorPosition(console, {0,14});
+            cursor_pos.Y = 14;
+			SetConsoleCursorPosition(console, cursor_pos);
             manette.afficher_acc_stock();
             }
         }

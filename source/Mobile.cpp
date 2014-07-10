@@ -24,6 +24,7 @@ using namespace std;
         t_acquisition = 0;
 		t_pred = clock();
 		t_act = clock();
+		t_acqGyro = 0;
 
 		vecteur_orientation = new double[3];
 		vecteur_orientation = tmp;
@@ -59,6 +60,14 @@ void Mobile::norm_Angle(double alpha){
 	    }
 }
 
+void Mobile::get_angles(double vAngle_phi, double vAngle_teta, double vAngle_psi) {
+	double phi,teta,psi;
+	double dt = clock() - t_acqGyro;
+	t_acqGyro = clock();
+	phi = vAngle_phi*dt;
+	teta = vAngle_teta*dt;
+	psi = vAngle_psi*dt;
+}
 
 /** Fonction mettra à jour les angles d'orientation
  * In : phi,teta,psi - les angles reçus du gyroscope
@@ -75,12 +84,12 @@ void Mobile::norm_Angle(double alpha){
 	}
 
 
-CQRQuaternionHandle* Mobile::calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3])
+CQRQuaternionHandle* Mobile::calculerOrientation(double pitch, double roll, double yaw, double matrice[3][3])
 {
 	CQRQuaternionHandle* quat_rotation;
 	quat_rotation = new CQRQuaternionHandle;
 	CQRCreateEmptyQuaternion(quat_rotation);
-	if (CQRAngles2Quaternion(*quat_rotation, teta_pitch,teta_roll,teta_yaw) == CQR_SUCCESS) {
+	if (CQRAngles2Quaternion(*quat_rotation, pitch,roll,yaw) == CQR_SUCCESS) {
 		CQRQuaternion2Matrix (matrice, *quat_rotation);
 	}
 	return quat_rotation;
