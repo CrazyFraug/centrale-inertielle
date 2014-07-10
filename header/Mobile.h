@@ -52,9 +52,6 @@ void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* 
 class Mobile {
 
 private :
-    double acc_x_stock[4];
-    double acc_y_stock[4];
-    double acc_z_stock[4];
 	repere_angle orientation ;
 	repere_distance position_absolue ;
 	repere_distance position_relative;
@@ -82,9 +79,13 @@ public:
 	double best_Value_y (void);
 	double best_Value_z (void);
 	accel_translation acc_trans;
+    void afficher_acc_stock(void);
+    double acc_x_stock[4];
+    double acc_y_stock[4];
+    double acc_z_stock[4];
 	void afficher_angle (void);
-	double* Mobile::get_VectOrient() ;
-	void Mobile::set_VectOrient(double* val) ;
+	double* get_VectOrient() ;
+	void set_VectOrient(double* val) ;
 };
 
 #endif
