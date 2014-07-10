@@ -5,12 +5,18 @@
 #include <math.h>
 #include "Mobile.h"
 #include "test.h"
+#include "Serial.cpp"
 
 using namespace std;
 
 int main (int argc, char *argv[])
 {
+	SimpleSerial serie8("COM8",115200);
 
+	while(1) {
+		cout << serie8.readLine() << endl;
+
+	}
 
 	SetConsoleTitle(_T("- Wiimote: "));
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
