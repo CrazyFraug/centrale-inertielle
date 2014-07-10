@@ -17,6 +17,10 @@ using namespace std;
 		v_tr.v_y=0;
 		v_tr.v_z=0;
 
+		acc_x_stock[0] = 0;acc_x_stock[1] = 0;acc_x_stock[2] = 0;acc_x_stock[3] = 0;
+		acc_y_stock[0] = 0;acc_y_stock[1] = 0;acc_y_stock[2] = 0;acc_y_stock[3] = 0;
+		acc_z_stock[0] = 0;acc_z_stock[1] = 0;acc_z_stock[2] = 0;acc_z_stock[3] = 0;
+
         t_acquisition = 0;
 		t_pred = clock();
 		t_act = clock();
@@ -44,7 +48,6 @@ void Mobile::set_Acceleration (double acc_x, double acc_y, double acc_z){
 		acc_trans.accel_x = acc_x;
 		acc_trans.accel_y = acc_y;
 		acc_trans.accel_z = acc_z;
-        Sleep(20);
 		t_act = clock();
 }
 
@@ -142,6 +145,19 @@ void Mobile::get_Acceleration(double acc_x, double acc_y, double acc_z, int i){
     acc_z_stock[i] = acc_z;
 }
 
+void Mobile::afficher_acc_stock(){
+    for (int i = 0;i<4;i++){
+        cout << "Acc_X : " << acc_x_stock[i]<<endl;
+    }
+        for (int i = 0;i<4;i++){
+        cout << "Acc_Y : " << acc_y_stock[i]<<endl;
+    }
+        for (int i = 0;i<4;i++){
+        cout << "Acc_Z : " << acc_z_stock[i]<<endl;
+    }
+}
+
+
 /**
  * Fonction pour trouver la moyenne des valeurs d'un tableau de valeur
  * À généraliser!!!!!!!!!!!!!!!!!
@@ -149,7 +165,7 @@ void Mobile::get_Acceleration(double acc_x, double acc_y, double acc_z, int i){
 double Mobile::best_Value_x (void){
     double mean_value;
     double sum_table = 0;
-    for (int i = 0; i <= 4 ; i++){
+    for (int i = 0; i < 4 ; i++){
         sum_table += acc_x_stock[i];
     }
     mean_value = sum_table/4;
@@ -158,7 +174,7 @@ double Mobile::best_Value_x (void){
 double Mobile::best_Value_y (void){
     double mean_value;
     double sum_table = 0;
-    for (int i = 0; i <= 4 ; i++){
+    for (int i = 0; i < 4 ; i++){
         sum_table += acc_y_stock[i];
     }
     mean_value = sum_table/4;
@@ -168,7 +184,7 @@ double Mobile::best_Value_y (void){
 double Mobile::best_Value_z (void){
     double mean_value;
     double sum_table = 0;
-    for (int i = 0; i <= 4 ; i++){
+    for (int i = 0; i < 4 ; i++){
         sum_table += acc_z_stock[i];
     }
     mean_value = sum_table/4;
