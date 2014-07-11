@@ -56,6 +56,71 @@ public:
         }
     }
 
+	/**lit les valeurs que doit envoyer l'arduino
+	*les valeurs doivent être sous un format spécifique (on pourra le changer après):
+	* string + ":" + valeur1 + "x"+";" + valeur2 + "y"+";" + valeur3 + "z"+";" + endl
+	* exemple : "gyro:0.12x;0.45y;-5.2z;"
+	* la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X, axe = 2 -> axe Y, axe = 3 -> axe Z
+	*/
+	std::string readDatas(int &axe)
+	{
+		using namespace boost;
+		using namespace std;
+		char c;
+		string result;
+		axe = 0;
+		for(;;)
+		{
+			asio::read(serial,asio::buffer(&c,1));
+			switch(c)
+			{//crlf \r\n
+
+			case '\r':
+				break;
+
+			case '\n' :
+				//result.clear();
+				break;
+			case ';' :
+				break;
+
+			case 'x' :
+				asio::read(serial,asio::buffer(&c,1));
+				if (c == ';')
+				{
+					axe = 1;
+					return result;
+				}
+				else result.clear();
+
+			case 'y' :
+				asio::read(serial,asio::buffer(&c,1));
+				if (c==';')
+				{
+					axe = 2;
+					return result;
+				}
+				else result.clear();
+
+			case 'z' :
+				asio::read(serial,asio::buffer(&c,1));
+				if (c==';')
+				{
+					axe = 3;
+					return result;
+				}
+				else result.clear();
+
+			case ':' :
+				result.clear();
+
+			default:
+				result += c;
+			}
+
+		}
+	}
+
 private:
     boost::asio::io_service io;
     boost::asio::serial_port serial;
