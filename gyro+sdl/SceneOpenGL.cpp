@@ -108,7 +108,7 @@ void SceneOpenGL::bouclePrincipale()
     // Booléen terminer
     bool terminer(false);
 	
-	float angleX(0.0), angleY(0.0), angleZ(0.0), tmp(0.0);
+	float angleX(0.0), angleY(0.0), angleZ(0.0), tmp(0.0), dt(0.0);
 	int axe;
 	SimpleSerial serie8("COM8",115200);
 	string valeur;
@@ -124,6 +124,7 @@ void SceneOpenGL::bouclePrincipale()
     projection = perspective(1.22, (double) m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
     modelview = mat4(1.0);
 
+	t_mesX = clock(); t_mesY = clock(); t_mesZ = clock();
 
     // Boucle principale
     while(!terminer)
@@ -133,23 +134,36 @@ void SceneOpenGL::bouclePrincipale()
 			tmp = serie8.readDatas(axe);
 			if (axe == 1)
 				{cout << "Wx = " << tmp << endl;
-				angleX += tmp/10;
+
+				//calcul du temps écoulé
+				dt = ((float)(clock()-t_mesX))/CLOCKS_PER_SEC;
+				t_mesX = clock();
+				
+				angleX -= tmp*dt;
 				pos.Y = 3;
 			}
-			//else{ 
-				if(axe == 2)
-					{cout << "Wy = " << tmp << endl;
-					angleY += tmp/10;
+
+				if(axe == 2){
+					cout << "Wy = " << tmp << endl;
+
+					//calcul du temps
+					dt = ((float)(clock()-t_mesY))/CLOCKS_PER_SEC;
+					t_mesY = clock();
+				
+					angleY += tmp*dt;
 					pos.Y = 4;
 				}
-			//	else{ 
-					if (axe == 3)
-						{cout << "Wz = " << tmp << endl;
-						angleZ += tmp/10;
+
+					if (axe == 3){
+						cout << "Wz = " << tmp << endl;
+
+						//calcul du temps
+						dt = ((float)(clock()-t_mesZ))/CLOCKS_PER_SEC;
+						t_mesZ = clock();
+				
+						angleZ -= tmp*dt;
 						pos.Y = 1;
 					}
-			//	}
-			//}
 
 
         // Gestion des évènements
@@ -161,8 +175,7 @@ void SceneOpenGL::bouclePrincipale()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Placement de la caméra
-		modelview = lookAt(vec3(3, 3, 3), vec3(0, 0, 0), vec3(0, 1, 0));
-		
+		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 		// Incrémentation de l'angle
 		//angle += 0.05f;
 
@@ -177,18 +190,6 @@ void SceneOpenGL::bouclePrincipale()
 		modelview = rotate(modelview, angleY, vec3(0, 1, 0));
 		modelview = rotate(modelview, angleZ, vec3(0, 0, 1));
 		// Rotation du repère
-		/*switch (axe)
-		{ 
-		case 1: 
-			modelview = rotate(modelview, angleX, vec3(1, 0, 0));
-			break;
-		case 2:
-			modelview = rotate(modelview, angleY, vec3(0, 1, 0));
-			break;
-		case 3:
-			modelview = rotate(modelview, angleZ, vec3(0, 0, 1));
-			break;
-		}*/
 
 		lecube.afficher(projection, modelview);
 

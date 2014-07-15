@@ -14,6 +14,7 @@
 #include <gtx\transform.hpp>
 #include <gtc\type_ptr.hpp>
 
+#include <time.h>
 #include "Shader.h" 
 #include "Cube.h"
 
@@ -34,6 +35,8 @@ class SceneOpenGL
     std::string m_titreFenetre;
     int m_largeurFenetre;
     int m_hauteurFenetre;
+
+	clock_t t_mesX, t_mesY, t_mesZ;
 
     SDL_Window* m_fenetre;
     SDL_GLContext m_contexteOpenGL;	
