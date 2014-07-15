@@ -1,6 +1,8 @@
 #ifndef DEF_SCENEOPENGL
 #define DEF_SCENEOPENGL
 
+#include "Instrument.cpp"
+
 #include <iostream>
 #include <string>
 

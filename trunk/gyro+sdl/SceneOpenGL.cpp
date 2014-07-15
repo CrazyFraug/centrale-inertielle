@@ -1,5 +1,6 @@
 #include "SceneOpenGL.h"
-#include "Serial.cpp"
+//#include "Serial.cpp"
+#include "Mobile.h"
 
 #pragma comment (lib, "glew32.lib")
 #pragma comment (lib, "OpenGL32.lib")
@@ -110,10 +111,11 @@ void SceneOpenGL::bouclePrincipale()
 	unsigned int frameRate (1000 / 100);
     Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
 	
-	float angleX(0.0), angleY(0.0), angleZ(0.0), tmp(0.0), dt(0.0);
-	int axe;
-	SimpleSerial serie8("COM8",115200);
-	string valeur;
+	Instrument accel("accelerometre");
+	Instrument gyro("gyroscope");
+
+	Mobile gant();
+
     // Matrices
     mat4 projection;
     mat4 modelview;
@@ -126,8 +128,6 @@ void SceneOpenGL::bouclePrincipale()
     projection = perspective(1.22, (double) m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
     modelview = mat4(1.0);
 
-	t_mesX = clock(); t_mesY = clock(); t_mesZ = clock();
-
     // Boucle principale
     while(!terminer)
     {
@@ -135,40 +135,8 @@ void SceneOpenGL::bouclePrincipale()
 
 			SetConsoleCursorPosition(console, pos);
 
-			tmp = serie8.readDatas(axe);
-			if (axe == 1)
-				{cout << "Wx = " << tmp << endl;
-
-				//calcul du temps écoulé
-				dt = ((float)(clock()-t_mesX))/CLOCKS_PER_SEC;
-				t_mesX = clock();
-				
-				angleX -= tmp*dt;
-				pos.Y = 3;
-			}
-
-				if(axe == 2){
-					cout << "Wy = " << tmp << endl;
-
-					//calcul du temps
-					dt = ((float)(clock()-t_mesY))/CLOCKS_PER_SEC;
-					t_mesY = clock();
-				
-					angleY += tmp*dt;
-					pos.Y = 4;
-				}
-
-					if (axe == 3){
-						cout << "Wz = " << tmp << endl;
-
-						//calcul du temps
-						dt = ((float)(clock()-t_mesZ))/CLOCKS_PER_SEC;
-						t_mesZ = clock();
-				
-						angleZ -= tmp*dt;
-						pos.Y = 1;
-					}
-
+			gyro.majSerial();
+			gyro.afficherMesures();
 
         // Gestion des évènements
         SDL_PollEvent(&m_evenements);
@@ -183,7 +151,7 @@ void SceneOpenGL::bouclePrincipale()
 		// Incrémentation de l'angle
 		//angle += 0.05f;
 
-		if(angleX >= 360.0)
+		/*if(angleX >= 360.0)
 			angleX -= 360.0;
 		if(angleY >= 360.0)
 			angleY -= 360.0;
@@ -192,7 +160,7 @@ void SceneOpenGL::bouclePrincipale()
 
 		modelview = rotate(modelview, angleX, vec3(1, 0, 0));
 		modelview = rotate(modelview, angleY, vec3(0, 1, 0));
-		modelview = rotate(modelview, angleZ, vec3(0, 0, 1));
+		modelview = rotate(modelview, angleZ, vec3(0, 0, 1));*/
 		// Rotation du repère
 
 		lecube.afficher(projection, modelview);
