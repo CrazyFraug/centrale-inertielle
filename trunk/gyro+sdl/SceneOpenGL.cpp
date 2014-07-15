@@ -105,8 +105,10 @@ bool SceneOpenGL::iniGL() {
 
 void SceneOpenGL::bouclePrincipale()
 {
-    // Booléen terminer
+
     bool terminer(false);
+	unsigned int frameRate (1000 / 100);
+    Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
 	
 	float angleX(0.0), angleY(0.0), angleZ(0.0), tmp(0.0), dt(0.0);
 	int axe;
@@ -129,6 +131,8 @@ void SceneOpenGL::bouclePrincipale()
     // Boucle principale
     while(!terminer)
     {
+		debutBoucle = SDL_GetTicks();
+
 			SetConsoleCursorPosition(console, pos);
 
 			tmp = serie8.readDatas(axe);
@@ -167,7 +171,7 @@ void SceneOpenGL::bouclePrincipale()
 
 
         // Gestion des évènements
-        //SDL_WaitEvent(&m_evenements);
+        SDL_PollEvent(&m_evenements);
         if(m_evenements.window.event == SDL_WINDOWEVENT_CLOSE)
             terminer = true;
 
@@ -196,6 +200,10 @@ void SceneOpenGL::bouclePrincipale()
         // Actualisation de la fenêtre
         SDL_GL_SwapWindow(m_fenetre);
 
-		Sleep(10);
+		finBoucle = SDL_GetTicks();
+		tempsEcoule = finBoucle - debutBoucle;
+
+		if(tempsEcoule < frameRate)
+			SDL_Delay(frameRate - tempsEcoule);
     }
 }
