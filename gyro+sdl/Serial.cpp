@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <sstream>
-//#include "boost\lexical_cast.hpp"
 
 
 class SimpleSerial
