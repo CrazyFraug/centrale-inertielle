@@ -37,7 +37,6 @@ public:
 		 std::cout << " failed ";
 		 return 0;
 	   }
-	   std::cout << "Success " << x;
 	   return x;
 	 } 
 
@@ -81,8 +80,8 @@ public:
 
 	/**lit les valeurs que doit envoyer l'arduino
 	*les valeurs doivent être sous un format spécifique (on pourra le changer après):
-	* string + ":" + valeur1 + "x"+";" + valeur2 + "y"+";" + valeur3 + "z"+";" + endl
-	* exemple : "gyro:0.12x;0.45y;-5.2z;"
+	* string + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
+	* exemple : "gyro:0.45y;0.12x;-5.2z;"
 	* la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X, axe = 2 -> axe Y, axe = 3 -> axe Z
 	*/
 	double readDatas(int &axe)
@@ -103,7 +102,9 @@ public:
 
 			case '\r':
 				break;
-
+			case ':':
+				result.clear();
+				break;
 			case '\n' :
 				//result.clear();
 				break;
@@ -115,11 +116,9 @@ public:
 				if (c==';')
 				{
 					axe = 1;
-					testo = string_to_double(result);
-					cout << " blablabla " << result << "  testo: " << testo << "  ";
-					return testo;
+					return string_to_double(result);
 				}
-				else {result.clear(); cout << " CLEAR ";}
+				else result.clear();
 
 			case 'y' :
 				asio::read(serial,asio::buffer(&c,1));
@@ -138,9 +137,6 @@ public:
 					return string_to_double(result);
 				}
 				else result.clear();
-
-			case ':' :
-				result.clear();
 
 			default:
 				result += c;
