@@ -2,7 +2,6 @@
 #include <Windows.h>
 #include <time.h>
 #include <iostream>
-//#include <string.h>
 #include "Structure.h"
 
 
