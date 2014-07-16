@@ -29,7 +29,6 @@ public:
 	 {
 	   std::stringstream convert(s);
 	   float x = 0;
-	   //x = std::stof(s);
 
 	   if (!(convert >> x))
 	   {

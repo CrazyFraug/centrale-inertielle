@@ -1,9 +1,10 @@
 #include "SceneOpenGL.h"
-//#include "Serial.cpp"
 #include "Mobile.h"
 
 #pragma comment (lib, "glew32.lib")
 #pragma comment (lib, "OpenGL32.lib")
+#pragma comment (lib, "SDL2.lib")
+#pragma comment (lib, "SDL2main.lib")
 
 using namespace std;
 using namespace glm;
@@ -110,11 +111,23 @@ void SceneOpenGL::bouclePrincipale()
     bool terminer(false);
 	unsigned int frameRate (1000 / 100);
     Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
-	
-	Instrument accel("accelerometre");
-	Instrument gyro("gyroscope");
 
-	Mobile gant();
+	float value = 0;
+	int axe = 0;
+
+	SimpleSerial serieTest("COM8",115200);
+	value = serieTest.readDatas(axe);
+
+	cout << value << endl;
+
+	//Instrument accel("accelerometre");
+	Instrument gyro("gyroscope",&serieTest);
+
+	Mobile gant;
+
+	vect3D angle = {0.0,0.0,0.0};
+	clock_t* temps = new clock_t[3];
+	double* dt = new double[3];
 
     // Matrices
     mat4 projection;
@@ -136,7 +149,9 @@ void SceneOpenGL::bouclePrincipale()
 			SetConsoleCursorPosition(console, pos);
 
 			gyro.majSerial();
+			temps = gyro.getTemps();
 			gyro.afficherMesures();
+			gyro.afficherTemps();
 
         // Gestion des évènements
         SDL_PollEvent(&m_evenements);
@@ -148,19 +163,26 @@ void SceneOpenGL::bouclePrincipale()
 
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
-		// Incrémentation de l'angle
-		//angle += 0.05f;
 
-		/*if(angleX >= 360.0)
-			angleX -= 360.0;
-		if(angleY >= 360.0)
-			angleY -= 360.0;
-		if(angleZ >= 360.0)
-			angleZ -= 360.0;
+		angle = gyro.getMesures();
+		dt = gyro.getdt();
 
-		modelview = rotate(modelview, angleX, vec3(1, 0, 0));
-		modelview = rotate(modelview, angleY, vec3(0, 1, 0));
-		modelview = rotate(modelview, angleZ, vec3(0, 0, 1));*/
+		for (int i=0;i<3;i++)
+		{
+			//dt[i] = (clock() - temps[i])/CLOCKS_PER_SEC;
+			cout << "dt " << i << " : " << dt[i] << endl;
+		}
+
+		if(angle.x >= 360.0)
+			angle.x -= 360.0;
+		if(angle.y >= 360.0)
+			angle.y -= 360.0;
+		if(angle.z >= 360.0)
+			angle.z -= 360.0;
+
+		modelview = rotate(modelview, (float)(angle.x*dt[0]), vec3(1, 0, 0));
+		modelview = rotate(modelview, (float)(angle.y*dt[1]), vec3(0, 1, 0));
+		modelview = rotate(modelview, (float)(angle.z*dt[2]), vec3(0, 0, 1));
 		// Rotation du repère
 
 		lecube.afficher(projection, modelview);

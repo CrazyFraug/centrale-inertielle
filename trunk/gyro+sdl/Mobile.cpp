@@ -2,7 +2,7 @@
 
 using namespace std;
 
-	Mobile::Mobile() {
+	Mobile::Mobile(void) {
 
 		double tmp[3] = {-1,0,0}; //sert à initialiser le tableau dynamique
 		position_absolue.x = 0;
@@ -32,25 +32,13 @@ using namespace std;
 	}
 
 	Mobile::~Mobile() {
-		delete[] vecteur_orientation;
+		//delete[] vecteur_orientation;
 	}
 
 	double* Mobile::get_VectOrient() {return vecteur_orientation;}
 
 	void Mobile::set_VectOrient(double* val) {vecteur_orientation = val;}
 
-/** Fonction mettre à jour l'attribut accélération
- *  In : acc_x, acc_y, acc_z - les accélérations selon 3 axes
- *  Remarques : mettre à jour le temps de l'acquisition
- */
-
-void Mobile::set_Acceleration (double acc_x, double acc_y, double acc_z){
-		t_pred = t_act;
-		acc_trans.accel_x = acc_x;
-		acc_trans.accel_y = acc_y;
-		acc_trans.accel_z = acc_z;
-		t_act = clock();
-}
 
 void Mobile::norm_Angle(double alpha){
         if (alpha > 180){
@@ -129,10 +117,10 @@ void Mobile :: set_vitesse (double v_x, double v_y, double v_z){
         dt                - la différence de temps entre 2 acquisitions
  * Remarque : la vitesse est calculé en cm/s (*100)  - 05/07/2014
  */
-void Mobile::calcul_vitesse(accel_translation translation, double dt) {
-		v_tr.v_x += translation.accel_x*dt*100/CLOCKS_PER_SEC;
-		v_tr.v_y += translation.accel_y*dt*100/CLOCKS_PER_SEC;
-		v_tr.v_z += translation.accel_z*dt*100/CLOCKS_PER_SEC;
+void Mobile::calcul_vitesse(acc_translation translation, double dt) {
+		v_tr.v_x += translation.acc_x*dt*100/CLOCKS_PER_SEC;
+		v_tr.v_y += translation.acc_y*dt*100/CLOCKS_PER_SEC;
+		v_tr.v_z += translation.acc_z*dt*100/CLOCKS_PER_SEC;
 	}
 
 	void Mobile::afficher_mobile()
@@ -207,8 +195,8 @@ double Mobile::best_Value_z (void){
 void Mobile::chgt_repere_translation(double acc_x, double acc_y, double acc_z){
     double dt = (t_act - t_pred);
     t_acquisition = dt;
-    set_Acceleration(acc_x,acc_y,acc_z);
-    calcul_vitesse(acc_trans,dt);
+    //set_Acceleration(acc_x,acc_y,acc_z);
+    //calcul_vitesse(acc_trans,dt);
     //cout << "dt : " << dt << endl;
     position_absolue.x += v_tr.v_x*dt;
     position_absolue.y += v_tr.v_y*dt;
