@@ -21,6 +21,7 @@
 #include "Shader.h" 
 #include "Cube.h"
 
+#define M_2PI 6.28318530718 
 class SceneOpenGL
 {
     public:
