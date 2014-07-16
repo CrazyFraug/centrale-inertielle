@@ -39,24 +39,31 @@ public:
 			dt = new double[3];
 		}
 
-		//destructor
+		//destructor//
 		~Instrument() 
 		{
 		}
 
-		//getter
+		//getter//
 		vect3D getMesures(void) {return mesures;}
 
 		clock_t* getTemps(void) {return t_acq;}
 		
 		double* getdt(void) {return dt;}
 
-		//setter
+		//setter//
 		void setTemps(clock_t* nvTemps) 
 		{ 
 			t_acq[0] = nvTemps[0];
 			t_acq[1] = nvTemps[1];
 			t_acq[2] = nvTemps[2];
+		}
+
+		void setVI(vect3D valeurs)
+		{
+			valeursInitiales.x = valeurs.x;
+			valeursInitiales.y = valeurs.y;
+			valeursInitiales.z = valeurs.z;
 		}
 
 		//met a jour les valeurs de l'instrument
@@ -77,21 +84,33 @@ public:
 			switch (axe)
 			{
 			case 1:
-				mesures.x = value;
-				dt[0] = (clock()-t_acq[0])/CLOCKS_PER_SEC;
+				mesures.x = -value;
+				//dt[0] = (clock()-t_acq[0])/CLOCKS_PER_SEC;
 				t_acq[0] = clock();
 				break;
 			case 2:
 				mesures.y = value;
-				dt[1] = (clock()-t_acq[1])/CLOCKS_PER_SEC;
+				//dt[1] = (clock()-t_acq[1])/CLOCKS_PER_SEC;
 				t_acq[1] = clock();
 				break;
 			case 3:
-				mesures.z = value;
-				dt[2] = (clock()-t_acq[2])/CLOCKS_PER_SEC;
+				mesures.z = -value;
+				//dt[2] = (clock()-t_acq[2])/CLOCKS_PER_SEC;
 				t_acq[2] = clock();
 				break;
 			}
+			soustraireVI();
+
+		}
+		
+		void calibrer(void)
+		{
+			vect3D VI;
+			while((VI.x == 0) || (VI.y != 0) || (VI.z != 0))
+			{
+
+			}
+
 		}
 
 		void afficherMesures() const
@@ -109,6 +128,15 @@ public:
 			std::cout << "t1 = " << t_acq[0] << std::endl;
 			std::cout << "t2 = " << t_acq[1] << std::endl;
 			std::cout << "t3 = " << t_acq[2] << std::endl;
+
+		}
+
+		void afficherVI() const
+		{
+			std::cout << "valeurs initiales : " << std::endl;
+			std::cout << "vi1 = " << valeursInitiales.x << std::endl;
+			std::cout << "vi2 = " << valeursInitiales.y << std::endl;
+			std::cout << "vi3 = " << valeursInitiales.z << std::endl;
 
 		}
 };

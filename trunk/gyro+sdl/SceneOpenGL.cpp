@@ -9,6 +9,25 @@
 using namespace std;
 using namespace glm;
 
+//surcharge de l'operateur + pour les vecteur 3D
+vect3D operator+(vect3D v1, vect3D v2)
+{
+	vect3D v;
+	v.x = v1.x + v2.x;
+	v.y = v1.y + v2.y;
+	v.z = v1.z + v2.z;
+	return v;
+}
+
+vect3D operator*(vect3D v2, double* v1) 
+{
+	vect3D result;
+	result.x = v2.x * v1[0];	
+	result.y = v2.y * v1[1];
+	result.z = v2.z * v1[2];
+	return result;
+}
+
 SceneOpenGL::SceneOpenGL(string titre, int largeur, int hauteur):
 	m_titreFenetre(titre), m_largeurFenetre(largeur), m_hauteurFenetre(hauteur),
 	m_fenetre(0), m_contexteOpenGL(0)
@@ -109,7 +128,8 @@ void SceneOpenGL::bouclePrincipale()
 {
 
     bool terminer(false);
-	unsigned int frameRate (1000 / 100);
+	bool init(false);
+	unsigned int frameRate (1000 / 200);
     Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
 
 	float value = 0;
@@ -126,6 +146,7 @@ void SceneOpenGL::bouclePrincipale()
 	Mobile gant;
 
 	vect3D angle = {0.0,0.0,0.0};
+	vect3D mesures = {0.0,0.0,0.0};
 	clock_t* temps = new clock_t[3];
 	double* dt = new double[3];
 
@@ -141,17 +162,22 @@ void SceneOpenGL::bouclePrincipale()
     projection = perspective(1.22, (double) m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
     modelview = mat4(1.0);
 
+	temps[0] = clock();
+	temps[1] = clock();
+	temps[2] = clock();
+	gyro.setTemps(temps);
+
     // Boucle principale
     while(!terminer)
     {
 		debutBoucle = SDL_GetTicks();
 
-			SetConsoleCursorPosition(console, pos);
+		SetConsoleCursorPosition(console, pos);
 
-			gyro.majSerial();
-			temps = gyro.getTemps();
-			gyro.afficherMesures();
-			gyro.afficherTemps();
+		gyro.majSerial();
+		temps = gyro.getTemps();
+		gyro.afficherMesures();
+		gyro.afficherTemps();
 
         // Gestion des évènements
         SDL_PollEvent(&m_evenements);
@@ -164,26 +190,38 @@ void SceneOpenGL::bouclePrincipale()
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 
-		angle = gyro.getMesures();
-		dt = gyro.getdt();
-
 		for (int i=0;i<3;i++)
 		{
-			//dt[i] = (clock() - temps[i])/CLOCKS_PER_SEC;
-			cout << "dt " << i << " : " << dt[i] << endl;
+			dt[i] = (clock() - temps[i])/1000.0;
 		}
+			cout <<"angle x : " << angle.x << "  dt "<< " : " << dt[0] << endl;
+			cout <<"angle y : " << angle.y << "  dt "<< " : " << dt[1] << endl;
+			cout <<"angle z : " << angle.z << "  dt "<< " : " << dt[2] << endl;
 
-		if(angle.x >= 360.0)
-			angle.x -= 360.0;
-		if(angle.y >= 360.0)
-			angle.y -= 360.0;
-		if(angle.z >= 360.0)
-			angle.z -= 360.0;
+		/*if(angle.x >= M_2PI)
+			angle.x -= M_2PI;
+		if(angle.y >= M_2PI)
+			angle.y -= M_2PI;
+		if(angle.z >= M_2PI)
+			angle.z -= M_2PI;*/
+		
+		mesures = gyro.getMesures();
+		angle = angle + mesures*dt;
 
-		modelview = rotate(modelview, (float)(angle.x*dt[0]), vec3(1, 0, 0));
-		modelview = rotate(modelview, (float)(angle.y*dt[1]), vec3(0, 1, 0));
-		modelview = rotate(modelview, (float)(angle.z*dt[2]), vec3(0, 0, 1));
-		// Rotation du repère
+		if (init == true) 
+		{
+			modelview = rotate(modelview, (float)(angle.x), vec3(1, 0, 0));
+			modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
+			modelview = rotate(modelview, (float)(angle.z), vec3(0, 0, 1));
+			// Rotation du repère
+		}
+		else 
+		{
+			angle.x = 0;
+			angle.y = 0;
+			angle.z = 0;
+			init = true;
+		}
 
 		lecube.afficher(projection, modelview);
 
@@ -195,5 +233,13 @@ void SceneOpenGL::bouclePrincipale()
 
 		if(tempsEcoule < frameRate)
 			SDL_Delay(frameRate - tempsEcoule);
+
+		/*if((mesures.x != 0) && (mesures.y != 0) && (mesures.z != 0) && (init == false))
+		{
+			init = true;
+			gyro.setVI(mesures);
+			cout << "INITIALISATION " << endl;
+			gyro.afficherVI();
+		}*/
     }
 }
