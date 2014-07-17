@@ -72,15 +72,14 @@ void Mobile::get_angles(double vAngle_phi, double vAngle_teta, double vAngle_psi
 	}
 
 
-CQRQuaternionHandle* Mobile::calculerOrientation(double pitch, double roll, double yaw, double matrice[3][3])
+CQRQuaternionHandle* Mobile::calculerOrientation(double pitch, double roll, double yaw, double* matrice[3][3])
 {
 	CQRQuaternionHandle* quat_rotation;
 	quat_rotation = new CQRQuaternionHandle;
 	CQRCreateEmptyQuaternion(quat_rotation);
-	if (CQRAngles2Quaternion(*quat_rotation, pitch,roll,yaw) == CQR_SUCCESS) {
-		CQRQuaternion2Matrix (matrice, *quat_rotation);
-	}
+	CQRAngles2Quaternion(*quat_rotation, pitch,roll,yaw); //if enlevé
 	return quat_rotation;
+
 }
 
 
