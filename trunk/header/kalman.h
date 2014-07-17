@@ -33,9 +33,8 @@ typedef struct _systemstate{
 } system_state;
 
 typedef struct _kalmanstate{
-
         system_state filtre_sys;    // système à filtrer
-        identity_type  matrix_ident = get_ident(filtre_sys.size_state);
+		identity_type  matrix_ident = get_ident(filtre_sys.size_state);
         int    nb_step;           // nombre d'échantillon d'estimation
         matrix_type noise_cmde = get_matrix(1,filtre_sys.size_in);  //bruit de la commande                                              (v)
         matrix_type cov_cmde = get_matrix(filtre_sys.size_in,filtre_sys.size_state);        // covariance de la commande                (Q)
@@ -44,18 +43,18 @@ typedef struct _kalmanstate{
         matrix_type cov_estimate = get_matrix(filtre_sys.size_out, filtre_sys.size_state);    // prédiction de la covariance            (P)
         matrix_type predict_vector = get_matrix(1,filtre_sys.size_state); //état prédit                                                 (X^)
         matrix_type kalman_gain = get_matrix(filtre_sys.size_state,filtre_sys.size_state);     // gain de Kalman                        (K)
-
+		
 } kalmanstate;
 
 
 class kalman
 {
     public:
-        kalman(int nb_in, int nb_out, int nb_state);
+        kalman(int nb_in, int nb_out, int nb_state, int step);
         void declare_system(matrix_type A, matrix_type B, matrix_type C);
         void declare_noise(matrix_type Q, matrix_type R);
         void predict_step(matrix_type value_cmd);
-        void update_step(matrix_type value_mesure);
+        matrix_type update_step(matrix_type value_mesure);
         virtual ~kalman();
     protected:
     private:

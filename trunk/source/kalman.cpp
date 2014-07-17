@@ -7,12 +7,12 @@
  * \param nb_state int
  *
  */
-kalman::kalman(int nb_in, int nb_out, int nb_state)
+kalman::kalman(int nb_in, int nb_out, int nb_state, int step)
 {
     sys.size_in = nb_in;
     sys.size_out = nb_out;
     sys.size_state = nb_state;
-
+	kalm_sys.nb_step = step;
     kalm_sys.filtre_sys = sys;
 }
 
@@ -63,7 +63,7 @@ void kalman::predict_step(matrix_type value_cmd){
  * \return void
  *
  */
-void kalman::update_step(matrix_type value_measure){
+matrix_type kalman::update_step(matrix_type value_measure){
     /* Hk*Xk-1*/
     matrix_type predict_measure = prod(kalm_sys.filtre_sys.mat_sortie,kalm_sys.predict_vector);
     /* Yk = Zk - Hk*Xk-1*/
@@ -86,4 +86,6 @@ void kalman::update_step(matrix_type value_measure){
     aux_4 = kalm_sys.matrix_ident - aux_4;
     /*Pk = (I - Kk*Hk)*Pk-1 */
     kalm_sys.cov_estimate = prod(aux_4,kalm_sys.cov_estimate);
+	
+	return kalm_sys.predict_vector;
 }

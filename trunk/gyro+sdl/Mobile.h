@@ -40,7 +40,7 @@ public:
 	void afficher_mobile(void);
 	void afficher_position(void);
 	void afficher_vitesse(void);
-	CQRQuaternionHandle* calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double matrice[3][3]);
+	CQRQuaternionHandle* calculerOrientation(double teta_pitch, double teta_roll, double teta_yaw, double *matrice[3][3]);
 	double best_Value_x (void);
 	double best_Value_y (void);
 	double best_Value_z (void);
