@@ -10,8 +10,7 @@ public:
 	int initSystem(double* mesures[3]);
 
 private:
-	matrix_type A, B, Q, R;
-	identity_matrix C;
+	matrix_type A, B, Q, R, C;
 	double* mesures[3];
 	kalman filtre;
 	double sx, sy, sz;
