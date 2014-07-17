@@ -46,8 +46,29 @@ public:
 
 		//getter//
 		vect3D getMesures(void) {return mesures;}
+		
+		double getMesure(int axe)
+		{
+			switch (axe)
+			{
+			case 1:
+				return mesures.x;
+				break;
+			case 2:
+				return mesures.y;
+				break;
+			case 3:
+				return mesures.z;
+				break;
+			default:
+				return 0;
+				break;
+			}
+		}
 
 		clock_t* getTemps(void) {return t_acq;}
+
+		clock_t getTemps(int axe) {return t_acq[axe-1];}
 		
 		double* getdt(void) {return dt;}
 
@@ -102,15 +123,41 @@ public:
 			soustraireVI();
 
 		}
+
+		//indique la valeur de quel axe a été modifié
+		void majSerial(int &axe)
+		{
+			double value;
+
+			value = serialLink->readDatas(axe);
+
+			switch (axe)
+			{
+			case 1:
+				mesures.x = -value;
+				t_acq[0] = clock();
+				break;
+			case 2:
+				mesures.y = value;
+				t_acq[1] = clock();
+				break;
+			case 3:
+				mesures.z = -value;
+				t_acq[2] = clock();
+				break;
+			}
+			soustraireVI();
+
+		}
 		
+		//calibrer l'instrument en initialisant les valeurs initiales
 		void calibrer(void)
 		{
-			vect3D VI;
-			while((VI.x == 0) || (VI.y != 0) || (VI.z != 0))
+			while((mesures.x == 0) || (mesures.y == 0) || (mesures.z == 0))
 			{
-
+				majSerial();
 			}
-
+			valeursInitiales = mesures;
 		}
 
 		void afficherMesures() const

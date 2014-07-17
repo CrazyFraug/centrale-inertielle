@@ -46,6 +46,7 @@ public:
 	double best_Value_z (void);
 	//acc_translation acc_trans;
     void afficher_acc_stock(void);
+	double meanValue (int tailleTab, double* mesures);
     double acc_x_stock[4];
     double acc_y_stock[4];
     double acc_z_stock[4];

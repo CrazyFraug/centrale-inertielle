@@ -155,6 +155,17 @@ void Mobile::afficher_acc_stock(){
 }
 
 
+
+double Mobile::meanValue (int tailleTab, double* mesures)
+{
+	double sum = 0;
+	for (int i = 0; i<tailleTab; i++)
+	{
+		sum += mesures[i];
+	}
+	return sum/tailleTab;
+}
+
 /**
  * Fonction pour trouver la moyenne des valeurs d'un tableau de valeur
  * À généraliser!!!!!!!!!!!!!!!!!

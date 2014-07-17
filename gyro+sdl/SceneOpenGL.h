@@ -22,6 +22,7 @@
 #include "Cube.h"
 
 #define M_2PI 6.28318530718 
+#define bufferSize 4
 class SceneOpenGL
 {
     public:
