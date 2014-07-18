@@ -70,6 +70,27 @@ double Traitement::moyenner(int axe)
 }
 
 
+CQRQuaternionHandle* Traitement::calculerOrientation(double pitch, double roll, double yaw, double* matrice[3][3])
+{
+	CQRQuaternionHandle* quat_rotation;
+	quat_rotation = new CQRQuaternionHandle;
+	CQRCreateEmptyQuaternion(quat_rotation);
+	CQRAngles2Quaternion(*quat_rotation, pitch,roll,yaw); //if enlevé
+	return quat_rotation;
+
+}
+
+/** Fonction calcule le changement de coordonnées du vecteur à partir d'un quat rotation
+ * \param [In] : CQRQuaternionHandle quat_rotation, double* w, double* v -> v le vecteur d'origine, et w le vecteur après rotation
+ * \param [Out]: 0 if succcess
+ * Remarque : 
+*/
+
+int Traitement::rotate_vector(CQRQuaternionHandle quat_rotation, double* w, double* v)
+{
+        return CQRRotateByQuaternion(w,quat_rotation,v);
+}
+
 /**
 \brief fonction inutile
 */
