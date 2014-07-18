@@ -2,14 +2,13 @@
 
 
 /**Constructeur**/
-Traitement::Traitement():compteur(0)
+Traitement::Traitement(matrix_double init_cov_estimate):compteur(0), filtre(0,4,4,100, init_cov_estimate)
 {
 	/** Allocation mémoire de la matrice de valeurs **/
 	for (int i = 0; i<3; i++)
 	{
 		valeurs[i] = new double[nbValeurs];
 	}
-
 }
 
 
@@ -20,6 +19,48 @@ Traitement::Traitement()
 	{
 		delete valeurs[i];
 	}
+}
+
+
+/**
+ *  Initialisation des matrices pour le filtre kalman
+ *  \param 	sx double   vitesse angulaire selon l'axe Ax
+ *  \param 	sy double   vitesse angulaire selon l'axe Ay
+ *  \param 	sz double   vitesse angulaire selon l'axe Az
+ *
+*/
+void initMatrices(double sx, double sy, double sz)
+{
+	
+	double sx2, sy2, sz2;
+	sx2 = pow(sx,2);
+	sy2 = pow(sy,2);
+	sz2 = pow(sz,2);
+
+	A = get_matrix(4,4);
+	B = get_matrix(0,0,0);
+	Q = get_matrix(4,4);
+	R = get_matrix(4,4,0);
+	C = get_matrix(4,4,0);
+
+	Q(0,0) = sx2 + sy2 + sz2; Q(1,1) = sx2 + sy2 + sz2; Q(2,2) = sx2 + sy2 + sz2; Q(3,3) = sx2 + sy2 + sz2; //diagonale
+	Q(0,1) = -sx2 + sy2 - sz2; Q(0,2) = -sx2 -sy2 + sz2; Q(0,3) = sx2 - sy2 - sz2;
+	Q(1,0) = -sx2 + sy2 - sz2; Q(1,2) = sx2 - sy2 - sz2; Q(1,3) = -sx2 - sy2 + sz2;
+	Q(2,0) = -sx2 -sy2 + sz2; Q(2,1) = sx2 - sy2 - sz2; Q(2,3) = -sx2 + sy2 - sz2;
+	Q(3,0) = sx2 - sy2 - sz2; Q(3,1) = -sx2 - sy2 + sz2; Q(3,2) = -sx2 + sy2 - sz2;
+
+	R(0,0) = 0.05;
+	R(1,1) = 0.05;
+	R(2,2) = 0.05;
+	R(3,3) = 0.05;
+
+
+	C(0,0) = 1;
+	C(1,1) = 1;
+	C(2,2) = 1;
+	C(3,3) = 1;
+
+
 }
 
 /** 
@@ -102,45 +143,6 @@ void Traitement::testd (void){
 #include "Traitement.h"
 
 
-/**
- *  Déclaration les données pour le traitement
- *  \param 	sx double   vitesse angulaire selon l'axe Ax
- *  \param 	sy double   vitesse angulaire selon l'axe Ay
- *  \param 	sz double   vitesse angulaire selon l'axe Az
- *
-*/
-Traitement::Traitement(double sx, double sy, double sz, matrix_double init_cov_estimate)
-{
-	double sx2, sy2, sz2;
-	sx2 = pow(sx,2);
-	sy2 = pow(sy,2);
-	sz2 = pow(sz,2);
-
-	filtre = kalman(0,4,4,100, init_cov_estimate);
-	A = get_matrix(4,4);
-	B = get_matrix(0,0,0);
-	Q = get_matrix(4,4);
-	R = get_matrix(4,4,0);
-	C = get_matrix(4,4,0);
-
-	Q(0,0) = sx2 + sy2 + sz2; Q(1,1) = sx2 + sy2 + sz2; Q(2,2) = sx2 + sy2 + sz2; Q(3,3) = sx2 + sy2 + sz2; //diagonale
-	Q(0,1) = -sx2 + sy2 - sz2; Q(0,2) = -sx2 -sy2 + sz2; Q(0,3) = sx2 - sy2 - sz2;
-	Q(1,0) = -sx2 + sy2 - sz2; Q(1,2) = sx2 - sy2 - sz2; Q(1,3) = -sx2 - sy2 + sz2;
-	Q(2,0) = -sx2 -sy2 + sz2; Q(2,1) = sx2 - sy2 - sz2; Q(2,3) = -sx2 + sy2 - sz2;
-	Q(3,0) = sx2 - sy2 - sz2; Q(3,1) = -sx2 - sy2 + sz2; Q(3,2) = -sx2 + sy2 - sz2;
-
-	R(0,0) = 0.05;
-	R(1,1) = 0.05;
-	R(2,2) = 0.05;
-	R(3,3) = 0.05;
-
-
-	C(0,0) = 1;
-	C(1,1) = 1;
-	C(2,2) = 1;
-	C(3,3) = 1;
-
-}
 /**
  *  Traitement avec le filtre Kalman
  *  \param 	mesures[3]   vecteur de 3 mesures de vitesse angulaire selon l'axe Ax, Ay, Az
