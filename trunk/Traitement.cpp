@@ -16,28 +16,28 @@ Traitement::Traitement(double sx, double sy, double sz, matrix_double init_cov_e
 	sz2 = pow(sz,2);
 
 	filtre = kalman(0,4,4,100, init_cov_estimate);
-	A = get_matrix(4,4);
-	B = get_matrix(0,0,0);
-	Q = get_matrix(4,4);
-	R = get_matrix(4,4,0);
-	C = get_matrix(4,4,0);
+	A.mat.get_matrix(4,4);
+	B.mat.get_matrix(0,0,0);
+	Q.mat.get_matrix(4,4);
+	R.mat.get_matrix(4,4,0);
+	C.mat.get_matrix(4,4,0);
 
-	Q(0,0) = sx2 + sy2 + sz2; Q(1,1) = sx2 + sy2 + sz2; Q(2,2) = sx2 + sy2 + sz2; Q(3,3) = sx2 + sy2 + sz2; //diagonale
-	Q(0,1) = -sx2 + sy2 - sz2; Q(0,2) = -sx2 -sy2 + sz2; Q(0,3) = sx2 - sy2 - sz2;
-	Q(1,0) = -sx2 + sy2 - sz2; Q(1,2) = sx2 - sy2 - sz2; Q(1,3) = -sx2 - sy2 + sz2;
-	Q(2,0) = -sx2 -sy2 + sz2; Q(2,1) = sx2 - sy2 - sz2; Q(2,3) = -sx2 + sy2 - sz2;
-	Q(3,0) = sx2 - sy2 - sz2; Q(3,1) = -sx2 - sy2 + sz2; Q(3,2) = -sx2 + sy2 - sz2;
+	Q.mat(0,0) = sx2 + sy2 + sz2; Q.mat(1,1) = sx2 + sy2 + sz2; Q.mat(2,2) = sx2 + sy2 + sz2; Q.mat(3,3) = sx2 + sy2 + sz2; //diagonale
+	Q.mat(0,1) = -sx2 + sy2 - sz2; Q.mat(0,2) = -sx2 -sy2 + sz2; Q.mat(0,3) = sx2 - sy2 - sz2;
+	Q.mat(1,0) = -sx2 + sy2 - sz2; Q.mat(1,2) = sx2 - sy2 - sz2; Q.mat(1,3) = -sx2 - sy2 + sz2;
+	Q.mat(2,0) = -sx2 -sy2 + sz2; Q.mat(2,1) = sx2 - sy2 - sz2; Q.mat(2,3) = -sx2 + sy2 - sz2;
+	Q.mat(3,0) = sx2 - sy2 - sz2; Q.mat(3,1) = -sx2 - sy2 + sz2; Q.mat(3,2) = -sx2 + sy2 - sz2;
 
-	R(0,0) = 0.05;
-	R(1,1) = 0.05;
-	R(2,2) = 0.05;
-	R(3,3) = 0.05;
+	R.mat(0,0) = 0.05;
+	R.mat(1,1) = 0.05;
+	R.mat(2,2) = 0.05;
+	R.mat(3,3) = 0.05;
 
 
-	C(0,0) = 1;
-	C(1,1) = 1;
-	C(2,2) = 1;
-	C(3,3) = 1;
+	C.mat(0,0) = 1;
+	C.mat(1,1) = 1;
+	C.mat(2,2) = 1;
+	C.mat(3,3) = 1;
 
 }
 /**
@@ -59,11 +59,11 @@ matrix_type Traitement::initSystem(double* mesures[3]) {
 	Ay = 0.5*wy*dt;
 	Az = 0.5*wz*dt;
 
-	A(0,0) = 1; A(1,1) = 1; A(2,2) = 1; A(3,3) = 1; //diagonale
-	A(0,1) = -Ax; A(0,2) = -Ay; A(0,3) = -Az;
-	A(1,0) = Ax; A(1,2) = Az; A(1,3) = -Ay;
-	A(2,0) = Ay; A(2,1) = -Az; A(2,3) = Ax;
-	A(3,0) = Az; A(3,1) = Ay; A(3,2) = -Ax;
+	A.mat(0,0) = 1; A.mat(1,1) = 1; A.mat(2,2) = 1; A.mat(3,3) = 1; //diagonale
+	A.mat(0,1) = -Ax; A.mat(0,2) = -Ay; A.mat(0,3) = -Az;
+	A.mat(1,0) = Ax; A.mat(1,2) = Az; A.mat(1,3) = -Ay;
+	A.mat(2,0) = Ay; A.mat(2,1) = -Az; A.mat(2,3) = Ax;
+	A.mat(3,0) = Az; A.mat(3,1) = Ay; A.mat(3,2) = -Ax;
 
 	/* Mettre à jour le système à filtrer */
 	filtre.declare_system(A, B, C);
