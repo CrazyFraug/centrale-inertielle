@@ -94,18 +94,18 @@ public:
 			soustraireVI();
 		}
 
-		//mise a jour des valeurs de l'instrument avec les données envoyées via le port série
-		//lit forcément les valeurs de chaque axe
+		/** 
+		 * \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
+		 * lit forcément les valeurs de chaque axe au moins une fois
+		 */
 		void majSerial()
 		{
 			double value;
 			int axe=0;
 			bool axe1(false), axe2(false), axe3(false);
-
-			while(axe1 && axe2 && axe3)
+			while((axe1==false) || (axe2==false) || (axe3==false))
 			{
 				value = serialLink->readDatas(axe);
-
 				switch (axe)
 				{
 				case 1:
@@ -134,9 +134,15 @@ public:
 		//calibrer l'instrument en initialisant les valeurs initiales
 		void calibrer(void)
 		{
+			majSerial();
+			mesures.x = 0;
+			mesures.y = 0;
+			mesures.z = 0;
+
 			while((mesures.x == 0) || (mesures.y == 0) || (mesures.z == 0))
 			{
 				majSerial();
+		
 			}
 			valeursInitiales = mesures;
 		}
