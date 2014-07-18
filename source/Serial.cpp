@@ -1,7 +1,9 @@
-#include <asio.hpp>
+#include <boost\asio.hpp>
 #include <iostream>
 #include <stdlib.h>
+#include <sstream>
 
+//for arduino: SCl on A5, SDA on A4, GND and Vin to 5V
 
 class SimpleSerial
 {
@@ -18,6 +20,25 @@ public:
     {
         serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
     }
+
+
+	/**
+	* Convert a string into a double type variable
+	* return 0 if function failed
+	*/
+	float string_to_double( const std::string& s )
+	 {
+	   std::stringstream convert(s);
+	   float x = 0;
+
+	   if (!(convert >> x))
+	   {
+		 std::cout << " failed ";
+		 return 0;
+	   }
+	   return x;
+	 } 
+
 
     /**
      * Write a string to the serial device.
@@ -58,18 +79,21 @@ public:
 
 	/**lit les valeurs que doit envoyer l'arduino
 	*les valeurs doivent être sous un format spécifique (on pourra le changer après):
-	* string + ":" + valeur1 + "x"+";" + valeur2 + "y"+";" + valeur3 + "z"+";" + endl
-	* exemple : "gyro:0.12x;0.45y;-5.2z;"
+	* string + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
+	* exemple : "gyro:0.45y;0.12x;-5.2z;"
 	* la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X, axe = 2 -> axe Y, axe = 3 -> axe Z
 	*/
-	std::string readDatas(int &axe)
+	double readDatas(int &axe)
 	{
 		using namespace boost;
 		using namespace std;
 		char c;
 		string result;
 		axe = 0;
+		double testo = 0;
+
 		for(;;)
+
 		{
 			asio::read(serial,asio::buffer(&c,1));
 			switch(c)
@@ -77,7 +101,9 @@ public:
 
 			case '\r':
 				break;
-
+			case ':':
+				result.clear();
+				break;
 			case '\n' :
 				//result.clear();
 				break;
@@ -86,10 +112,10 @@ public:
 
 			case 'x' :
 				asio::read(serial,asio::buffer(&c,1));
-				if (c == ';')
+				if (c==';')
 				{
 					axe = 1;
-					return result;
+					return string_to_double(result);
 				}
 				else result.clear();
 
@@ -98,7 +124,7 @@ public:
 				if (c==';')
 				{
 					axe = 2;
-					return result;
+					return string_to_double(result);
 				}
 				else result.clear();
 
@@ -107,12 +133,9 @@ public:
 				if (c==';')
 				{
 					axe = 3;
-					return result;
+					return string_to_double(result);
 				}
 				else result.clear();
-
-			case ':' :
-				result.clear();
 
 			default:
 				result += c;
@@ -120,6 +143,7 @@ public:
 
 		}
 	}
+
 
 private:
     boost::asio::io_service io;
