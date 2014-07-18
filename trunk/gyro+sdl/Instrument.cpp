@@ -95,59 +95,36 @@ public:
 		}
 
 		//mise a jour des valeurs de l'instrument avec les données envoyées via le port série
+		//indique la valeur de quel axe a été modifié
 		void majSerial()
 		{
-			int axe;
 			double value;
+			int axe=0;
 
-			value = serialLink->readDatas(axe);
-
-			switch (axe)
+			for(int i = 0; i<3; i++)
 			{
-			case 1:
-				mesures.x = -value;
-				//dt[0] = (clock()-t_acq[0])/CLOCKS_PER_SEC;
-				t_acq[0] = clock();
-				break;
-			case 2:
-				mesures.y = value;
-				//dt[1] = (clock()-t_acq[1])/CLOCKS_PER_SEC;
-				t_acq[1] = clock();
-				break;
-			case 3:
-				mesures.z = -value;
-				//dt[2] = (clock()-t_acq[2])/CLOCKS_PER_SEC;
-				t_acq[2] = clock();
-				break;
+				value = serialLink->readDatas(axe);
+
+				switch (axe)
+				{
+				case 1:
+					mesures.x = -value;
+					t_acq[0] = clock();
+					//std::cout << "test x : " << mesures.x << std::endl << std::endl << std::endl;
+					break;
+				case 2:
+					mesures.y = value;
+					t_acq[1] = clock();
+					//std::cout << std::endl << "test y : " << mesures.y << std::endl << std::endl;
+					break;
+				case 3:
+					mesures.z = -value;
+					t_acq[2] = clock();
+					//std::cout << std::endl << std::endl <<"test z : " << mesures.z << std::endl;
+					break;
+				}
 			}
 			soustraireVI();
-
-		}
-
-		//indique la valeur de quel axe a été modifié
-		void majSerial(int &axe)
-		{
-			double value;
-
-			value = serialLink->readDatas(axe);
-
-			switch (axe)
-			{
-			case 1:
-				mesures.x = -value;
-				t_acq[0] = clock();
-				break;
-			case 2:
-				mesures.y = value;
-				t_acq[1] = clock();
-				break;
-			case 3:
-				mesures.z = -value;
-				t_acq[2] = clock();
-				break;
-			}
-			soustraireVI();
-
 		}
 		
 		//calibrer l'instrument en initialisant les valeurs initiales

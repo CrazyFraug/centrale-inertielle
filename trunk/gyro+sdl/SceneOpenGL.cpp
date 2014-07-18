@@ -188,7 +188,8 @@ void SceneOpenGL::bouclePrincipale()
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 
 		//mise a jour de la matrice de valeurs (mesures)
-		value = (float)gyro.getMesure(axe);
+		/*value = (float)gyro.getMesure(axe);
+		cout << value << endl;
 		if(axe == 1){
 			mesures[0][(int)compteur.x] = value;
 			compteur.x++;
@@ -200,10 +201,15 @@ void SceneOpenGL::bouclePrincipale()
 		if(axe == 3){
 			mesures[2][(int)compteur.z] = value;
 			compteur.z++;
-		}
+		}*/
+					
+		//cout <<"mesure x : " << mesures[0][0] << endl;
+		//cout <<"mesure x : " << mesures[0][1] << endl;
+		//cout <<"mesure x : " << mesures[0][2] << endl;
+		//cout <<"mesure x : " << mesures[0][3] << endl;
 
 		//remise a zero des compteurs + mise a jour des angles de rotation + relevé du temps
-		if(compteur.x == bufferSize) {
+		/*if(compteur.x == bufferSize) {
 			compteur.x = 0;
 			angle.x = angle.x + gant.meanValue(bufferSize, mesures[0])*(temps[1]-(gyro.getTemps())[0]);
 			temps[0] = (gyro.getTemps())[0];
@@ -218,11 +224,16 @@ void SceneOpenGL::bouclePrincipale()
 			angle.x = angle.x + gant.meanValue(bufferSize, mesures[0])*(temps[2]-(gyro.getTemps())[2]);
 			temps[2] = (gyro.getTemps())[2];
 		}
+		*/
 
 		for (int i=0;i<3;i++)
 		{
 			dt[i] = (clock() - temps[i])/1000.0;
 		}
+			angle.x += gyro.getMesure(1)*dt[0];
+			angle.y += gyro.getMesure(2)*dt[1];
+			angle.z += gyro.getMesure(3)*dt[2];
+
 			cout <<"angle x : " << angle.x << "  dt "<< " : " << dt[0] << endl;
 			cout <<"angle y : " << angle.y << "  dt "<< " : " << dt[1] << endl;
 			cout <<"angle z : " << angle.z << "  dt "<< " : " << dt[2] << endl;
