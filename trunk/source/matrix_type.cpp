@@ -5,6 +5,7 @@ matrix_type::matrix_type(){
 }
 
 void matrix_type::get_matrix(int sRow, int sColumn){
+	matrix<double> mat2(sRow, sColumn, 0);
         mat(sRow,sColumn,0);
 }
 
