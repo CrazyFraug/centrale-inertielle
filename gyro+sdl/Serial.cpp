@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sstream>
 
+//for arduino: SCl on A5, SDA on A4, GND and Vin to 5V
 
 class SimpleSerial
 {
