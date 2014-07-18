@@ -1,20 +1,26 @@
 #ifndef DEF_TRAITEMENT
 #define DEF_TRAITEMENT
 
-#include "kalman.h"	
+#include <iostream>
+#include "Structure.h"
+
+#define nbValeurs 10
 
 class Traitement
 {
 public:
-	Traitement(double sigma1, double sigma2, double sigma3);
-	int initSystem(double* mesures[3]);
+	Traitement();
+	~Traitement();
+	void testd(void);
+	void stockerValeurs(vect3D val);
+	double moyenner(int axe);
+
 
 private:
-	matrix_type A, B, Q, R, C;
-	double* mesures[3];
-	kalman filtre;
-	double sx, sy, sz;
+	int test;
+	int compteur;
+	double* valeurs[3]; //matrice à 3 lignes pour contenir les mesures selon les 3 axes
 
-}
+};
 
 #endif

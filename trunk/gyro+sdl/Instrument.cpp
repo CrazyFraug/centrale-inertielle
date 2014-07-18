@@ -87,7 +87,7 @@ public:
 			valeursInitiales.z = valeurs.z;
 		}
 
-		//met a jour les valeurs de l'instrument
+		//met a jour les valeurs des mesures de l'instrument avec les valeurs passées en paramètre
 		void majMesures(vect3D nvMesures)
 		{
 			mesures = nvMesures;
@@ -95,13 +95,14 @@ public:
 		}
 
 		//mise a jour des valeurs de l'instrument avec les données envoyées via le port série
-		//indique la valeur de quel axe a été modifié
+		//lit forcément les valeurs de chaque axe
 		void majSerial()
 		{
 			double value;
 			int axe=0;
+			bool axe1(false), axe2(false), axe3(false);
 
-			for(int i = 0; i<3; i++)
+			while(axe1 && axe2 && axe3)
 			{
 				value = serialLink->readDatas(axe);
 
@@ -110,16 +111,19 @@ public:
 				case 1:
 					mesures.x = -value;
 					t_acq[0] = clock();
+					axe1 = true;
 					//std::cout << "test x : " << mesures.x << std::endl << std::endl << std::endl;
 					break;
 				case 2:
 					mesures.y = value;
 					t_acq[1] = clock();
+					axe2 = true;
 					//std::cout << std::endl << "test y : " << mesures.y << std::endl << std::endl;
 					break;
 				case 3:
 					mesures.z = -value;
 					t_acq[2] = clock();
+					axe3 = true;
 					//std::cout << std::endl << std::endl <<"test z : " << mesures.z << std::endl;
 					break;
 				}
