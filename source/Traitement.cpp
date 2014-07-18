@@ -13,7 +13,7 @@ Traitement::Traitement(matrix_double init_cov_estimate):compteur(0), filtre(0,4,
 
 
 /** Destructeur **/
-Traitement::Traitement()
+Traitement::~Traitement()
 {
 	for (int i = 0; i<3; i++)
 	{
@@ -37,28 +37,49 @@ void initMatrices(double sx, double sy, double sz)
 	sy2 = pow(sy,2);
 	sz2 = pow(sz,2);
 
-	A = get_matrix(4,4);
-	B = get_matrix(0,0,0);
-	Q = get_matrix(4,4);
-	R = get_matrix(4,4,0);
-	C = get_matrix(4,4,0);
+	A.mat.get_matrix(4,4);
+	B.mat.get_matrix(0,0,0);
+	Q.mat.get_matrix(4,4);
+	R.mat.get_matrix(4,4,0);
+	C.mat.get_matrix(4,4,0);
 
-	Q(0,0) = sx2 + sy2 + sz2; Q(1,1) = sx2 + sy2 + sz2; Q(2,2) = sx2 + sy2 + sz2; Q(3,3) = sx2 + sy2 + sz2; //diagonale
-	Q(0,1) = -sx2 + sy2 - sz2; Q(0,2) = -sx2 -sy2 + sz2; Q(0,3) = sx2 - sy2 - sz2;
-	Q(1,0) = -sx2 + sy2 - sz2; Q(1,2) = sx2 - sy2 - sz2; Q(1,3) = -sx2 - sy2 + sz2;
-	Q(2,0) = -sx2 -sy2 + sz2; Q(2,1) = sx2 - sy2 - sz2; Q(2,3) = -sx2 + sy2 - sz2;
-	Q(3,0) = sx2 - sy2 - sz2; Q(3,1) = -sx2 - sy2 + sz2; Q(3,2) = -sx2 + sy2 - sz2;
+	Q.mat(0,0) = sx2 + sy2 + sz2; Q.mat(1,1) = sx2 + sy2 + sz2; Q.mat(2,2) = sx2 + sy2 + sz2; Q.mat(3,3) = sx2 + sy2 + sz2; //diagonale
+	Q.mat(0,1) = -sx2 + sy2 - sz2; Q.mat(0,2) = -sx2 -sy2 + sz2; Q.mat(0,3) = sx2 - sy2 - sz2;
+	Q.mat(1,0) = -sx2 + sy2 - sz2; Q.mat(1,2) = sx2 - sy2 - sz2; Q.mat(1,3) = -sx2 - sy2 + sz2;
+	Q.mat(2,0) = -sx2 -sy2 + sz2; Q.mat(2,1) = sx2 - sy2 - sz2; Q.mat(2,3) = -sx2 + sy2 - sz2;
+	Q.mat(3,0) = sx2 - sy2 - sz2; Q.mat(3,1) = -sx2 - sy2 + sz2; Q.mat(3,2) = -sx2 + sy2 - sz2;
 
-	R(0,0) = 0.05;
-	R(1,1) = 0.05;
-	R(2,2) = 0.05;
-	R(3,3) = 0.05;
+	R.mat(0,0) = 0.05;
+	R.mat(1,1) = 0.05;
+	R.mat(2,2) = 0.05;
+	R.mat(3,3) = 0.05;
 
 
-	C(0,0) = 1;
-	C(1,1) = 1;
-	C(2,2) = 1;
-	C(3,3) = 1;
+	C.mat(0,0) = 1;
+	C.mat(1,1) = 1;
+	C.mat(2,2) = 1;
+	C.mat(3,3) = 1;	A.mat.get_matrix(4,4);
+	B.mat.get_matrix(0,0,0);
+	Q.mat.get_matrix(4,4);
+	R.mat.get_matrix(4,4,0);
+	C.mat.get_matrix(4,4,0);
+
+	Q.mat(0,0) = sx2 + sy2 + sz2; Q.mat(1,1) = sx2 + sy2 + sz2; Q.mat(2,2) = sx2 + sy2 + sz2; Q.mat(3,3) = sx2 + sy2 + sz2; //diagonale
+	Q.mat(0,1) = -sx2 + sy2 - sz2; Q.mat(0,2) = -sx2 -sy2 + sz2; Q.mat(0,3) = sx2 - sy2 - sz2;
+	Q.mat(1,0) = -sx2 + sy2 - sz2; Q.mat(1,2) = sx2 - sy2 - sz2; Q.mat(1,3) = -sx2 - sy2 + sz2;
+	Q.mat(2,0) = -sx2 -sy2 + sz2; Q.mat(2,1) = sx2 - sy2 - sz2; Q.mat(2,3) = -sx2 + sy2 - sz2;
+	Q.mat(3,0) = sx2 - sy2 - sz2; Q.mat(3,1) = -sx2 - sy2 + sz2; Q.mat(3,2) = -sx2 + sy2 - sz2;
+
+	R.mat(0,0) = 0.05;
+	R.mat(1,1) = 0.05;
+	R.mat(2,2) = 0.05;
+	R.mat(3,3) = 0.05;
+
+
+	C.mat(0,0) = 1;
+	C.mat(1,1) = 1;
+	C.mat(2,2) = 1;
+	C.mat(3,3) = 1;
 
 
 }
