@@ -169,17 +169,17 @@ void SceneOpenGL::bouclePrincipale()
     {
 		debutBoucle = SDL_GetTicks();
 
+		// Gestion des évènements
+        SDL_PollEvent(&m_evenements);
+        if(m_evenements.window.event == SDL_WINDOWEVENT_CLOSE)
+            terminer = true;
+
+
 		SetConsoleCursorPosition(console, pos);
 
 		gyro.majSerial();
 		temps = gyro.getTemps();
 		gyro.afficherMesures();
-		gyro.afficherTemps();
-
-        // Gestion des évènements
-        SDL_PollEvent(&m_evenements);
-        if(m_evenements.window.event == SDL_WINDOWEVENT_CLOSE)
-            terminer = true;
 
         // Nettoyage de l'écran
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

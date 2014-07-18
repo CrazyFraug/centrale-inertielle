@@ -25,7 +25,7 @@ Traitement::Traitement()
 /** 
 \brief stocke des valeurs passées en argument dans la matrice de valeur attribut
  la variable compteur permet de savoir si la matrice est remplie ou pas
- si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en parametre
+ si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en argument
 \param val vect3D défini dans structure.h contenant les mesures a stocker
 */
 void Traitement::stockerValeurs(vect3D val) 
