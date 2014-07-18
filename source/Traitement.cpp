@@ -183,11 +183,11 @@ matrix_type Traitement::initSystem(double* mesures[3]) {
 	Ay = 0.5*wy*dt;
 	Az = 0.5*wz*dt;
 
-	A(0,0) = 1; A(1,1) = 1; A(2,2) = 1; A(3,3) = 1; //diagonale
-	A(0,1) = -Ax; A(0,2) = -Ay; A(0,3) = -Az;
-	A(1,0) = Ax; A(1,2) = Az; A(1,3) = -Ay;
-	A(2,0) = Ay; A(2,1) = -Az; A(2,3) = Ax;
-	A(3,0) = Az; A(3,1) = Ay; A(3,2) = -Ax;
+	A.mat(0,0) = 1; A.mat(1,1) = 1; A.mat(2,2) = 1; A.mat(3,3) = 1; //diagonale
+	A.mat(0,1) = -Ax; A.mat(0,2) = -Ay; A.mat(0,3) = -Az;
+	A.mat(1,0) = Ax; A.mat(1,2) = Az; A.mat(1,3) = -Ay;
+	A.mat(2,0) = Ay; A.mat(2,1) = -Az; A.mat(2,3) = Ax;
+	A.mat(3,0) = Az; A.mat(3,1) = Ay; A.mat(3,2) = -Ax;
 
 	/* Mettre à jour le système à filtrer */
 	filtre.declare_system(A, B, C);
