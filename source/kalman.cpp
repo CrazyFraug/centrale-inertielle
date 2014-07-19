@@ -14,9 +14,13 @@ kalman::kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> ini
     sys.size_out = nb_out;
     sys.size_state = nb_state;
     sys.mat_transition(sys.size_state,sys.size_state);
-    sys.mat_cmde(sys.size_in,sys.size_state);
+	if (sys.size_in = 0){
+		sys.mat_cmde(0,0);
+	}
+	else{
+		sys.mat_cmde(sys.size_in, sys.size_state);
+	}
     sys.mat_sortie(sys.size_out,sys.size_state);
-    kalm_sys.filtre_sys = sys;
     kalm_sys.nb_step = step;
     kalm_sys.matrix_ident(sys.size_state,sys.size_state);
     kalm_sys.noise_cmde(1,sys.size_in);
@@ -58,7 +62,13 @@ void kalman::declare_system(matrix<double> A, matrix<double> B, matrix<double> C
  *
  */
 void kalman::declare_noise(matrix<double> Q, matrix<double> R){
-    kalm_sys.cov_cmde = Q;
+	if (sys.size_in = 0){
+		kalm_sys.cov_cmde(0, 0);
+	}
+	else{
+		kalm_sys.cov_cmde = Q;
+	}
+		
     kalm_sys.cov_mesure = R;
 }
 
@@ -69,11 +79,16 @@ void kalman::declare_noise(matrix<double> Q, matrix<double> R){
  *
  */
 void kalman::predict_step(matrix<double> value_cmd){
-    matrix<double> aux = prod(kalm_sys.filtre_sys.mat_transition,kalm_sys.predict_vector);
-    matrix<double> aux_1 = prod(kalm_sys.filtre_sys.mat_cmde,value_cmd);
-    kalm_sys.predict_vector = aux + aux_1;
-    matrix<double> aux_2 = prod(kalm_sys.filtre_sys.mat_transition,kalm_sys.cov_estimate);
-    aux_2 = prod(aux,trans(kalm_sys.filtre_sys.mat_transition));
+    matrix<double> aux = prod(sys.mat_transition,kalm_sys.predict_vector);
+	if (sys.size_in == 0){
+		kalm_sys.predict_vector = aux;
+	}
+	else{
+		matrix<double> aux_1 = prod(sys.mat_cmde, value_cmd);
+		kalm_sys.predict_vector = aux + aux_1;
+	}
+	matrix<double> aux_2 = prod(sys.mat_transition,kalm_sys.cov_estimate);
+    aux_2 = prod(aux,trans(sys.mat_transition));
     kalm_sys.cov_estimate = aux_2 + kalm_sys.cov_cmde;
 }
 
@@ -85,7 +100,7 @@ void kalman::predict_step(matrix<double> value_cmd){
  */
 matrix<double> kalman::update_step(matrix<double> value_measure){
     /* Hk*Xk-1*/
-    matrix<double> predict_measure = prod(kalm_sys.filtre_sys.mat_sortie,kalm_sys.predict_vector);
+    matrix<double> predict_measure = prod(sys.mat_sortie,kalm_sys.predict_vector);
 
     /* Yk = Zk - Hk*Xk-1*/
     matrix<double> innov_measure = value_measure - predict_measure;
@@ -98,7 +113,7 @@ matrix<double> kalman::update_step(matrix<double> value_measure){
     matrix<double> innov_covariance = aux + kalm_sys.cov_mesure;
 
     /* Pk-1*trans(Hk)  */
-    matrix<double> aux_2 = prod(kalm_sys.cov_estimate,trans(kalm_sys.filtre_sys.mat_sortie));
+    matrix<double> aux_2 = prod(kalm_sys.cov_estimate,trans(sys.mat_sortie));
 
     /* Kk = Pk-1*trans(Hk)*Sk^-1 */
     kalm_sys.kalman_gain = prod(aux_2,conj(innov_covariance));
@@ -110,7 +125,7 @@ matrix<double> kalman::update_step(matrix<double> value_measure){
     kalm_sys.predict_vector += aux_3;
 
     /* I - Kk*Hk */
-    matrix<double> aux_4 = prod(kalm_sys.kalman_gain,kalm_sys.filtre_sys.mat_sortie);
+    matrix<double> aux_4 = prod(kalm_sys.kalman_gain,sys.mat_sortie);
     aux_4 = kalm_sys.matrix_ident - aux_4;
 
     /*Pk = (I - Kk*Hk)*Pk-1 */
