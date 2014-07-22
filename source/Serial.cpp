@@ -1,9 +1,12 @@
+#ifndef DEF_SERIAL
+#define DEF_SERIAL
+
 #include <boost\asio.hpp>
 #include <iostream>
 #include <stdlib.h>
 #include <sstream>
 
-//for arduino: SCl on A5, SDA on A4, GND and Vin to 5V
+//for arduino: SCL on A5, SDA on A4, GND and Vin to 5V
 
 class SimpleSerial
 {
@@ -77,11 +80,12 @@ public:
         }
     }
 
-	/**lit les valeurs que doit envoyer l'arduino
-	*les valeurs doivent être sous un format spécifique (on pourra le changer après):
+	/**
+	* \brief lit les valeurs qu'envoie l'arduino
+	* les valeurs doivent être sous un format spécifique (on pourra le changer après):
 	* string + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
 	* exemple : "gyro:0.45y;0.12x;-5.2z;"
-	* la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X, axe = 2 -> axe Y, axe = 3 -> axe Z
+	* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
 	*/
 	double readDatas(int &axe)
 	{
@@ -149,3 +153,5 @@ private:
     boost::asio::io_service io;
     boost::asio::serial_port serial;
 };
+
+#endif;

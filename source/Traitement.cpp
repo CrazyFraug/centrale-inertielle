@@ -2,12 +2,23 @@
 
 
 /**Constructeur**/
-Traitement::Traitement(matrix_double init_cov_estimate):compteur(0), filtre(0,4,4,100, init_cov_estimate), A(4,4,0), B(0,0,0), C(4,4,0), Q(4,4), R(4,4,0)
+/*Traitement::Traitement(matrix_double init_cov_estimate):compteur(0), filtre(0,4,4,100, init_cov_estimate), A(4,4,0), B(0,0,0), C(4,4,0), Q(4,4), R(4,4,0)
 {
+        /** Allocation mémoire de la matrice de valeurs **/
+        /*for (int i = 0; i<3; i++)
+        {
+                valeurs[i] = new double[nbValeurs];
+        }
+}*/
+
+/**Constructeur**/
+Traitement::Traitement(Instrument* inst):_compteur(0)
+{
+		_capteur = inst;
         /** Allocation mémoire de la matrice de valeurs **/
         for (int i = 0; i<3; i++)
         {
-                valeurs[i] = new double[nbValeurs];
+                _valeurs[i] = new double[NB_VALEURS];
         }
 }
 
@@ -17,7 +28,7 @@ Traitement::~Traitement()
 {
         for (int i = 0; i<3; i++)
         {
-                delete valeurs[i];
+                delete _valeurs[i];
         }
 }
 
@@ -29,7 +40,7 @@ Traitement::~Traitement()
  *  \param      sz double   vitesse angulaire selon l'axe Az
  *
 */
-void Traitement::initMatrices(double sx, double sy, double sz)
+/*void Traitement::initMatrices(double sx, double sy, double sz)
 {
         double sx2, sy2, sz2;
         sx2 = pow(sx,2);
@@ -53,7 +64,7 @@ void Traitement::initMatrices(double sx, double sy, double sz)
         C(2,2) = 1;
         C(3,3) = 1;     
 
-}
+}*/
 
 
 /**
@@ -63,7 +74,7 @@ void Traitement::initMatrices(double sx, double sy, double sz)
  *
 */
 
-double* Traitement::initSystem(double mesures[3], double dt) {
+/*double* Traitement::initSystem(double mesures[3], double dt) {
 
         double* estimation;
         double anglex, angley, anglez, wx,wy,wz, Ax, Ay, Az;
@@ -76,9 +87,9 @@ double* Traitement::initSystem(double mesures[3], double dt) {
 
         wx = mesures[0];
         wy = mesures[1];
-        wz = mesures[2];
+        wz = mesures[2];*/
         /* Mettre à jour la matrice de transition A */
-        Ax = 0.5*wx*dt;
+        /*Ax = 0.5*wx*dt;
         Ay = 0.5*wy*dt;
         Az = 0.5*wz*dt;
 
@@ -87,18 +98,18 @@ double* Traitement::initSystem(double mesures[3], double dt) {
         A(0,1) = -Ax; A(0,2) = -Ay; A(0,3) = -Az;
         A(1,0) = Ax; A(1,2) = Az; A(1,3) = -Ay;
         A(2,0) = Ay; A(2,1) = -Az; A(2,3) = Ax;
-        A(3,0) = Az; A(3,1) = Ay; A(3,2) = -Ax;
+        A(3,0) = Az; A(3,1) = Ay; A(3,2) = -Ax;*/
 
         /* Mettre à jour le système à filtrer */
-        filtre.declare_system(A, B, C);
-        filtre.declare_noise(Q, R);
+        /*filtre.declare_system(A, B, C);
+        filtre.declare_noise(Q, R);*/
 
         /* Etape prédiction du filtre Kalman */
-        filtre.predict_step(B);
+        //filtre.predict_step(B);
 
 
         /* Convertir les données mesurées(angles) en quaternion (type matrix) */
-        anglex = wx*dt;
+        /*anglex = wx*dt;
         angley = wy*dt;
         anglez = wz*dt;
 
@@ -111,22 +122,22 @@ double* Traitement::initSystem(double mesures[3], double dt) {
         mesuresQuat(2,0) = quat_meas->y;
         mesuresQuat(3,0) = quat_meas->z;
 
-        matrix<double> estimate_result(4,1,0);
+        matrix<double> estimate_result(4,1,0);*/
 
         /* Etape update l'estimation */
-        estimate_result = filtre.update_step(mesuresQuat);
+/*		estimate_result = filtre.update_step(mesuresQuat);
 
         quat_estimate->w = estimate_result(0,0);
         quat_estimate->x = estimate_result(1,0);
         quat_estimate->y = estimate_result(2,0);
-        quat_estimate->z = estimate_result(3,0);
+        quat_estimate->z = estimate_result(3,0);*/
 
         /* Convertir les données estimées (quaternion) en angles pour l'affichage */
-        matrix<double> measure_estimate(3,1);
+        /*matrix<double> measure_estimate(3,1);
         CQRQuaternion2Angles(&measure_estimate(0,1), &measure_estimate(1,1), &measure_estimate(2,1), quat_estimate);
 
         return estimation;
-}
+}*/
 
 
 /** 
@@ -135,68 +146,87 @@ double* Traitement::initSystem(double mesures[3], double dt) {
  *      si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en argument
  *      \param val vect3D défini dans structure.h contenant les mesures a stocker
 */
-void Traitement::stockerValeurs(vect3D val) 
+void Traitement::stockerValeurs() 
 {
-        if (compteur < nbValeurs)
+		_capteur->majSerial();
+
+        if (_compteur < NB_VALEURS)
         {
-                valeurs[0][compteur] = val.x;
-                valeurs[1][compteur] = val.y;
-                valeurs[2][compteur] = val.z;
-                compteur++;
+                _valeurs[0][_compteur] = _capteur->getMesure(1);
+                _valeurs[1][_compteur] = _capteur->getMesure(2);
+                _valeurs[2][_compteur] = _capteur->getMesure(3);
+                _compteur++;
         }
 
         else
         {
-                for(int i = nbValeurs-1; i>0; i--)
+                for(int i = NB_VALEURS-1; i>0; i--)
                 {
-                        valeurs[0][i] = valeurs[0][i-1];
-                        valeurs[1][i] = valeurs[1][i-1];
-                        valeurs[2][i] = valeurs[2][i-1];
+                        _valeurs[0][i] = _valeurs[0][i-1];
+                        _valeurs[1][i] = _valeurs[1][i-1];
+                        _valeurs[2][i] = _valeurs[2][i-1];
                 }
 
-                valeurs[0][0] = val.x;
-                valeurs[1][0] = val.y;
-                valeurs[2][0] = val.z;
+                _valeurs[0][0] = _capteur->getMesure(1);
+                _valeurs[1][0] = _capteur->getMesure(2);
+                _valeurs[2][0] = _capteur->getMesure(3);
+
+				_t[0] = _capteur->getTemps(1);
+				_t[1] = _capteur->getTemps(2);
+				_t[2] = _capteur->getTemps(3);
         }
 }
 
 /**
- *      \brief realise la moyenne des valeurs d'une ligne de la matrice
- *      \param axe numero de la ligne que l'on veut moyenner
- *      \return la moyenne d'une ligne
+ *  \brief realise la moyenne des valeurs d'une ligne de la matrice
+ *  \param axe numero de la ligne que l'on veut moyenner
+ *  \return la moyenne d'une ligne
 */
 double Traitement::moyenner(int axe)
 {
-        double moyenne = 0;
-        for (int i =0; i < nbValeurs; i++)
+        double _moyenne = 0;
+        for (int i =0; i < _compteur; i++)
         {
-                moyenne += valeurs[axe][i];
+                _moyenne += _valeurs[axe-1][i];
         }
 
-        return (moyenne/nbValeurs);
+        return (_moyenne/NB_VALEURS);
 }
 
-
-CQRQuaternionHandle* Traitement::calculerOrientation(double pitch, double roll, double yaw, double* matrice[3][3])
+vect3D Traitement::calculerAngle()
 {
-        CQRQuaternionHandle* quat_rotation;
-        quat_rotation = new CQRQuaternionHandle;
-        CQRCreateEmptyQuaternion(quat_rotation);
-        CQRAngles2Quaternion(*quat_rotation, pitch,roll,yaw); //if enlevé
-        return quat_rotation;
-
+	vect3D angles;
+	/*angles.x = moyenner(1)*(clock()-t[0])/1000;
+	angles.y = moyenner(2)*(clock()-t[1])/1000;
+	angles.z = moyenner(3)*(clock()-t[2])/1000;*/
+	angles.x = moyenner(1)*(20)/1000;
+	angles.y = moyenner(2)*(20)/1000;
+	angles.z = moyenner(3)*(20)/1000;
+	std::cout <<  "clock = " << clock() << std::endl;
+	std::cout << "| t[0] = " << _t[0] << "| dt = " << (clock()-_t[0])/1000 << std:: endl;
+	std::cout << "| t[1] = " << _t[1] << "| dt = " << (clock()-_t[1])/1000 << std:: endl;
+	std::cout << "| t[2] = " << _t[2] << "| dt = " << (clock()-_t[2])/1000 << std:: endl;
+	return angles;
 }
 
-/** Fonction calcule le changement de coordonnées du vecteur à partir d'un quat rotation
- *      \param [In] : CQRQuaternionHandle quat_rotation, double* w, double* v -> v le vecteur d'origine, et w le vecteur après rotation
- *      \param [Out]: 0 if succcess
- *      Remarque : 
-*/
 
-int Traitement::rotate_vector(CQRQuaternionHandle quat_rotation, double* w, double* v)
+void Traitement::afficherValeurs()
 {
-        return CQRRotateByQuaternion(w,quat_rotation,v);
+	if (_compteur == NB_VALEURS) {
+		std::cout << "moyenne X = " << moyenner(1) << std::endl;
+		std::cout << "moyenne Y = " << moyenner(2) << std::endl;
+		std::cout << "moyenne Z = " << moyenner(3) << std::endl;
+	}
 }
+
+bool Traitement::tabFull()
+{
+	if (_compteur == NB_VALEURS)
+		return true;
+	else
+		return false;
+}
+
 
 /**
 \brief fonction inutile
