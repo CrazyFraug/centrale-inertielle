@@ -141,6 +141,15 @@ public:
 				}
 				else result.clear();
 
+			case 't' :
+				asio::read(serial,asio::buffer(&c,1));
+				if (c==';')
+				{
+					axe = 4;
+					return string_to_double(result);
+				}
+				else result.clear();
+
 			default:
 				result += c;
 			}
