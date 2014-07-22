@@ -9,24 +9,6 @@
 using namespace std;
 using namespace glm;
 
-//surcharge de l'operateur + pour les vecteur 3D
-vect3D operator+(vect3D v1, vect3D v2)
-{
-	vect3D v;
-	v.x = v1.x + v2.x;
-	v.y = v1.y + v2.y;
-	v.z = v1.z + v2.z;
-	return v;
-}
-
-vect3D operator*(vect3D v2, double* v1) 
-{
-	vect3D result;
-	result.x = v2.x * v1[0];	
-	result.y = v2.y * v1[1];
-	result.z = v2.z * v1[2];
-	return result;
-}
 
 SceneOpenGL::SceneOpenGL(string titre, int largeur, int hauteur):
 	m_titreFenetre(titre), m_largeurFenetre(largeur), m_hauteurFenetre(hauteur),

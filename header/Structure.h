@@ -37,4 +37,11 @@ struct vect3D {
 	double z;
 };
 
+struct vect4D {
+	double x;
+	double y;
+	double z;
+	double temps;
+};
+
 #endif

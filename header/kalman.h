@@ -38,7 +38,10 @@ public:
 	void declare_noise(matrix<double> Q, matrix<double> R);
 	void predict_step(matrix<double> value_cmd);
 	matrix<double> update_step(matrix<double> value_mesure);
-	//virtual ~kalman();
+
+    void initMatrices(double sigma1, double sigma2, double sigma3);
+    double* initSystem(double mesures[3], double dt);
+
 protected:
 private:
 	system_state sys;
