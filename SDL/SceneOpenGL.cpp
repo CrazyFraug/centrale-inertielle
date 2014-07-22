@@ -1,5 +1,5 @@
 #include "SceneOpenGL.h"
-#include "Mobile.h"
+//#include "Mobile.h"
 
 #pragma comment (lib, "glew32.lib")
 #pragma comment (lib, "OpenGL32.lib")
@@ -123,7 +123,7 @@ void SceneOpenGL::bouclePrincipale()
 	Instrument gyro("gyr", port, 115200);
 	Traitement moyenne(&gyro);
 
-	Mobile gant;
+//	Mobile gant;
 
 	vect3D angle = {0.0,0.0,0.0};
 	clock_t* temps = new clock_t[3];

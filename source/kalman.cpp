@@ -14,7 +14,8 @@ kalman::kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> ini
     sys.size_out = nb_out;
     sys.size_state = nb_state;
     sys.mat_transition(sys.size_state,sys.size_state);
-	if (sys.size_in = 0){
+#pragma warning(suppress: 6282)
+	if (sys.size_in == 0){
 		sys.mat_cmde(0,0);
 	}
 	else{
@@ -62,7 +63,7 @@ void kalman::declare_system(matrix<double> A, matrix<double> B, matrix<double> C
  *
  */
 void kalman::declare_noise(matrix<double> Q, matrix<double> R){
-	if (sys.size_in = 0){
+	if (sys.size_in == 0){
 		kalm_sys.cov_cmde(0, 0);
 	}
 	else{
