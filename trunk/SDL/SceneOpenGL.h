@@ -1,8 +1,6 @@
 #ifndef DEF_SCENEOPENGL
 #define DEF_SCENEOPENGL
 
-//#include "source\Instrument.h"
-
 #include <iostream>
 #include <string>
 
@@ -20,6 +18,7 @@
 #include "Shader.h" 
 #include "Cube.h"
 #include "Traitement.h"	
+#include "Instrument.h"
 
 #define M_2PI 6.28318530718 
 #define bufferSize 4

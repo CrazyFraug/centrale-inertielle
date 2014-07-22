@@ -32,7 +32,7 @@ Traitement::~Traitement()
 void Traitement::stockerValeurs() 
 {
 		_capteur->majSerial();
-		_dt = (clock() - _capteur->getMesures().temps);
+		_dt = (clock() - _capteur->getMesures().temps)/1000;
 
         if (_compteur < NB_VALEURS)
         {
@@ -80,12 +80,12 @@ double Traitement::moyenner(int axe)
 vect3D Traitement::calculerAngle()
 {
 	vect3D angles;
-	/*angles.x = moyenner(1)*(clock()-t[0])/1000;
-	angles.y = moyenner(2)*(clock()-t[1])/1000;
-	angles.z = moyenner(3)*(clock()-t[2])/1000;*/
-	angles.x = moyenner(1)*(20)/1000;
+	angles.x = moyenner(1)*(clock() - _t[0])/1000;
+	angles.y = moyenner(2)*(clock() - _t[1])/1000;
+	angles.z = moyenner(3)*(clock() - _t[2])/1000;
+	/*angles.x = moyenner(1)*(20)/1000;
 	angles.y = moyenner(2)*(20)/1000;
-	angles.z = moyenner(3)*(20)/1000;
+	angles.z = moyenner(3)*(20)/1000;*/
 	std::cout <<  "clock = " << clock() << std::endl;
 	std::cout << "| t[0] = " << _t[0] << "| dt = " << (clock()-_t[0])/1000 << std:: endl;
 	std::cout << "| t[1] = " << _t[1] << "| dt = " << (clock()-_t[1])/1000 << std:: endl;
