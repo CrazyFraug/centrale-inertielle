@@ -2,7 +2,6 @@
 #define DEF_SCENEOPENGL
 
 #include "source\Instrument.cpp"
-//#include "Serial.cpp"
 
 #include <iostream>
 #include <string>
@@ -20,10 +19,12 @@
 #include <time.h>
 #include "Shader.h" 
 #include "Cube.h"
-//#include "kalman.h"	
+#include "Traitement.h"	
 
 #define M_2PI 6.28318530718 
 #define bufferSize 4
+#define PORTSERIE "COM8"
+#define BAUD 115200
 class SceneOpenGL
 {
     public:

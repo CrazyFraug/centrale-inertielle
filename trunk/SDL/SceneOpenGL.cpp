@@ -133,11 +133,13 @@ void SceneOpenGL::bouclePrincipale()
 
 	float value = 0;
 	int axe = 0;
+	matrix<double> cov_tmp(4,4,0);
+	std::string port = PORTSERIE;
+	int baudRate = BAUD;
 
-	SimpleSerial serieTest("COM8",115200);
 
-	//Instrument accel("accelerometre");
-	Instrument gyro("gyroscope",&serieTest);
+	Instrument gyro("gyr", port, 115200);
+	Traitement moyenne(&gyro);
 
 	Mobile gant;
 
@@ -175,59 +177,53 @@ void SceneOpenGL::bouclePrincipale()
 
 		SetConsoleCursorPosition(console, pos);
 
-		gyro.afficherMesures();
-		temps = gyro.getTemps();
-
         // Nettoyage de l'écran
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
+		
+		gyro.afficherMesures();
+		temps = gyro.getTemps();
 
 		for (int i=0;i<3;i++)
 		{
 			dt[i] = (clock() - temps[i])/1000.0;
 		}
 
-		angle.x += gyro.getMesure(1)*dt[0];
-		angle.y += gyro.getMesure(2)*dt[1];
-		angle.z = gyro.getMesure(3)*dt[2];
+		moyenne.stockerValeurs();
+		moyenne.afficherValeurs();
 
-			cout <<"angle x : " << angle.x << "  dt "<< " : " << dt[0] << endl;
-			cout <<"angle y : " << angle.y << "  dt "<< " : " << dt[1] << endl;
-			cout <<"angle z : " << angle.z << "  dt "<< " : " << dt[2] << endl;
-			
+		if (moyenne.tabFull() == true)
+		{
 
-		if (init == true) 
-		{
-			modelview = rotate(modelview, (float)(angle.x), vec3(1, 0, 0));
-			modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
-			modelview = rotate(modelview, (float)(angle.z), vec3(0, 0, 1));
-			// Rotation du repère
-		}
-		else //initialisation des valeurs
-		{
-			angle.x = 0;
-			angle.y = 0;
-			angle.z = 0;
-			temps[0] = clock();
-			temps[1] = clock();
-			temps[2] = clock();
-			gyro.setTemps(temps);
-			//gyro.calibrer();
-			gyro.afficherVI();
-			init = true;		
-		}
+			angle = angle + moyenne.calculerAngle();
+
+			if (init == true) 
+			{
+				modelview = rotate(modelview, (float)(angle.x), vec3(1, 0, 0));
+				modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
+				modelview = rotate(modelview, (float)(angle.z), vec3(0, 0, 1));
+				// Rotation du repère
+			}
+			else //initialisation des valeurs
+			{
+				angle.x = 0;
+				angle.y = 0;
+				angle.z = 0;
+				init = true;		
+			}
+		
+		} //end if(tabFull == true)
 
 		lecube.afficher(projection, modelview);
 
         // Actualisation de la fenêtre
         SDL_GL_SwapWindow(m_fenetre);
 
+		//framerate
 		finBoucle = SDL_GetTicks();
 		tempsEcoule = finBoucle - debutBoucle;
-
-		gyro.majSerial();
 
 		if(tempsEcoule < frameRate)
 			SDL_Delay(frameRate - tempsEcoule);

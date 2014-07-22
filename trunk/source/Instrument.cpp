@@ -1,3 +1,6 @@
+#ifndef DEF_INSTRUMENT
+#define DEF_INSTRUMENT
+
 #include "Serial.cpp"
 #include <Windows.h>
 #include <time.h>
@@ -11,9 +14,8 @@ private :
 		char* ID;
 		vect3D mesures;
 		vect3D valeursInitiales;
-		double* dt;
 		clock_t t_acq[3];
-		SimpleSerial* serialLink;
+		SimpleSerial serialLink;
 		
 		//retire les valeurs initiales des mesures
 		void soustraireVI(void) 
@@ -25,7 +27,7 @@ private :
 
 public:
 		//constructor
-	Instrument(char* nom, SimpleSerial* link):ID(nom),serialLink(link)
+	Instrument(char* nom, std::string port, int baudRate):ID(nom),serialLink(port, baudRate)
 		{
 			mesures.x = 0;
 			mesures.y = 0;
@@ -36,7 +38,6 @@ public:
 			t_acq[0] = clock();
 			t_acq[1] = clock();
 			t_acq[2] = clock();
-			dt = new double[3];
 		}
 
 		//destructor//
@@ -69,8 +70,7 @@ public:
 		clock_t* getTemps(void) {return t_acq;}
 
 		clock_t getTemps(int axe) {return t_acq[axe-1];}
-		
-		double* getdt(void) {return dt;}
+
 
 		//setter//
 		void setTemps(clock_t* nvTemps) 
@@ -105,7 +105,7 @@ public:
 			bool axe1(false), axe2(false), axe3(false);
 			while((axe1==false) || (axe2==false) || (axe3==false))
 			{
-				value = serialLink->readDatas(axe);
+				value = serialLink.readDatas(axe);
 				switch (axe)
 				{
 				case 1:
@@ -174,3 +174,5 @@ public:
 
 		}
 };
+
+#endif
