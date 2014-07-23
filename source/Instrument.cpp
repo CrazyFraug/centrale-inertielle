@@ -57,7 +57,8 @@ Instrument::~Instrument()
 {
 }
 
-//getter//
+
+/**Getter**/
 		
 /** brief return the "mesures" 4D vector
 */
@@ -79,6 +80,9 @@ double Instrument::getMesure(int axe)
 		break;
 	case 3:
 		return _mesures.z;
+		break;
+	case 4:
+		return _mesures.temps;
 		break;
 	default:
 		return 0;

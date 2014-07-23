@@ -109,16 +109,11 @@ void SceneOpenGL::bouclePrincipale()
 {
 
     bool terminer(false);
-	bool init(false);
-	unsigned int frameRate (1000 / 100);
+	unsigned int frameRate (1000 / 200);
     Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
-
-	float value = 0;
-	int axe = 0;
 
 	std::string port = PORTSERIE;
 	int baudRate = BAUD;
-
 
 	Instrument gyro("gyr1", port, 115200);
 	Traitement moyenne(&gyro);
@@ -165,23 +160,18 @@ void SceneOpenGL::bouclePrincipale()
 
 			angle = angle + moyenne.calculerAngle();
 
-			if (init == true) 
-			{
-				modelview = rotate(modelview, (float)(angle.x), vec3(1, 0, 0));
-				modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
-				modelview = rotate(modelview, (float)(angle.z), vec3(0, 0, 1));
+			cout << angle.x << endl;
+			cout << angle.y << endl;
+			cout << angle.z << endl;
+
+			modelview = rotate(modelview, (float)(angle.x), vec3(1, 0, 0));
+			modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
+			modelview = rotate(modelview, (float)(angle.z), vec3(0, 0, 1));
 				// Rotation du repère
-			}
-			else //initialisation des valeurs
-			{
-				angle.x = 0;
-				angle.y = 0;
-				angle.z = 0;
-				init = true;		
-			}
 		
 		} //end if(tabFull == true)
 
+		else cout << " FALSE " << endl;
 		lecube.afficher(projection, modelview);
 
         // Actualisation de la fenêtre
