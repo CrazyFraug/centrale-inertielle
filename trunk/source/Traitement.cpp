@@ -114,3 +114,74 @@ bool Traitement::tabFull()
 void Traitement::testd (void){
         std::cout << "test" << std::endl;
 }
+
+
+/**
+*	\brief Ecrire les données récupérées d'un capteur dans un fichier
+*
+*	\param filename	string		le nom du fichier - doit être en format "nom.txt"
+*   \param inst		Instrument	le capteur  dont on récupère les données
+*
+*   \test  test_filefromSensor	
+*/
+void Traitement::filefromSensor(string filename, Instrument* inst){
+	
+		fstream myfile;
+		myfile.open(filename);
+		char c;
+		myfile >> c;
+		/* Entête du fichier */
+		if (c == NULL){
+			if (inst->getID() == "gyro"){
+				myfile << "||  Gyr_X  ||  Gyr_Y  ||  Gyr_Z  ||  dt  || \n";
+			}
+			else if (inst->getID() == "acce"){
+				myfile << "||  Acc_X  ||  Acc_Y  ||  Acc_Z  ||  dt  || \n";
+			}
+		}
+
+		for (int i = 0; i < 4; i++){
+			myfile << "|| ";
+			myfile << inst->getMesure(1);
+		}
+		myfile <<" || \n";
+}
+
+/**
+*	\brief Lire les données à partir d'un fichier
+*
+*	\param	filename	string		le nom du fichier - doit être en format "nom.txt"
+*   \return data		vect4D		vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
+*
+*   \test  test_readDatafromFile
+*/
+vect4D Traitement::readDatafromFile(string filename){
+	double value_recup[4];
+	vect4D data;
+	string premier_ligne;
+	fstream myfile;
+	char c = NULL;
+
+	myfile.open(filename);
+	/* Enlève l'entête du fichier */
+	getline(myfile, premier_ligne);	
+
+
+	/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
+	while (c != '\n'){
+		for (int i = 0; i < 4; i++){
+			myfile >> c;
+			if (c == '|'){
+				if (c == '|'){
+					myfile >> value_recup[i];
+				}
+			}
+			else{
+				myfile >> value_recup[i];
+			}
+		}
+	}
+
+	data.x = value_recup[0]; data.y = value_recup[1]; data.z = value_recup[2]; data.temps = value_recup[3];
+	return data;
+}
