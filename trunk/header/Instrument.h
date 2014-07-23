@@ -2,7 +2,6 @@
 #define DEF_INSTRUMENT
 
 #include "Serial.h"
-//#include <Windows.h>
 #include <time.h>
 #include <iostream>
 #include "Structure.h"
@@ -33,12 +32,8 @@ public:
 		~Instrument();
 
 		//getter//
-
 		vect4D getMesures(void);
-		
 		double getMesure(int axe);
-		
-
 		clock_t* getTemps(void) ;
 
 		/**

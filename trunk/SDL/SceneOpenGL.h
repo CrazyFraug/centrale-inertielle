@@ -9,7 +9,7 @@
 #include <GL\glew.h>
 
 //glm libs
-//#define GLM_FORCE_RADIANS
+#define GLM_FORCE_RADIANS
 #include <glm.hpp>
 #include <gtx\transform.hpp>
 #include <gtc\type_ptr.hpp>
@@ -21,8 +21,9 @@
 //#include "Instrument.h"
 
 #define M_2PI 6.28318530718 
-#define bufferSize 4
-#define PORTSERIE "COM8"
+
+//serial port parameters:
+#define PORTSERIE "COM9"
 #define BAUD 115200
 class SceneOpenGL
 {
