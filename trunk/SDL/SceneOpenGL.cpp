@@ -115,25 +115,17 @@ void SceneOpenGL::bouclePrincipale()
 
 	float value = 0;
 	int axe = 0;
-	matrix<double> cov_tmp(4,4,0);
+
 	std::string port = PORTSERIE;
 	int baudRate = BAUD;
 
 
-	Instrument gyro("gyr", port, 115200);
+	Instrument gyro("gyr1", port, 115200);
 	Traitement moyenne(&gyro);
 
 //	Mobile gant;
 
 	vect3D angle = {0.0,0.0,0.0};
-	clock_t* temps = new clock_t[3];
-	double* dt = new double[3];
-	vect3D compteur = {0,0,0};
-	double** mesures = new double*[3]; //tableau de 3 lignes
-	for(int i = 0; i<3; i++)
-	{
-		mesures[i] = new double[bufferSize]; //avec nbColonnes = bufferSize
-	}
 
     // Matrices
     mat4 projection;
@@ -164,14 +156,6 @@ void SceneOpenGL::bouclePrincipale()
 
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
-		
-		gyro.afficherMesures();
-		temps = gyro.getTemps();
-
-		for (int i=0;i<3;i++)
-		{
-			dt[i] = (clock() - temps[i])/1000.0;
-		}
 
 		moyenne.stockerValeurs();
 		moyenne.afficherValeurs();
