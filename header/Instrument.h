@@ -2,7 +2,7 @@
 #define DEF_INSTRUMENT
 
 #include "Serial.h"
-#include <Windows.h>
+//#include <Windows.h>
 #include <time.h>
 #include <iostream>
 #include "Structure.h"

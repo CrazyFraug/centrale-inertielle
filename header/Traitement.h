@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include "Instrument.h"
-#include "kalman.h"
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
