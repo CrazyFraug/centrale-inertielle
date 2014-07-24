@@ -12,6 +12,22 @@ Traitement::Traitement(Instrument* inst):_compteur(0), _dt(0)
         }
 }
 
+Traitement::Traitement(string filename) :_compteur(0), _dt(0)
+{
+	char c;
+	fstream myfile;
+	myfile.open(filename);
+	myfile >> c;
+	
+	if (c == 'a'){
+		Instrument mon_instrument("acce", "COM8", 11820);
+		_capteur = &mon_instrument;
+	}
+	else{
+		Instrument mon_instrument("gyro", "COM8", 11820);
+		_capteur = &mon_instrument;
+	}
+}
 
 /** Destructeur **/
 Traitement::~Traitement()
