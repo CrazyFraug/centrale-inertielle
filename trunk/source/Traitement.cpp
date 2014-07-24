@@ -12,10 +12,10 @@ Traitement::Traitement(Instrument* inst):_compteur(0), _dt(0)
         }
 }
 
-Traitement::Traitement(string filename) :_compteur(0), _dt(0)
+Traitement::Traitement(std::string filename) :_compteur(0), _dt(0)
 {
 	char c;
-	fstream myfile;
+	std::fstream myfile;
 	myfile.open(filename);
 	myfile >> c;
 	
@@ -147,9 +147,9 @@ void Traitement::testd (void){
 *
 *   \test  test_filefromSensor	
 */
-void Traitement::filefromSensor(string filename, Instrument* inst){
+void Traitement::filefromSensor(std::string filename, Instrument* inst){
 	
-		fstream myfile;
+		std::fstream myfile;
 		myfile.open(filename);
 		char c;
 		myfile >> c;
@@ -178,11 +178,11 @@ void Traitement::filefromSensor(string filename, Instrument* inst){
 *
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(string filename){
+vect4D Traitement::readDatafromFile(std::string filename){
 	double value_recup[4];
 	vect4D data;
-	string premier_ligne;
-	fstream myfile;
+	std::string premier_ligne;
+	std::fstream myfile;
 	char c = NULL;
 
 	myfile.open(filename);
