@@ -1,6 +1,5 @@
 #include "Traitement.h"
-#include <fstream>
-#include <iostream>
+
 
 /**Constructeur**/
 Traitement::Traitement(Instrument* inst):_compteur(0), _dt(0)
@@ -11,23 +10,6 @@ Traitement::Traitement(Instrument* inst):_compteur(0), _dt(0)
         {
                 _valeurs[i] = new double[NB_VALEURS];
         }
-}
-
-Traitement::Traitement(string filename) :_compteur(0), _dt(0)
-{
-	char c;
-	fstream myfile;
-	myfile.open(filename);
-	myfile >> c;
-	
-	if (c == 'a'){
-		Instrument mon_instrument("acce", "COM8", 11820);
-		_capteur = &mon_instrument;
-	}
-	else{
-		Instrument mon_instrument("gyro", "COM8", 11820);
-		_capteur = &mon_instrument;
-	}
 }
 
 
@@ -50,7 +32,9 @@ Traitement::~Traitement()
 void Traitement::stockerValeurs() 
 {
 		_capteur->majSerial();
-		_dt = (clock() - _capteur->getMesures().temps)/1000;
+		_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
+		_dt = (_tempsAct - _tempsPrec)/1000.0;
+		_tempsPrec = _tempsAct;
 
         if (_compteur < NB_VALEURS)
         {
@@ -83,9 +67,13 @@ void Traitement::stockerValeurs()
 */
 double Traitement::moyenner(int axe)
 {
+        double moyenne = 0;
         for (int i =0; i < _compteur; i++)
         {
+                moyenne += _valeurs[axe-1][i];
         }
+
+        return (moyenne/NB_VALEURS);
 }
 
 /**
@@ -96,7 +84,10 @@ double Traitement::moyenner(int axe)
 vect3D Traitement::calculerAngle_deg()
 {
 	vect3D angles;
-
+	angles.x = moyenner(1)*_dt;
+	angles.y = moyenner(2)*_dt;
+	angles.z = moyenner(3)*_dt;
+	std::cout << " _dt = " << _dt << " ms " << std::endl;
 	return angles;
 }
 
@@ -104,6 +95,8 @@ vect3D Traitement::calculerAngle_deg()
 void Traitement::afficherValeurs()
 {
 	if (_compteur == NB_VALEURS) {
+		std::cout << "moyenne X = " << moyenner(1) << "                      " << std::endl;
+		std::cout << "moyenne Y = " << moyenner(2) << "                      " << std::endl;
 		std::cout << "moyenne Z = " << moyenner(3) << "                      " << std::endl;
 	}
 }
@@ -138,8 +131,7 @@ void Traitement::testd (void){
 *
 *   \test  test_filefromSensor	
 */
-
-void Traitement::filefromSensor(std::string filename, Instrument* inst){
+void Traitement::filefromSensor(string filename, Instrument* inst){
 	
 		fstream myfile;
 		myfile.open(filename);
@@ -173,7 +165,7 @@ void Traitement::filefromSensor(std::string filename, Instrument* inst){
 vect4D Traitement::readDatafromFile(string filename){
 	double value_recup[4];
 	vect4D data;
-	std::string premier_ligne;
+	string premier_ligne;
 	fstream myfile;
 	char c = NULL;
 
