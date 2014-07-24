@@ -73,6 +73,9 @@ void Traitement::stockerValeurs()
                 _valeurs[1][0] = _capteur->getMesure(2);
                 _valeurs[2][0] = _capteur->getMesure(3);
 
+				_t[0] = _capteur->getTemps(1);
+				_t[1] = _capteur->getTemps(2);
+				_t[2] = _capteur->getTemps(3);
         }
 }
 
@@ -92,12 +95,7 @@ double Traitement::moyenner(int axe)
         return (moyenne/NB_VALEURS);
 }
 
-/**
-* \brief calcul la variation d'angle (en degré)
-* la fonction utilise les attributs privés _dt et appelle la fonction Traitement::moyenner pour calculer l'angle
-* \return angles d'euler sous forme d'un vect3D 
-*/
-vect3D Traitement::calculerAngle_deg()
+vect3D Traitement::calculerAngle()
 {
 	vect3D angles;
 	angles.x = moyenner(1)*_dt;
@@ -117,11 +115,6 @@ void Traitement::afficherValeurs()
 	}
 }
 
-/**
-* \brief indique si le tableau _valeurs est rempli
-* i.e. si le nombres de mesures relevées suffit à remplir le tableau au moins une fois
-* \return boolean
-*/
 bool Traitement::tabFull()
 {
 	if (_compteur == NB_VALEURS)
