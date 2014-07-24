@@ -36,6 +36,7 @@ public:
 		double getMesure(int axe);
 		clock_t* getTemps(void) ;
 
+		char* getID();
 		/** \brief return the time of the last measure according to the parameter axe
 		*/
 		clock_t getTemps(int axe);
