@@ -1,15 +1,15 @@
 #include "Traitement.h"
-
+#include <iostream>
 
 /**Constructeur**/
-Traitement::Traitement(Instrument* inst):_compteur(0), _dt(0)
+Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 {
-		_capteur = inst;
-        /** Allocation mémoire de la matrice de valeurs **/
-        for (int i = 0; i<3; i++)
-        {
-                _valeurs[i] = new double[NB_VALEURS];
-        }
+	_capteur = inst;
+	/** Allocation mémoire de la matrice de valeurs **/
+	for (int i = 0; i<3; i++)
+	{
+		_valeurs[i] = new double[NB_VALEURS];
+	}
 }
 
 Traitement::Traitement(std::string filename) :_compteur(0), _dt(0)
@@ -18,7 +18,7 @@ Traitement::Traitement(std::string filename) :_compteur(0), _dt(0)
 	std::fstream myfile;
 	myfile.open(filename);
 	myfile >> c;
-	
+
 	if (c == 'a'){
 		Instrument mon_instrument("acce", "COM8", 11820);
 		_capteur = &mon_instrument;
@@ -32,70 +32,72 @@ Traitement::Traitement(std::string filename) :_compteur(0), _dt(0)
 /** Destructeur **/
 Traitement::~Traitement()
 {
-        for (int i = 0; i<3; i++)
-        {
-                delete _valeurs[i];
-        }
+	for (int i = 0; i<3; i++)
+	{
+		delete _valeurs[i];
+	}
 }
 
 
-/** 
- *      \brief stocke des valeurs passées en argument dans la matrice de valeur attribut
- *      la variable compteur permet de savoir si la matrice est remplie ou pas
- *      si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en argument
- *      \param val vect3D défini dans structure.h contenant les mesures a stocker
+/**
+*      \brief stocke des valeurs passées en argument dans la matrice de valeur attribut
+*      la variable compteur permet de savoir si la matrice est remplie ou pas
+*      si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en argument
+*      \param val vect3D défini dans structure.h contenant les mesures a stocker
 */
-void Traitement::stockerValeurs() 
+void Traitement::stockerValeurs()
 {
-		_capteur->majSerial();
-		_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
-		_dt = (_tempsAct - _tempsPrec)/1000.0;
-		_tempsPrec = _tempsAct;
+	_capteur->majSerial();
+	_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
+	_dt = (_tempsAct - _tempsPrec) / 1000.0;
+	_tempsPrec = _tempsAct;
 
-        if (_compteur < NB_VALEURS)
-        {
-                _valeurs[0][_compteur] = _capteur->getMesure(1);
-                _valeurs[1][_compteur] = _capteur->getMesure(2);
-                _valeurs[2][_compteur] = _capteur->getMesure(3);
-                _compteur++;
-        }
+	if (_compteur < NB_VALEURS)
+	{
+		_valeurs[0][_compteur] = _capteur->getMesure(1);
+		_valeurs[1][_compteur] = _capteur->getMesure(2);
+		_valeurs[2][_compteur] = _capteur->getMesure(3);
+		_compteur++;
+	}
 
-        else
-        {
-                for(int i = NB_VALEURS-1; i>0; i--)
-                {
-                        _valeurs[0][i] = _valeurs[0][i-1];
-                        _valeurs[1][i] = _valeurs[1][i-1];
-                        _valeurs[2][i] = _valeurs[2][i-1];
-                }
+	else
+	{
+		for (int i = NB_VALEURS - 1; i>0; i--)
+		{
+			_valeurs[0][i] = _valeurs[0][i - 1];
+			_valeurs[1][i] = _valeurs[1][i - 1];
+			_valeurs[2][i] = _valeurs[2][i - 1];
+		}
 
-                _valeurs[0][0] = _capteur->getMesure(1);
-                _valeurs[1][0] = _capteur->getMesure(2);
-                _valeurs[2][0] = _capteur->getMesure(3);
+		_valeurs[0][0] = _capteur->getMesure(1);
+		_valeurs[1][0] = _capteur->getMesure(2);
+		_valeurs[2][0] = _capteur->getMesure(3);
 
-				_t[0] = _capteur->getTemps(1);
-				_t[1] = _capteur->getTemps(2);
-				_t[2] = _capteur->getTemps(3);
-        }
+	}
 }
 
 /**
- *  \brief realise la moyenne des valeurs d'une ligne de la matrice
- *  \param axe numero de la ligne que l'on veut moyenner
- *  \return la moyenne d'une ligne
+*  \brief realise la moyenne des valeurs d'une ligne de la matrice
+*  \param axe numero de la ligne que l'on veut moyenner
+*  \return la moyenne d'une ligne
 */
 double Traitement::moyenner(int axe)
 {
-        double moyenne = 0;
-        for (int i =0; i < _compteur; i++)
-        {
-                moyenne += _valeurs[axe-1][i];
-        }
+	double moyenne = 0;
+	for (int i = 0; i < _compteur; i++)
+	{
+		moyenne += _valeurs[axe - 1][i];
+	}
 
-        return (moyenne/NB_VALEURS);
+	return (moyenne / NB_VALEURS);
 }
 
-vect3D Traitement::calculerAngle()
+/**
+* \brief calcul la variation d'angle (en degré)
+* la fonction utilise les attributs privés _dt et appelle la fonction Traitement::moyenner pour calculer l'angle
+* \return angles d'euler sous forme d'un vect3D
+*/
+vect3D Traitement::calculerAngle_deg()
 {
 	vect3D angles;
 	angles.x = moyenner(1)*_dt;
@@ -115,6 +117,11 @@ void Traitement::afficherValeurs()
 	}
 }
 
+/**
+* \brief indique si le tableau _valeurs est rempli
+* i.e. si le nombres de mesures relevées suffit à remplir le tableau au moins une fois
+* \return boolean
+*/
 bool Traitement::tabFull()
 {
 	if (_compteur == NB_VALEURS)
@@ -127,40 +134,49 @@ bool Traitement::tabFull()
 /**
 \brief fonction inutile
 */
-void Traitement::testd (void){
-        std::cout << "test" << std::endl;
+void Traitement::testd(void){
+	std::cout << "test" << std::endl;
 }
 
 
 /**
 *	\brief Ecrire les données récupérées d'un capteur dans un fichier
 *
-*	\param filename	string		le nom du fichier - doit être en format "nom.txt"
+*	\param filename	string		le nom du fichier - doit être en format "nom.txt" et doit être ouvert
 *   \param inst		Instrument	le capteur  dont on récupère les données
 *
-*   \test  test_filefromSensor	
+*   \test  test_filefromSensor
 */
-void Traitement::filefromSensor(std::string filename, Instrument* inst){
-	
-		std::fstream myfile;
-		myfile.open(filename);
-		char c;
-		myfile >> c;
-		/* Entête du fichier */
-		if (c == NULL){
-			if (inst->getID() == "gyro"){
-				myfile << "||  Gyr_X  ||  Gyr_Y  ||  Gyr_Z  ||  dt  || \n";
-			}
-			else if (inst->getID() == "acce"){
-				myfile << "||  Acc_X  ||  Acc_Y  ||  Acc_Z  ||  dt  || \n";
-			}
-		}
+void Traitement::writeEntete(std::string filename){
+	std::fstream myfile;
+	myfile.open(filename.c_str());
+	if (filename == "gyro.txt"){
+		myfile << "||  Gyr_X  ||  Gyr_Y  ||  Gyr_Z  ||  temps  || \n";
+	}
+	else if (filename == "acce.txt"){
+		myfile << "||  Acc_X  ||  Acc_Y  ||  Acc_Z  ||  temps  || \n";
+	}
+	myfile.close();
+}
 
-		for (int i = 0; i < 4; i++){
-			myfile << "|| ";
-			myfile << inst->getMesure(1);
+void Traitement::filefromSensor(std::string filename, Instrument* inst){
+	std::fstream myfile;
+	myfile.open(filename.c_str(), std::ios::out|std::ios::app);
+	myfile << "||  ";
+	for (int i = 1; i <= 4; i++){
+		if (inst->getMesure(i) == 0){
+			myfile << "  ";
+			myfile << inst->getMesure(i);
+			myfile << "  ";
+			myfile << "  ||  ";
 		}
-		myfile <<" || \n";
+		else{
+			myfile << inst->getMesure(i);
+			myfile << "  ||  ";
+		}
+	}
+	myfile << "\n" ;
+	myfile.close();
 }
 
 /**
@@ -180,20 +196,20 @@ vect4D Traitement::readDatafromFile(std::string filename){
 
 	myfile.open(filename);
 	/* Enlève l'entête du fichier */
-	getline(myfile, premier_ligne);	
+	getline(myfile, premier_ligne);
 
 
 	/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
 	while (c != '\n'){
-		for (int i = 0; i < 4; i++){
+		for (int i = 1; i <= 4; i++){
 			myfile >> c;
 			if (c == '|'){
 				if (c == '|'){
-					myfile >> value_recup[i];
+					myfile >> value_recup[i-1];
 				}
 			}
 			else{
-				myfile >> value_recup[i];
+				myfile >> value_recup[i-1];
 			}
 		}
 	}
