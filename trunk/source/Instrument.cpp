@@ -101,7 +101,9 @@ clock_t* Instrument::getTemps(void) {return _t_acq;}
 */
 clock_t Instrument::getTemps(int axe) {return _t_acq[axe-1];}
 
-
+char* Instrument::getID(void){
+	return ID;
+}
 /**Setter**/
 
 /** \brief fills the _t_acq table with the new values (as parameter)
