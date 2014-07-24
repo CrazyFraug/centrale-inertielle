@@ -116,7 +116,8 @@ void SceneOpenGL::bouclePrincipale()
 	int baudRate = BAUD;
 
 	Instrument gyro("gyr1", port, 115200);
-	Traitement moyenne(&gyro);
+	Traitement trait_basic(&gyro); 
+	/* l'objet qui servira a récupérer les valeurs de l'arduino puis a faire un moyenne sur plusieurs valeurs pour des résultats plus stables*/
 
 //	Mobile gant;
 
@@ -152,13 +153,13 @@ void SceneOpenGL::bouclePrincipale()
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 
-		moyenne.stockerValeurs();
-		moyenne.afficherValeurs();
+		trait_basic.stockerValeurs();
+		trait_basic.afficherValeurs();
 
-		if (moyenne.tabFull() == true)
+		if (trait_basic.tabFull() == true)
 		{
 
-			angle = angle + moyenne.calculerAngle();
+			angle = angle + trait_basic.calculerAngle_deg();
 
 			cout << angle.x << endl;
 			cout << angle.y << endl;
