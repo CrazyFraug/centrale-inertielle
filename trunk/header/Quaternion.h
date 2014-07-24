@@ -14,7 +14,6 @@ using namespace boost::math;
 * 							ce qui nous éviterais les singularités des angles d'euler à +90 et -90)
 */
 quaternion<double> anglesToQuat(double phi, double teta, double rho);
-//double* quatToAngles(quaternion<double> q);
 void afficherQuat(quaternion<double>);
 
 #endif

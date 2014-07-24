@@ -2,6 +2,7 @@
 #define DEF_TRAITEMENT
 
 #include <iostream>
+#include <fstream>
 #include "Instrument.h"
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -14,7 +15,7 @@ class Traitement
 	{
 	public:
 		Traitement(Instrument* inst);
-		Traitement(string filename);
+		Traitement(std::string filename);
 		~Traitement();
 
 		void testd(void);
@@ -24,8 +25,8 @@ class Traitement
 		void afficherValeurs(void);
 		void calculer_dt();
 		bool tabFull(void);
-		void filefromSensor(string filename, Instrument* inst);
-		vect4D readDatafromFile(string filename);
+		void filefromSensor(std::string filename, Instrument* inst);
+		vect4D readDatafromFile(std::string filename);
 	private:
 		int _test;
 		int _compteur;

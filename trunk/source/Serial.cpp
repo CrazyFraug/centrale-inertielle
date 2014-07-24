@@ -1,6 +1,6 @@
 #include "Serial.h"
 
-//for arduino: SCL on A5, SDA on A4, GND and Vin to 5V
+//for arduino: SCL to A5, SDA to A4, GND to ground and Vin to 5V
 
 
     /**
