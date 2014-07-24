@@ -1,6 +1,4 @@
 #include "Traitement.h"
-#include <fstream>
-#include <iostream>
 
 
 /**
@@ -9,15 +7,15 @@
 *	\param	inst		Instrument*	l'instrument dont on va extraire les données
 *	\test	le test n'est pas encore validé
 */
-void test_filefromSensor(string* filename, Instrument* inst){
+void test_filefromSensor(std::string* filename, Instrument* inst){
 	/* Déclaration des variables locaux */
 	Traitement un_traitement(inst);
 	char c = 0;
 	bool test_non_valid(false), end_of_file(false);
 	vect4D donnees;
 	double result[4];
-	string premier_ligne;
-	ifstream infile;
+	std::string premier_ligne;
+	std::fstream infile;
 	/* Ouverture du fichier et récupération du premier ligne de présentation */
 	infile.open(*filename);
 	getline(infile, premier_ligne);
@@ -46,10 +44,10 @@ void test_filefromSensor(string* filename, Instrument* inst){
 	}
 	infile.close();
 	if (test_non_valid){
-		cout << "Test non validé, fichier mal écrit " << endl;
+		std::cout << "Test non validé, fichier mal écrit " << std::endl;
 	}
 	else{
-		cout << "Test validé, fichier bien écrit " << endl;
+		std::cout << "Test validé, fichier bien écrit " << std::endl;
 	}
 
 }
@@ -62,22 +60,22 @@ void test_filefromSensor(string* filename, Instrument* inst){
 *	\test	le test n'est pas encore validé
 */
 
-void test_readDatafromFile(string* filename){
+void test_readDatafromFile(std::string* filename){
 	vect4D value_in,test_value;
 	Traitement un_traitement(*filename);
 	bool end_of_file(false);
-	fstream myfile;
+	std::fstream myfile;
 	myfile.open(*filename);
 
-	cout << "Rentrer une valeur pour le test : " << endl;
-	cout << "Valeur pour l'axe X : ";
-	cin >> value_in.x;
-	cout << "Valeur pour l'axe Y : ";
-	cin >> value_in.y;
-	cout << "Valeur pour l'axe Z : ";
-	cin >> value_in.z;
-	cout << "Valeur pour le temps : ";
-	cin >> value_in.temps;
+	std::cout << "Rentrer une valeur pour le test : " << std::endl;
+	std::cout << "Valeur pour l'axe X : ";
+	std::cin >> value_in.x;
+	std::cout << "Valeur pour l'axe Y : ";
+	std::cin >> value_in.y;
+	std::cout << "Valeur pour l'axe Z : ";
+	std::cin >> value_in.z;
+	std::cout << "Valeur pour le temps : ";
+	std::cin >> value_in.temps;
 	myfile << "\n";
 	
 	while (!end_of_file){
@@ -86,9 +84,9 @@ void test_readDatafromFile(string* filename){
 
 	if (test_value.x != value_in.x || test_value.y != value_in.y || test_value.z != value_in.z || test_value.temps != value_in.temps)
 	{
-		cout << " Test non validé, erreur de lecture du fichier" << endl;
+		std::cout << " Test non validé, erreur de lecture du fichier" << std::endl;
 	}
 	else{
-		cout << " Test validé " << endl;
+		std::cout << " Test validé " << std::endl;
 	}
 }
