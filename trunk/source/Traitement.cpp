@@ -1,5 +1,6 @@
 #include "Traitement.h"
-
+#include <fstream>
+#include <iostream>
 
 /**Constructeur**/
 Traitement::Traitement(Instrument* inst):_compteur(0), _dt(0)
@@ -10,6 +11,23 @@ Traitement::Traitement(Instrument* inst):_compteur(0), _dt(0)
         {
                 _valeurs[i] = new double[NB_VALEURS];
         }
+}
+
+Traitement::Traitement(string filename) :_compteur(0), _dt(0)
+{
+	char c;
+	fstream myfile;
+	myfile.open(filename);
+	myfile >> c;
+	
+	if (c == 'a'){
+		Instrument mon_instrument("acce", "COM8", 11820);
+		_capteur = &mon_instrument;
+	}
+	else{
+		Instrument mon_instrument("gyro", "COM8", 11820);
+		_capteur = &mon_instrument;
+	}
 }
 
 
@@ -32,9 +50,7 @@ Traitement::~Traitement()
 void Traitement::stockerValeurs() 
 {
 		_capteur->majSerial();
-		_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
-		_dt = (_tempsAct - _tempsPrec)/1000.0;
-		_tempsPrec = _tempsAct;
+		_dt = (clock() - _capteur->getMesures().temps)/1000;
 
         if (_compteur < NB_VALEURS)
         {
@@ -67,13 +83,13 @@ void Traitement::stockerValeurs()
 */
 double Traitement::moyenner(int axe)
 {
-        double moyenne = 0;
+        double _moyenne = 0;
         for (int i =0; i < _compteur; i++)
         {
-                moyenne += _valeurs[axe-1][i];
+                _moyenne += _valeurs[axe-1][i];
         }
 
-        return (moyenne/NB_VALEURS);
+        return (_moyenne/NB_VALEURS);
 }
 
 /**
@@ -84,10 +100,16 @@ double Traitement::moyenner(int axe)
 vect3D Traitement::calculerAngle_deg()
 {
 	vect3D angles;
-	angles.x = moyenner(1)*_dt;
-	angles.y = moyenner(2)*_dt;
-	angles.z = moyenner(3)*_dt;
-	std::cout << " _dt = " << _dt << " ms " << std::endl;
+	angles.x = moyenner(1)*(clock() - _t[0])/1000;
+	angles.y = moyenner(2)*(clock() - _t[1])/1000;
+	angles.z = moyenner(3)*(clock() - _t[2])/1000;
+	/*angles.x = moyenner(1)*(20)/1000;
+	angles.y = moyenner(2)*(20)/1000;
+	angles.z = moyenner(3)*(20)/1000;*/
+	std::cout <<  "clock = " << clock() << std::endl;
+	std::cout << "| t[0] = " << _t[0] << "| dt = " << (clock()-_t[0])/1000 << std:: endl;
+	std::cout << "| t[1] = " << _t[1] << "| dt = " << (clock()-_t[1])/1000 << std:: endl;
+	std::cout << "| t[2] = " << _t[2] << "| dt = " << (clock()-_t[2])/1000 << std:: endl;
 	return angles;
 }
 
@@ -95,9 +117,9 @@ vect3D Traitement::calculerAngle_deg()
 void Traitement::afficherValeurs()
 {
 	if (_compteur == NB_VALEURS) {
-		std::cout << "moyenne X = " << moyenner(1) << "                      " << std::endl;
-		std::cout << "moyenne Y = " << moyenner(2) << "                      " << std::endl;
-		std::cout << "moyenne Z = " << moyenner(3) << "                      " << std::endl;
+		std::cout << "moyenne X = " << moyenner(1) << std::endl;
+		std::cout << "moyenne Y = " << moyenner(2) << std::endl;
+		std::cout << "moyenne Z = " << moyenner(3) << std::endl;
 	}
 }
 
