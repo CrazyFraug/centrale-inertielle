@@ -36,13 +36,12 @@ public:
 		double getMesure(int axe);
 		clock_t* getTemps(void) ;
 
-		/**
-		* \brief return the time of the last measure according to the parameter axe
+		/** \brief return the time of the last measure according to the parameter axe
 		*/
 		clock_t getTemps(int axe);
 
 
-		//setter//
+		/**Setter**/
 
 		/** \brief fills the _t_acq table with the new values (as parameter)
 		*/

@@ -1,6 +1,8 @@
 #include "Instrument.h"
 
-//surcharge de l'operateur + pour les vecteur 3D
+/**Surcharge d'operateur les vecteur 3D et 4D**/
+
+/* \brief Surcharge operateur+ pour 2 vecteurs 3D*/
 vect3D operator+(vect3D v1, vect3D v2)
 {
 	vect3D v;
@@ -10,6 +12,7 @@ vect3D operator+(vect3D v1, vect3D v2)
 	return v;
 }
 
+/* \brief Surcharge operateur* pour un vecteur 3D et un nombre*/
 vect3D operator*(vect3D v2, double* v1) 
 {
 	vect3D result;
@@ -19,6 +22,8 @@ vect3D operator*(vect3D v2, double* v1)
 	return result;
 }
 
+/* \brief Surcharge operateur+ pour un vecteur 4D et un 3D
+* le temps reste inchangé */
 vect4D operator+(vect4D v1, vect3D v2) 
 {
 	vect4D result;
@@ -28,16 +33,14 @@ vect4D operator+(vect4D v1, vect3D v2)
 	return result;
 }
 
-		
-//retire les valeurs initiales des mesures
-void Instrument::soustraireVI(void) 
-{
-	_mesures.x -= _valeursInitiales.x;
-	_mesures.y -= _valeursInitiales.y;
-	_mesures.z -= _valeursInitiales.z;
-}
 
-//constructor
+/** 
+* \brief Constructeur d'Instrument
+* prend en argument les parametre de la communication série
+* \param nom : chaine de caractere qui identifie l'instrument
+* \param port : nom du port serie utilisé, défini en tant que constante dans SceneOpenGL.h
+* \param baudRate : baudrate de la laison série
+*/
 Instrument::Instrument(char* nom, std::string port, int baudRate):ID(nom),_serialLink(port, baudRate)
 {
 	_mesures.x = 0;
@@ -52,7 +55,8 @@ Instrument::Instrument(char* nom, std::string port, int baudRate):ID(nom),_seria
 	_t_acq[2] = clock();
 }
 
-//destructor//
+/** \brief Destructeur
+*/
 Instrument::~Instrument() 
 {
 }
@@ -98,7 +102,7 @@ clock_t* Instrument::getTemps(void) {return _t_acq;}
 clock_t Instrument::getTemps(int axe) {return _t_acq[axe-1];}
 
 
-//setter//
+/**Setter**/
 
 /** \brief fills the _t_acq table with the new values (as parameter)
 */
@@ -118,7 +122,20 @@ void Instrument::setVI(vect3D valeurs)
 	_valeursInitiales.z = valeurs.z;
 }
 
-/**met a jour les valeurs des mesures de l'instrument avec les valeurs passées en paramètre*/
+
+/** Autres methodes **/
+
+
+/** \brief retire les conditions initiales (in progress)*/
+void Instrument::soustraireVI(void) 
+{
+	_mesures.x -= _valeursInitiales.x;
+	_mesures.y -= _valeursInitiales.y;
+	_mesures.z -= _valeursInitiales.z;
+}
+/**
+* \brief met a jour les mesures de l'instrument avec les valeurs passées en paramètre
+*/
 void Instrument::majMesures(vect3D nvMesures)
 {
 	_mesures.x = nvMesures.x;
