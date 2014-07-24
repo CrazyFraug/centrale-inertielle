@@ -138,11 +138,12 @@ void Instrument::soustraireVI(void)
 /**
 * \brief met a jour les mesures de l'instrument avec les valeurs passées en paramètre
 */
-void Instrument::majMesures(vect3D nvMesures)
+void Instrument::majMesures(vect4D nvMesures)
 {
 	_mesures.x = nvMesures.x;
 	_mesures.y = nvMesures.y;
 	_mesures.z = nvMesures.z;
+	_mesures.temps = nvMesures.temps;
 	soustraireVI();
 }
 

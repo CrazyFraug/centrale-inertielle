@@ -14,59 +14,59 @@ vect4D operator+(vect4D v1, vect3D v2);
 
 class Instrument {
 
-private : 
-		char* ID;
-		vect4D _mesures;
-		vect3D _valeursInitiales;
-		clock_t _t_acq[3];
-		Serial _serialLink;
-		
-		//retire les valeurs initiales des mesures
-		void soustraireVI(void) ;
+private:
+	char* ID;
+	vect4D _mesures;
+	vect3D _valeursInitiales;
+	clock_t _t_acq[3];
+	Serial _serialLink;
+
+	//retire les valeurs initiales des mesures
+	void soustraireVI(void);
 
 public:
-		//constructor
-		Instrument(char* nom, std::string port, int baudRate);
+	//constructor
+	Instrument(char* nom, std::string port, int baudRate);
 
-		//destructor//
-		~Instrument();
+	//destructor//
+	~Instrument();
 
-		//getter//
-		vect4D getMesures(void);
-		double getMesure(int axe);
-		clock_t* getTemps(void) ;
+	//getter//
+	vect4D getMesures(void);
+	double getMesure(int axe);
+	clock_t* getTemps(void);
 
-		char* getID();
-		/** \brief return the time of the last measure according to the parameter axe
-		*/
-		clock_t getTemps(int axe);
+	char* getID();
+	/** \brief return the time of the last measure according to the parameter axe
+	*/
+	clock_t getTemps(int axe);
 
-		/**Setter**/
+	/**Setter**/
 
-		/** \brief fills the _t_acq table with the new values (as parameter)
-		*/
-		void setTemps(clock_t* nvTemps) ;
+	/** \brief fills the _t_acq table with the new values (as parameter)
+	*/
+	void setTemps(clock_t* nvTemps);
 
-		/** \brief fills the _valeursInitiales table with the new values (as parameter)
-		*/
-		void setVI(vect3D valeurs);
+	/** \brief fills the _valeursInitiales table with the new values (as parameter)
+	*/
+	void setVI(vect3D valeurs);
 
-		/**met a jour les valeurs des mesures de l'instrument avec les valeurs passées en paramètre*/
-		void majMesures(vect3D nvMesures);
+	/**met a jour les valeurs des mesures de l'instrument avec les valeurs passées en paramètre*/
+	void majMesures(vect4D nvMesures);
 
-		/** 
-		 * \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série 
-		 * renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
-		 * lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
-		 */
-		void majSerial();
-		
-		//calibrer l'instrument en initialisant les valeurs initiales
-		void calibrer(void);
+	/**
+	* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
+	* renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
+	* lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
+	*/
+	void majSerial();
 
-		void afficherMesures() const;
-		void afficherTemps() const;
-		void afficherVI() const;
+	//calibrer l'instrument en initialisant les valeurs initiales
+	void calibrer(void);
+
+	void afficherMesures() const;
+	void afficherTemps() const;
+	void afficherVI() const;
 
 };
 
