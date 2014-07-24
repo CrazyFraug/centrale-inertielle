@@ -41,7 +41,6 @@ public:
 		*/
 		clock_t getTemps(int axe);
 
-
 		/**Setter**/
 
 		/** \brief fills the _t_acq table with the new values (as parameter)
@@ -66,9 +65,7 @@ public:
 		void calibrer(void);
 
 		void afficherMesures() const;
-
 		void afficherTemps() const;
-
 		void afficherVI() const;
 
 };
