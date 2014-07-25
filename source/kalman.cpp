@@ -12,7 +12,9 @@ kalman::kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> ini
 {
     sys.size_in = nb_in;
     sys.size_out = nb_out;
-    sys.size_state = nb_state;
+    sys.size_state = nb_state;    
+	kalm_sys.nb_step = step;
+
     sys.mat_transition(sys.size_state,sys.size_state);
 #pragma warning(suppress: 6282)
 	if (sys.size_in == 0){
@@ -22,14 +24,16 @@ kalman::kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> ini
 		sys.mat_cmde(sys.size_in, sys.size_state);
 	}
     sys.mat_sortie(sys.size_out,sys.size_state);
-    kalm_sys.nb_step = step;
+
     kalm_sys.matrix_ident(sys.size_state,sys.size_state);
     kalm_sys.noise_cmde(1,sys.size_in);
     kalm_sys.cov_cmde(sys.size_in,sys.size_state);
     kalm_sys.noise_mesure(1, sys.size_out);
     kalm_sys.cov_mesure(sys.size_out, sys.size_state);
+
 	kalm_sys.cov_estimate(sys.size_state,sys.size_state);
 	kalm_sys.cov_estimate=init_cov_estimate;
+
     kalm_sys.predict_vector(1,sys.size_state);
     kalm_sys.kalman_gain(sys.size_state,sys.size_state);
 
@@ -37,11 +41,116 @@ kalman::kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> ini
 
 kalman::~kalman()
 {
+}
 
+
+/**
+ *  Initialisation des matrices pour le filtre kalman
+ *  \param      sx double   vitesse angulaire selon l'axe Ax
+ *  \param      sy double   vitesse angulaire selon l'axe Ay
+ *  \param      sz double   vitesse angulaire selon l'axe Az
+ *
+*/
+void kalman::initMatrices(double sx, double sy, double sz)
+{
+        double sx2, sy2, sz2;
+        sx2 = pow(sx,2);
+        sy2 = pow(sy,2);
+        sz2 = pow(sz,2);
+
+        kalm_sys.cov_cmde(0,0) = sx2 + sy2 + sz2; kalm_sys.cov_cmde(1,1) = sx2 + sy2 + sz2; kalm_sys.cov_cmde(2,2) = sx2 + sy2 + sz2; kalm_sys.cov_cmde(3,3) = sx2 + sy2 + sz2; //diagonale
+        kalm_sys.cov_cmde(0,1) = -sx2 + sy2 - sz2; kalm_sys.cov_cmde(0,2) = -sx2 -sy2 + sz2; kalm_sys.cov_cmde(0,3) = sx2 - sy2 - sz2;
+        kalm_sys.cov_cmde(1,0) = -sx2 + sy2 - sz2; kalm_sys.cov_cmde(1,2) = sx2 - sy2 - sz2; kalm_sys.cov_cmde(1,3) = -sx2 - sy2 + sz2;
+        kalm_sys.cov_cmde(2,0) = -sx2 -sy2 + sz2; kalm_sys.cov_cmde(2,1) = sx2 - sy2 - sz2; kalm_sys.cov_cmde(2,3) = -sx2 + sy2 - sz2;
+        kalm_sys.cov_cmde(3,0) = sx2 - sy2 - sz2; kalm_sys.cov_cmde(3,1) = -sx2 - sy2 + sz2; kalm_sys.cov_cmde(3,2) = -sx2 + sy2 - sz2;
+
+        kalm_sys.cov_mesure(0,0) = 0.05;
+        kalm_sys.cov_mesure(1,1) = 0.05;
+        kalm_sys.cov_mesure(2,2) = 0.05;
+        kalm_sys.cov_mesure(3,3) = 0.05;
+
+
+        sys.mat_sortie(0,0) = 1;
+        sys.mat_sortie(1,1) = 1;
+        sys.mat_sortie(2,2) = 1;
+        sys.mat_sortie(3,3) = 1;     
 
 }
 
-/** \brief Fonction déclare le système dont on veut travailler/filtrer
+
+/**
+ *  Traitement avec le filtre Kalman
+ *  \param      mesures[3]   vecteur de 3 mesures de vitesse angulaire selon l'axe Ax, Ay, Az
+ *  \return measure_estimate vecteur de 3 angles de rotation selon l'axe Ax, Ay, Az estimés
+ *
+*/
+
+double* kalman::initSystem(double mesures[3], double dt) {
+
+        double* estimation;
+        double anglex, angley, anglez, wx,wy,wz, Ax, Ay, Az;
+        //CQRQuaternionHandle quat_meas, quat_estimate;
+
+        estimation = new double[3];
+
+        //CQRCreateEmptyQuaternion(&quat_meas);
+        //CQRCreateEmptyQuaternion(&quat_estimate);
+
+        wx = mesures[0];
+        wy = mesures[1];
+        wz = mesures[2];
+        /* Mettre à jour la matrice de transition A */
+        Ax = 0.5*wx*dt;
+        Ay = 0.5*wy*dt;
+        Az = 0.5*wz*dt;
+
+        A(0,0)=1;
+        sys.mat_transition(0,0) = 1; sys.mat_transition(1,1) = 1; sys.mat_transition(2,2) = 1; sys.mat_transition(3,3) = 1; //diagonale
+        sys.mat_transition(0,1) = -Ax; sys.mat_transition(0,2) = -Ay; sys.mat_transition(0,3) = -Az;
+        sys.mat_transition(1,0) = Ax; sys.mat_transition(1,2) = Az; sys.mat_transition(1,3) = -Ay;
+        sys.mat_transition(2,0) = Ay; sys.mat_transition(2,1) = -Az; sys.mat_transition(2,3) = Ax;
+        sys.mat_transition(3,0) = Az; sys.mat_transition(3,1) = Ay; sys.mat_transition(3,2) = -Ax;
+
+        /* Mettre à jour le système à filtrer */
+        //filtre.declare_system(A, B, C);
+        //filtre.declare_noise(Q, R);
+
+        /* Etape prédiction du filtre Kalman */
+        predict_step(B);
+
+
+        /* Convertir les données mesurées(angles) en quaternion (type matrix) */
+        anglex = wx*dt;
+        angley = wy*dt;
+        anglez = wz*dt;
+
+        CQRAngles2Quaternion (quat_meas, anglex, angley, anglez );
+
+        matrix<double> mesuresQuat(4,1);
+
+        mesuresQuat(0,0) = quat_meas->w;
+        mesuresQuat(1,0) = quat_meas->x;
+        mesuresQuat(2,0) = quat_meas->y;
+        mesuresQuat(3,0) = quat_meas->z;
+
+        matrix<double> estimate_result(4,1,0);
+
+        /* Etape update l'estimation */
+		estimate_result = filtre.update_step(mesuresQuat);
+
+        quat_estimate->w = estimate_result(0,0);
+        quat_estimate->x = estimate_result(1,0);
+        quat_estimate->y = estimate_result(2,0);
+        quat_estimate->z = estimate_result(3,0);
+
+        /* Convertir les données estimées (quaternion) en angles pour l'affichage */
+        matrix<double> measure_estimate(3,1);
+        CQRQuaternion2Angles(&measure_estimate(0,1), &measure_estimate(1,1), &measure_estimate(2,1), quat_estimate);
+
+        return estimation;
+}
+
+/** \brief Fonction déclare le système sur lequel on veut travailler/filtrer
  *
  * \param A matrix_type -- matrice de transition, matrice carrée de taille = nombre d'états du système
  * \param B matrix_type -- matrice de commande, matrice de taille : nombre d'états du système x nombre d'entrées
@@ -79,8 +188,10 @@ void kalman::declare_noise(matrix<double> Q, matrix<double> R){
  * \return void
  *
  */
-void kalman::predict_step(matrix<double> value_cmd){
+void kalman::predict_step(matrix<double> value_cmd)
+{
     matrix<double> aux = prod(sys.mat_transition,kalm_sys.predict_vector);
+
 	if (sys.size_in == 0){
 		kalm_sys.predict_vector = aux;
 	}
@@ -88,6 +199,7 @@ void kalman::predict_step(matrix<double> value_cmd){
 		matrix<double> aux_1 = prod(sys.mat_cmde, value_cmd);
 		kalm_sys.predict_vector = aux + aux_1;
 	}
+
 	matrix<double> aux_2 = prod(sys.mat_transition,kalm_sys.cov_estimate);
     aux_2 = prod(aux,trans(sys.mat_transition));
     kalm_sys.cov_estimate = aux_2 + kalm_sys.cov_cmde;
@@ -135,110 +247,4 @@ matrix<double> kalman::update_step(matrix<double> value_measure){
 	return kalm_sys.predict_vector;
 }
 
-
-/**
- *  Initialisation des matrices pour le filtre kalman
- *  \param      sx double   vitesse angulaire selon l'axe Ax
- *  \param      sy double   vitesse angulaire selon l'axe Ay
- *  \param      sz double   vitesse angulaire selon l'axe Az
- *
-*/
-/*void Traitement::initMatrices(double sx, double sy, double sz)
-{
-        double sx2, sy2, sz2;
-        sx2 = pow(sx,2);
-        sy2 = pow(sy,2);
-        sz2 = pow(sz,2);
-
-        Q(0,0) = sx2 + sy2 + sz2; Q(1,1) = sx2 + sy2 + sz2; Q(2,2) = sx2 + sy2 + sz2; Q(3,3) = sx2 + sy2 + sz2; //diagonale
-        Q(0,1) = -sx2 + sy2 - sz2; Q(0,2) = -sx2 -sy2 + sz2; Q(0,3) = sx2 - sy2 - sz2;
-        Q(1,0) = -sx2 + sy2 - sz2; Q(1,2) = sx2 - sy2 - sz2; Q(1,3) = -sx2 - sy2 + sz2;
-        Q(2,0) = -sx2 -sy2 + sz2; Q(2,1) = sx2 - sy2 - sz2; Q(2,3) = -sx2 + sy2 - sz2;
-        Q(3,0) = sx2 - sy2 - sz2; Q(3,1) = -sx2 - sy2 + sz2; Q(3,2) = -sx2 + sy2 - sz2;
-
-        R(0,0) = 0.05;
-        R(1,1) = 0.05;
-        R(2,2) = 0.05;
-        R(3,3) = 0.05;
-
-
-        C(0,0) = 1;
-        C(1,1) = 1;
-        C(2,2) = 1;
-        C(3,3) = 1;     
-
-}*/
-
-
-/**
- *  Traitement avec le filtre Kalman
- *  \param      mesures[3]   vecteur de 3 mesures de vitesse angulaire selon l'axe Ax, Ay, Az
- *  \return measure_estimate vecteur de 3 angles de rotation selon l'axe Ax, Ay, Az estimés
- *
-*/
-
-/*double* Traitement::initSystem(double mesures[3], double dt) {
-
-        double* estimation;
-        double anglex, angley, anglez, wx,wy,wz, Ax, Ay, Az;
-        CQRQuaternionHandle quat_meas, quat_estimate;
-
-        estimation = new double[3];
-
-        CQRCreateEmptyQuaternion(&quat_meas);
-        CQRCreateEmptyQuaternion(&quat_estimate);
-
-        wx = mesures[0];
-        wy = mesures[1];
-        wz = mesures[2];*/
-        /* Mettre à jour la matrice de transition A */
-        /*Ax = 0.5*wx*dt;
-        Ay = 0.5*wy*dt;
-        Az = 0.5*wz*dt;
-
-        A(0,0)=1;
-        A(0,0) = 1; A(1,1) = 1; A(2,2) = 1; A(3,3) = 1; //diagonale
-        A(0,1) = -Ax; A(0,2) = -Ay; A(0,3) = -Az;
-        A(1,0) = Ax; A(1,2) = Az; A(1,3) = -Ay;
-        A(2,0) = Ay; A(2,1) = -Az; A(2,3) = Ax;
-        A(3,0) = Az; A(3,1) = Ay; A(3,2) = -Ax;*/
-
-        /* Mettre à jour le système à filtrer */
-        /*filtre.declare_system(A, B, C);
-        filtre.declare_noise(Q, R);*/
-
-        /* Etape prédiction du filtre Kalman */
-        //filtre.predict_step(B);
-
-
-        /* Convertir les données mesurées(angles) en quaternion (type matrix) */
-        /*anglex = wx*dt;
-        angley = wy*dt;
-        anglez = wz*dt;
-
-        CQRAngles2Quaternion (quat_meas, anglex, angley, anglez );
-
-        matrix<double> mesuresQuat(4,1);
-
-        mesuresQuat(0,0) = quat_meas->w;
-        mesuresQuat(1,0) = quat_meas->x;
-        mesuresQuat(2,0) = quat_meas->y;
-        mesuresQuat(3,0) = quat_meas->z;
-
-        matrix<double> estimate_result(4,1,0);*/
-
-        /* Etape update l'estimation */
-/*		estimate_result = filtre.update_step(mesuresQuat);
-
-        quat_estimate->w = estimate_result(0,0);
-        quat_estimate->x = estimate_result(1,0);
-        quat_estimate->y = estimate_result(2,0);
-        quat_estimate->z = estimate_result(3,0);*/
-
-        /* Convertir les données estimées (quaternion) en angles pour l'affichage */
-        /*matrix<double> measure_estimate(3,1);
-        CQRQuaternion2Angles(&measure_estimate(0,1), &measure_estimate(1,1), &measure_estimate(2,1), quat_estimate);
-
-        return estimation;
-}*/
 
