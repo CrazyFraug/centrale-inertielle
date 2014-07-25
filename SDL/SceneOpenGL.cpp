@@ -1,5 +1,4 @@
 #include "SceneOpenGL.h"
-#include "source\test\test_Traitement.cpp"
 //#include "Mobile.h"
 
 #pragma comment (lib, "glew32.lib")
@@ -109,15 +108,18 @@ bool SceneOpenGL::iniGL() {
 void SceneOpenGL::bouclePrincipale()
 {
 
-	bool terminer(false),test_valid(false);
+	bool terminer(false);
 	unsigned int frameRate(1000 / 200);
 	Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
 	int turn = 1;
 	std::string port = PORTSERIE;
 	int baudRate = BAUD;
 
-	Instrument gyro("gyr1", port, 115200);
-	Traitement trait_basic(&gyro);
+	Serial link(PORTSERIE, BAUD);
+	Instrument gyro("gyro", &link);
+	Instrument accel("accel", &link);
+	Traitement trait_gyro(&gyro);
+	Traitement trait_accel(&accel);
 	/* l'objet qui servira a récupérer les valeurs de l'arduino puis a faire un moyenne sur plusieurs valeurs pour des résultats plus stables*/
 
 	/* Fichier sauvegarder données*/
@@ -138,9 +140,10 @@ void SceneOpenGL::bouclePrincipale()
 
 	projection = perspective(1.22, (double)m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
 	modelview = mat4(1.0);
-	trait_basic.writeHeading(filename);
+	trait_gyro.writeEntete(filename);
+	trait_gyro.writeHeading(filename);
 	// Boucle principale
-	while (!terminer && !test_valid)
+	while (!terminer)
 	{
 		debutBoucle = SDL_GetTicks();
 		
@@ -157,26 +160,26 @@ void SceneOpenGL::bouclePrincipale()
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 
-		trait_basic.stockerValeurs();
-		trait_basic.afficherValeurs();
+		trait_gyro.stockerValeurs();
+		trait_gyro.afficherValeurs();
 
 		/* 
 		*  Ecrire les données du capteur dans le fichier de filename 
 		*  Lecture les données du fichier filename (stocker dans data)
 		*  Ecrire les donnnées (data) dans le fichier filename2
 		*/
-		trait_basic.filefromSensor(filename, &gyro);
+		trait_gyro.filefromSensor(filename, &gyro);
 		vect4D data;
 		data = trait_basic.readDatafromFile(filename,turn);
 		gyro.majMesures(data);
 		turn++;
-		trait_basic.filefromSensor(filename2, &gyro);
+		trait_gyro.filefromSensor(filename2, &gyro);
 
 
-		if (trait_basic.tabFull() == true)
+		if (trait_gyro.tabFull() == true)
 		{
 
-			angle = angle + trait_basic.calculerAngle_deg();
+			angle = angle + trait_gyro.calculerAngle_deg();
 
 			cout << angle.x << endl;
 			cout << angle.y << endl;
@@ -189,7 +192,7 @@ void SceneOpenGL::bouclePrincipale()
 
 		} //end if(tabFull == true)
 
-		else _RPT0(0, " FALSE \n" );
+
 		lecube.afficher(projection, modelview);
 
 		// Actualisation de la fenêtre

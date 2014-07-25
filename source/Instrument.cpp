@@ -35,12 +35,11 @@ vect4D operator+(vect4D v1, vect3D v2)
 
 /** 
 * \brief Constructeur d'Instrument
-* prend en argument les parametre de la communication série
+* prend en argument un objet de type Serial
 * \param nom : chaine de caractere qui identifie l'instrument
-* \param port : nom du port serie utilisé, défini en tant que constante dans SceneOpenGL.h
-* \param baudRate : baudrate de la laison série
+* \param link : communication série associée
 */
-Instrument::Instrument(char* nom, std::string port, int baudRate):ID(nom),_serialLink(port, baudRate)
+Instrument::Instrument(char* nom, Serial* link):ID(nom),_p_serialLink(link)
 {
 	_mesures.x = 0;
 	_mesures.y = 0;
@@ -53,6 +52,30 @@ Instrument::Instrument(char* nom, std::string port, int baudRate):ID(nom),_seria
 	_t_acq[1] = clock();
 	_t_acq[2] = clock();
 }
+
+
+/** 
+* \brief Constructeur d'Instrument
+* prend en argument les parametre de la communication série
+* \param nom : chaine de caractere qui identifie l'instrument
+* \param port : nom du port serie utilisé, défini en tant que constante dans SceneOpenGL.h
+* \param baudRate : baudrate de la laison série
+*/
+Instrument::Instrument(char* nom, std::string port, int baudRate):ID(nom)
+{
+	_p_serialLink = new Serial(port, baudRate);
+	_mesures.x = 0;
+	_mesures.y = 0;
+	_mesures.z = 0;
+	_mesures.temps = clock();
+	_valeursInitiales.x = 0;
+	_valeursInitiales.y = 0;
+	_valeursInitiales.z = 0;
+	_t_acq[0] = clock();
+	_t_acq[1] = clock();
+	_t_acq[2] = clock();
+}
+
 
 /** \brief Destructeur
 */
@@ -151,14 +174,15 @@ void Instrument::majMesures(vect4D nvMesures)
 	* renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
 	* lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
 	*/
-void Instrument::majSerial()
+void Instrument::majSerial(char* type)
 {
 	double value;
+	bool capteur(false);
 	int axe=0;
 	bool axe1(false), axe2(false), axe3(false), axe4(false);
 	while((axe1==false) || (axe2==false) || (axe3==false))
 	{
-		value = _serialLink.readDatas(axe);
+		value = _p_serialLink->readDatas(axe, type, capteur);
 		switch (axe)
 		{
 		case 1:
@@ -188,14 +212,14 @@ void Instrument::majSerial()
 //calibrer l'instrument en initialisant les valeurs initiales
 void Instrument::calibrer(void)
 {
-	majSerial();
+	majSerial(ID);
 	_mesures.x = 0;
 	_mesures.y = 0;
 	_mesures.z = 0;
 
 	while((_mesures.x == 0) || (_mesures.y == 0) || (_mesures.z == 0))
 	{
-		majSerial();
+		majSerial(ID);
 		
 	}
 	_valeursInitiales.x = _mesures.x;

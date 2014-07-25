@@ -19,13 +19,14 @@ private:
 	vect4D _mesures;
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
-	Serial _serialLink;
+	Serial* _p_serialLink;
 
 	//retire les valeurs initiales des mesures
 	void soustraireVI(void);
 
 public:
 	//constructor
+	Instrument(char* nom, Serial* link);
 	Instrument(char* nom, std::string port, int baudRate);
 
 	//destructor//
@@ -59,7 +60,7 @@ public:
 	* renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
 	* lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
 	*/
-	void majSerial();
+	void majSerial(char* type);
 
 	//calibrer l'instrument en initialisant les valeurs initiales
 	void calibrer(void);
