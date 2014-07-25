@@ -14,13 +14,12 @@ quaternion<double> anglesToQuat(double phi, double teta, double rho)
 void afficherQuat(quaternion<double> q)
 {
 	using namespace std;
-
 	cout << q.R_component_1() << endl;
 	cout << q.R_component_2() << endl;
 	cout << q.R_component_3() << endl;
 	cout << q.R_component_4() << endl;
-
 }
+
 /** 
 * \brief realise la rotation decrite par le quaternion sur le vecteur v
 * \param q quaternion representatn la rotation
