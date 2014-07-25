@@ -103,6 +103,7 @@ vect3D Traitement::calculerAngle_deg()
 	angles.x = moyenner(1)*_dt;
 	angles.y = moyenner(2)*_dt;
 	angles.z = moyenner(3)*_dt;
+	_RPT1(0, " _dt = %f ms\n", _dt);
 	std::cout << " _dt = " << _dt << " ms " << std::endl;
 	return angles;
 }
@@ -111,6 +112,10 @@ vect3D Traitement::calculerAngle_deg()
 void Traitement::afficherValeurs()
 {
 	if (_compteur == NB_VALEURS) {
+		_RPT1(0, "moyenne X = %f\n", moyenner(1));
+		_RPT1(0, "moyenne Y = %f\n", moyenner(2));
+		_RPT1(0, "moyenne Z = %f\n", moyenner(3));
+		
 		std::cout << "moyenne X = " << moyenner(1) << "                      " << std::endl;
 		std::cout << "moyenne Y = " << moyenner(2) << "                      " << std::endl;
 		std::cout << "moyenne Z = " << moyenner(3) << "                      " << std::endl;
@@ -136,6 +141,7 @@ bool Traitement::tabFull()
 */
 void Traitement::testd(void){
 	std::cout << "test" << std::endl;
+	_RPT0(0, "test \n");
 }
 
 
@@ -188,32 +194,32 @@ void Traitement::filefromSensor(std::string filename, Instrument* inst){
 *   \test  test_readDatafromFile
 */
 vect4D Traitement::readDatafromFile(std::string filename){
-	double value_recup[4];
+	double value_recup[4] = { 0, 0, 0, 0 };
 	vect4D data;
 	std::string premier_ligne;
+	std::string finish_line;
 	std::fstream myfile;
 	char c = NULL;
 
 	myfile.open(filename);
 	/* Enlève l'entête du fichier */
-	getline(myfile, premier_ligne);
-
-
+	for (int i = 0; i < turns;i++)
+	getline(myfile, premier_ligne);	
 	/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
-	while (c != '\n'){
-		for (int i = 1; i <= 4; i++){
-			myfile >> c;
-			if (c == '|'){
+	for (int i = 1; i <= 4; i++){
+		myfile >> c;
+		if (c == '|'){
+				myfile >> c;
 				if (c == '|'){
 					myfile >> value_recup[i-1];
 				}
 			}
 			else{
-				myfile >> value_recup[i-1];
+			myfile >> value_recup[i-1];
 			}
 		}
-	}
-
+		getline(myfile, finish_line);
 	data.x = value_recup[0]; data.y = value_recup[1]; data.z = value_recup[2]; data.temps = value_recup[3];
 	return data;
 }
+

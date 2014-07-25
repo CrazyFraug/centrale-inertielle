@@ -1,4 +1,5 @@
 #include "SceneOpenGL.h"
+#include "source\test\test_Traitement.cpp"
 //#include "Mobile.h"
 
 #pragma comment (lib, "glew32.lib")
@@ -108,10 +109,10 @@ bool SceneOpenGL::iniGL() {
 void SceneOpenGL::bouclePrincipale()
 {
 
-	bool terminer(false);
+	bool terminer(false),test_valid(false);
 	unsigned int frameRate(1000 / 200);
 	Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
-
+	int turn = 1;
 	std::string port = PORTSERIE;
 	int baudRate = BAUD;
 
@@ -120,8 +121,8 @@ void SceneOpenGL::bouclePrincipale()
 	/* l'objet qui servira a récupérer les valeurs de l'arduino puis a faire un moyenne sur plusieurs valeurs pour des résultats plus stables*/
 
 	/* Fichier sauvegarder données*/
-	//std::fstream myfile;
 	std::string filename = "gyro.txt" ;
+	std::string filename2 = "gyro2.txt";
 	//	Mobile gant;
 
 	vect3D angle = { 0.0, 0.0, 0.0 };
@@ -137,9 +138,9 @@ void SceneOpenGL::bouclePrincipale()
 
 	projection = perspective(1.22, (double)m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
 	modelview = mat4(1.0);
-	trait_basic.writeEntete(filename);
+	trait_basic.writeHeading(filename);
 	// Boucle principale
-	while (!terminer)
+	while (!terminer && !test_valid)
 	{
 		debutBoucle = SDL_GetTicks();
 		
@@ -159,10 +160,19 @@ void SceneOpenGL::bouclePrincipale()
 		trait_basic.stockerValeurs();
 		trait_basic.afficherValeurs();
 
-		trait_basic.filefromSensor(filename,&gyro);
-		/*vect4D data;
-		data = trait_basic.readDatafromFile(filename);
-		gyro.majMesures(data);*/
+		/* 
+		*  Ecrire les données du capteur dans le fichier de filename 
+		*  Lecture les données du fichier filename (stocker dans data)
+		*  Ecrire les donnnées (data) dans le fichier filename2
+		*/
+		trait_basic.filefromSensor(filename, &gyro);
+		vect4D data;
+		data = trait_basic.readDatafromFile(filename,turn);
+		gyro.majMesures(data);
+		turn++;
+		trait_basic.filefromSensor(filename2, &gyro);
+
+
 		if (trait_basic.tabFull() == true)
 		{
 
@@ -179,7 +189,7 @@ void SceneOpenGL::bouclePrincipale()
 
 		} //end if(tabFull == true)
 
-		else cout << " FALSE " << endl;
+		else _RPT0(0, " FALSE \n" );
 		lecube.afficher(projection, modelview);
 
 		// Actualisation de la fenêtre
