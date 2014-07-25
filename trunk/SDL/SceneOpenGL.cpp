@@ -170,7 +170,7 @@ void SceneOpenGL::bouclePrincipale()
 		*/
 		trait_gyro.filefromSensor(filename, &gyro);
 		vect4D data;
-		data = trait_basic.readDatafromFile(filename,turn);
+		data = trait_gyro.readDatafromFile(filename,turn);
 		gyro.majMesures(data);
 		turn++;
 		trait_gyro.filefromSensor(filename2, &gyro);
