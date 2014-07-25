@@ -52,7 +52,7 @@ void Traitement::stockerValeurs()
 	_dt = (_tempsAct - _tempsPrec) / 1000.0;
 	_tempsPrec = _tempsAct;
 
-	if (_compteur < NB_VALEURS)
+	if (_compteur < NB_VALEURS) // cas ou le tableau n'est pas plein
 	{
 		_valeurs[0][_compteur] = _capteur->getMesure(1);
 		_valeurs[1][_compteur] = _capteur->getMesure(2);
@@ -60,7 +60,7 @@ void Traitement::stockerValeurs()
 		_compteur++;
 	}
 
-	else
+	else // cas ou le tableau est deja rempli
 	{
 		for (int i = NB_VALEURS - 1; i>0; i--)
 		{
