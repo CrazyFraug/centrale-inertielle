@@ -1,5 +1,4 @@
 #include "Instrument.h"
-
 /**Surcharge d'operateur les vecteur 3D et 4D**/
 
 /* \brief Surcharge operateur+ pour 2 vecteurs 3D*/
@@ -207,6 +206,11 @@ void Instrument::calibrer(void)
 
 void Instrument::afficherMesures() const
 {
+	_RPT1(0,"valeur pour %s : \n", ID);	
+	_RPT1(0, " x = %f \n", _mesures.x);
+	_RPT1(0, " y = %f \n", _mesures.y);
+	_RPT1(0, " z = %f \n", _mesures.z);
+
 	std::cout << "valeur pour " << ID << " : " << std::endl;
 	std::cout << "x = " << _mesures.x << std::endl;
 	std::cout << "y = " << _mesures.y << std::endl;
@@ -216,6 +220,11 @@ void Instrument::afficherMesures() const
 
 void Instrument::afficherTemps() const
 {
+	_RPT0(0, " temps : \n");
+	_RPT1(0, " t1 = %f \n", _t_acq[0]);
+	_RPT1(0, " t2 = %f \n", _t_acq[1]);
+	_RPT1(0, " t3 = %f \n", _t_acq[2]);
+
 	std::cout << "temps : " << std::endl;
 	std::cout << "t1 = " << _t_acq[0] << std::endl;
 	std::cout << "t2 = " << _t_acq[1] << std::endl;
@@ -225,6 +234,11 @@ void Instrument::afficherTemps() const
 
 void Instrument::afficherVI() const
 {
+	_RPT0(0, " valeurs initiales : \n");
+	_RPT1(0, " vi1 = %f \n", _valeursInitiales.x);
+	_RPT1(0, " vi2 = %f \n", _valeursInitiales.y);
+	_RPT1(0, " vi3 = %f \n", _valeursInitiales.z);
+
 	std::cout << "valeurs initiales : " << std::endl;
 	std::cout << "vi1 = " << _valeursInitiales.x << std::endl;
 	std::cout << "vi2 = " << _valeursInitiales.y << std::endl;
