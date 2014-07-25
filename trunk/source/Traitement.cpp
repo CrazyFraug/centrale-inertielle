@@ -47,7 +47,7 @@ Traitement::~Traitement()
 */
 void Traitement::stockerValeurs()
 {
-	_capteur->majSerial();
+	_capteur->majSerial(_capteur->getID());
 	_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
 	_dt = (_tempsAct - _tempsPrec) / 1000.0;
 	_tempsPrec = _tempsAct;

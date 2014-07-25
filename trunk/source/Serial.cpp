@@ -75,18 +75,17 @@
 	/**
 	* \brief lit les valeurs qu'envoie l'arduino
 	* les valeurs doivent être sous un format spécifique (on pourra le changer après):
-	* string + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
+	* type(char*) + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
 	* exemple : "gyro:0.45y;0.12x;-5.2z;"
 	* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
 	*/
-	double Serial::readDatas(int &axe)
+	double Serial::readDatas(int &axe, char* type, bool &capteur)
 	{
 		using namespace boost;
 		using namespace std;
 		char c;
 		string result;
 		axe = 0;
-		double testo = 0;
 
 		for(;;)
 
@@ -97,51 +96,66 @@
 
 			case '\r':
 				break;
-			case ':':
-				result.clear();
-				break;
+
 			case '\n' :
 				result.clear();
 				break;
+
 			case ';' :
+				result.clear();
 				break;
 
 			case 'x' :
 				asio::read(serial,asio::buffer(&c,1));
-				if (c==';')
+
+				if (c==';' && capteur)
 				{
 					axe = 1;
 					return string_to_double(result);
 				}
-				else result.clear();
+				//else result.clear();
+
+				break;
 
 			case 'y' :
 				asio::read(serial,asio::buffer(&c,1));
-				if (c==';')
+				if (c==';' && capteur)
 				{
 					axe = 2;
 					return string_to_double(result);
 				}
-				else result.clear();
+				else {result += 'y'; result += c;}
+				break;
 
 			case 'z' :
 				asio::read(serial,asio::buffer(&c,1));
-				if (c==';')
+				if (c==';' && capteur)
 				{
 					axe = 3;
 					return string_to_double(result);
 				}
-				else result.clear();
+
+				//else result.clear();
+				break;
 
 			case 't' :
 				asio::read(serial,asio::buffer(&c,1));
-				if (c==';')
+				if (c==';' && capteur)
 				{
 					axe = 4;
 					return string_to_double(result);
 				}
 				else result.clear();
+				break;
 
+			case ':':
+				if (result == type)
+				{
+					capteur = true;
+				}
+				else capteur = false;
+				result.clear();
+				break;
 			default:
 				result += c;
 			}
