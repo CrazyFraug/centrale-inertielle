@@ -4,6 +4,7 @@
 #include "boost\math\quaternion.hpp"
 #include <math.h>
 #include <iostream>
+#include "Structure.h"
 
 using namespace boost::math;
 /** 
@@ -15,5 +16,8 @@ using namespace boost::math;
 */
 quaternion<double> anglesToQuat(double phi, double teta, double rho);
 void afficherQuat(quaternion<double>);
+vect3D rotateVector(quaternion<double> q, vect3D v);
+double calculateNorm(quaternion<double> q);
+quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2);
 
 #endif
