@@ -6,7 +6,10 @@
 #include <stdlib.h>
 #include <sstream>
 
-
+struct packDatas{
+	std::string sensor_name;
+	vect4D datas;
+};
 
 class Serial
 {
@@ -51,6 +54,8 @@ public:
 	* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
 	*/
 	double readDatas(int &axe, char* type, bool &capteur);
+
+	packDatas readData_s(void);
 
 private:
     boost::asio::io_service io;
