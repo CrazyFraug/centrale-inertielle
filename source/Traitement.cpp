@@ -111,6 +111,8 @@ vect3D Traitement::calculerAngle_deg()
 
 void Traitement::afficherValeurs()
 {
+	_RPT1(0, "CAPTEUR %s : \n", _capteur->getID());
+	std::cout << "CAPTEUR " << _capteur->getID() << ": " << std::endl;
 	if (_compteur == NB_VALEURS) {
 		_RPT1(0, "moyenne X = %f\n", moyenner(1));
 		_RPT1(0, "moyenne Y = %f\n", moyenner(2));

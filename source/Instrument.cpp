@@ -51,6 +51,9 @@ Instrument::Instrument(char* nom, Serial* link):ID(nom),_p_serialLink(link)
 	_t_acq[0] = clock();
 	_t_acq[1] = clock();
 	_t_acq[2] = clock();
+	std::string filename = ID;
+	filename += ".txt";
+	nom_fichier = filename;
 }
 
 
@@ -74,6 +77,9 @@ Instrument::Instrument(char* nom, std::string port, int baudRate):ID(nom)
 	_t_acq[0] = clock();
 	_t_acq[1] = clock();
 	_t_acq[2] = clock();
+	std::string filename = ID;
+	filename += ".txt";
+	nom_fichier = filename;
 }
 
 
@@ -126,6 +132,10 @@ clock_t Instrument::getTemps(int axe) {return _t_acq[axe-1];}
 char* Instrument::getID(void){
 	return ID;
 }
+
+std::string Instrument::getnomfichier(void){
+	return nom_fichier;
+}
 /**Setter**/
 
 /** \brief fills the _t_acq table with the new values (as parameter)
@@ -176,13 +186,12 @@ void Instrument::majMesures(vect4D nvMesures)
 	*/
 void Instrument::majSerial(char* type)
 {
-	double value;
-	bool capteur(false);
-	int axe=0;
+	/*double value;
+	int axe = 0;
 	bool axe1(false), axe2(false), axe3(false), axe4(false);
-	while((axe1==false) || (axe2==false) || (axe3==false))
+	while ((axe1 == false) || (axe2 == false) || (axe3 == false))
 	{
-		value = _p_serialLink->readDatas(axe, type, capteur);
+		value = _serialLink->readDatas(axe);
 		switch (axe)
 		{
 		case 1:
@@ -200,13 +209,20 @@ void Instrument::majSerial(char* type)
 			_t_acq[2] = clock();
 			axe3 = true;
 			break;
-		case 4 :
+		case 4:
 			_mesures.temps = value;
 			axe4 = true;
 			break;
 		}
+	}*/
+	if (strcmp(ID, _serialLink->readData_s().sensor_name.c_str())==0){
+		_mesures.x = _serialLink->readData_s().datas.x;
+		_mesures.y = _serialLink->readData_s().datas.y;
+		_mesures.z = _serialLink->readData_s().datas.z;
+		_mesures.temps = _serialLink->readData_s().datas.temps;
 	}
 	soustraireVI();
+
 }
 		
 //calibrer l'instrument en initialisant les valeurs initiales

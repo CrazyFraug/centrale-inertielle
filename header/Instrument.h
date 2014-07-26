@@ -20,7 +20,7 @@ private:
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
 	Serial* _p_serialLink;
-
+	std::string nom_fichier;
 	//retire les valeurs initiales des mesures
 	void soustraireVI(void);
 
