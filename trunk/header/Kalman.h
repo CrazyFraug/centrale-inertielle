@@ -26,18 +26,18 @@ typedef struct _kalmanstate{
 	matrix<double> cov_cmde;        // covariance de la commande                          (Q)
 	matrix<double> noise_mesure;  // bruit de la mesure                                   (w)
 	matrix<double> cov_mesure;      //covariance de la mesure                             (R)
-	boost::numeric::ublas::matrix<double> cov_estimate;    // prédiction de la covariance	(P)
+	matrix<double> cov_estimate;    // prédiction de la covariance						  (P)
 	matrix<double> predict_vector; //état prédit                                          (X^)
 	matrix<double> kalman_gain;     // gain de Kalman                                     (K)
 
 } kalmanstate;
 
 
-class kalman
+class Kalman
 {
 public:
-	kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> init_cov_estimate);
-	~kalman();
+	Kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> init_predict, matrix<double> init_cov_estimate);
+	~Kalman();
 
 	void declare_system(matrix<double> A, matrix<double> B, matrix<double> C);
 	void declare_noise(matrix<double> Q, matrix<double> R);
@@ -50,6 +50,7 @@ public:
 
 private:
 	system_state sys;
+	matrix<double> matrix_transtition_test;
 	kalmanstate kalm_sys;
 
 };

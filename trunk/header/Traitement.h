@@ -25,9 +25,9 @@ public:
 	void afficherValeurs(void);
 	void calculer_dt();
 	bool tabFull(void);
-	void writeEntete(std::string filename);
+	void writeHeading(std::string filename);
 	void filefromSensor(std::string filename, Instrument* inst);
-	vect4D readDatafromFile(std::string filename);
+	vect4D readDatafromFile(std::string filename, int turns);
 private:
 	int _test;
 	int _compteur;

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <sstream>
-
+#include "Structure.h"
 struct packDatas{
 	std::string sensor_name;
 	vect4D datas;
@@ -53,9 +53,9 @@ public:
 	* exemple : "gyro:0.45y;0.12x;-5.2z;"
 	* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
 	*/
-	double readDatas(int &axe, char* type, bool &capteur);
+	double readDatas(int &axe);
 
-	packDatas readData_s(void);
+	packDatas readData_s(std::string name_sensor);
 
 private:
     boost::asio::io_service io;

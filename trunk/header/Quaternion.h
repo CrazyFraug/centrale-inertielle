@@ -15,6 +15,7 @@ using namespace boost::math;
 * 							ce qui nous éviterais les singularités des angles d'euler à +90 et -90)
 */
 quaternion<double> anglesToQuat(double phi, double teta, double rho);
+vect3D quatToAngles(quaternion<double> quaternion);
 void afficherQuat(quaternion<double>);
 vect3D rotateVector(quaternion<double> q, vect3D v);
 double calculateNorm(quaternion<double> q);
