@@ -19,8 +19,9 @@ private:
 	vect4D _mesures;
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
-	Serial* _p_serialLink;
+	Serial* _serialLink;
 	std::string nom_fichier;
+
 	//retire les valeurs initiales des mesures
 	void soustraireVI(void);
 
@@ -36,6 +37,7 @@ public:
 	vect4D getMesures(void);
 	double getMesure(int axe);
 	clock_t* getTemps(void);
+	std::string Instrument::getnomfichier(void);
 
 	char* getID();
 	/** \brief return the time of the last measure according to the parameter axe
@@ -60,7 +62,7 @@ public:
 	* renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
 	* lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
 	*/
-	void majSerial(char* type);
+	void majSerial();
 
 	//calibrer l'instrument en initialisant les valeurs initiales
 	void calibrer(void);
