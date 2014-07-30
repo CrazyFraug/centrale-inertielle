@@ -47,7 +47,7 @@ Traitement::~Traitement()
 */
 void Traitement::stockerValeurs()
 {
-	_capteur->majSerial(_capteur->getID());
+	_capteur->majSerial(/*_capteur->getID()*/);
 	_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
 	_dt = (_tempsAct - _tempsPrec) / 1000.0;
 	_tempsPrec = _tempsAct;
@@ -155,9 +155,9 @@ void Traitement::testd(void){
 *
 *   \test  test_filefromSensor
 */
-void Traitement::writeEntete(std::string filename){
+void Traitement::writeHeading(std::string filename){
 	std::fstream myfile;
-	myfile.open(filename.c_str());
+	myfile.open(filename.c_str(), std::ios::app);
 	if (filename == "gyro.txt"){
 		myfile << "||  Gyr_X  ||  Gyr_Y  ||  Gyr_Z  ||  temps  || \n";
 	}
@@ -195,7 +195,7 @@ void Traitement::filefromSensor(std::string filename, Instrument* inst){
 *
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(std::string filename){
+vect4D Traitement::readDatafromFile(std::string filename,int turns){
 	double value_recup[4] = { 0, 0, 0, 0 };
 	vect4D data;
 	std::string premier_ligne;
