@@ -1,7 +1,7 @@
 #include "Traitement.h"
 #include <iostream>
 
-/**Constructeur**/
+/** Constructeur **/
 Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 {
 	_capteur = inst;
@@ -26,6 +26,7 @@ Traitement::~Traitement()
 double	Traitement::get_dt(){
 	return _dt;
 }
+
 
 void Traitement::stockerValeurs(vect4D val)
 {
@@ -122,6 +123,7 @@ double Traitement::moyenner(int axe)
 	return (moyenne / NB_VALEURS);
 }
 
+
 /**
 * \brief calcul la variation d'angle (en degré)
 * la fonction utilise les attributs privés _dt et appelle la fonction Traitement::moyenner pour calculer l'angle
@@ -138,7 +140,19 @@ vect3D Traitement::calculerAngle_deg()
 	return angles;
 }
 
+/** A CHANGER
+* \brief Soustraction de l'influence de l'accélération g sur chacun des axes de l'accéléromètre
+*/
+void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z)
+{
+	(*accel_x) = G*matrice[0][2];
+	(*accel_y) = G*matrice[1][2];
+	(*accel_z) = G*matrice[2][2];
+}
 
+/**
+* \brief affiche les moyennes de chaque axe sur la sortie et sur la console
+*/
 void Traitement::afficherValeurs()
 {
 	_RPT1(0, "CAPTEUR %s : \n", _capteur->getID());
@@ -154,6 +168,7 @@ void Traitement::afficherValeurs()
 	}
 }
 
+
 /**
 * \brief indique si le tableau _valeurs est rempli
 * i.e. si le nombres de mesures relevées suffit à remplir le tableau au moins une fois
@@ -168,8 +183,7 @@ bool Traitement::tabFull()
 }
 
 
-
-/**
+/** A CHANGER
 *	\brief Ecrire les données récupérées d'un capteur dans un fichier
 *
 *	\param filename	string		le nom du fichier - doit être en format "nom.txt" et doit être ouvert
@@ -189,7 +203,9 @@ void Traitement::writeHeading(std::string filename){
 	myfile.close();
 }
 
-//ecrit dans un fichier les mesures prises par le capteur
+/**
+* \brief Ecrit dans un fichier les mesures prises par le capteur
+*/
 void Traitement::filefromSensor(std::fstream& myfile, std::string filename, Instrument* inst){
 	myfile.open(filename, std::ios::app);
 	for (int i = 1; i <= 4; i++){
@@ -202,42 +218,35 @@ void Traitement::filefromSensor(std::fstream& myfile, std::string filename, Inst
 
 /**
 *	\brief Lire les données à partir d'un fichier
-*
 *	\param	filename	string		le nom du fichier - doit être en format "nom.txt"
 *   \return data		vect4D		vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
-*
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(std::fstream& myfile, std::string filename, int cursor){
+vect4D Traitement::readDatafromFile(std::fstream& myfile, std::string filename, int cursor)
+{
 	vect4D data;
 	char c;
-	int pos;
 	std::string chaine;
+
 	myfile.open(filename, std::ios::in || std::ios::out || std::ios::app);
 	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
 		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
-	pos = myfile.tellg();
-	_RPT1(0, "POSITION : %d \n", pos);
+
 	if (myfile.eof() == false)
 	{
 		/* Enlève l'entête du fichier */
 		for (int i = 0; i < cursor; i++)
 			std::getline(myfile, chaine);
-		_RPT1(0, "LINE : %s \n", chaine);
-		//		_RPT0(0, "lecture du fichier\n");
+
 		/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
 		myfile >> data.x;
 		myfile >> c;
-		_RPT1(0, "CHARACTERE %d \n", c);
 		myfile >> data.y;
 		myfile >> c;
-		_RPT1(0, "CHARACTERE %d \n", c);
 		myfile >> data.z;
 		myfile >> c;
-		_RPT1(0, "CHARACTERE %d \n", c);
 		myfile >> data.temps;
 		myfile >> c;
-		_RPT1(0, "CHARACTERE %d \n", c);
 	}
 	myfile.close();
 #ifdef TEST
@@ -246,13 +255,10 @@ vect4D Traitement::readDatafromFile(std::fstream& myfile, std::string filename, 
 	_RPT1(0, "valeur z = %f\n", data.z);
 	_RPT1(0, "valeur t = %f\n", data.temps);
 #endif
-	_RPT1(0, "valeur x = %f\n", data.x);
-	_RPT1(0, "valeur y = %f\n", data.y);
-	_RPT1(0, "valeur z = %f\n", data.z);
-	_RPT1(0, "valeur t = %f\n", data.temps);
-	return data;
 
+	return data;
 }
+
 
 /** \brief ou==Ouverture d'un fichier en mode lecture */
 void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)

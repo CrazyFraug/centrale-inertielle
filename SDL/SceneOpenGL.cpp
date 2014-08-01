@@ -188,23 +188,10 @@ void SceneOpenGL::bouclePrincipale()
 		*  Ecrire les donnnées (data) dans le fichier filename2
 		*/
 		
-		trait_gyro.filefromSensor(file_gyro,&gyro);
+		trait_gyro.filefromSensor(file_gyro,"gyro.txt",&gyro);
 
-		trait_acce.filefromSensor(file_acce, &acce);
+		trait_acce.filefromSensor(file_acce, "acce.txt",&acce);
 
-		/*
-
-		acceleration.x = acceleration_t.x;
-		acceleration.y = acceleration_t.y;
-		acceleration.z = acceleration_t.z;
-		_RPT3(0, "acceleration_t x : %f, y : %f, z : %f \n", acceleration_t.x, acceleration_t.y, acceleration_t.z);
-
-		v_angulaire.x = v_angulaire_t.x;
-		v_angulaire.y = v_angulaire_t.y;
-		v_angulaire.z = v_angulaire_t.z;
-	
-		_RPT3(0, "v_angulaire_t x : %f, y : %f, z : %f \n", v_angulaire_t.x, v_angulaire_t.y, v_angulaire_t.z);
-		*/
 		if (trait_gyro.tabFull() == true)
 		{
 			acceleration_t = acce.getMesures();
