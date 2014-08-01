@@ -3,76 +3,76 @@
 //for arduino: SCL to A5, SDA to A4, GND to ground and Vin to 5V
 
 
-    /**
-     * Constructor.
-     * \param port device name, example "/dev/ttyUSB0" or "COM4"
-     * \param baud_rate communication speed, example 9600 or 115200
-     * \throws boost::system::system_error if cannot open the
-     * serial device
-     */
-    Serial::Serial(std::string port, unsigned int baud_rate)
-    : io(), serial(io,port)
-    {
-        serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
-    }
+/**
+ * Constructor.
+ * \param port device name, example "/dev/ttyUSB0" or "COM4"
+ * \param baud_rate communication speed, example 9600 or 115200
+ * \throws boost::system::system_error if cannot open the
+ * serial device
+ */
+Serial::Serial(std::string port, unsigned int baud_rate)
+: io(), serial(io, port)
+{
+	serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+}
 
 
-	/**
-	* Convert a string into a double type variable
-	* return 0 if function failed
-	*/
-	float Serial::string_to_double( const std::string& s )
-	 {
-	   std::stringstream convert(s);
-	   float x = 0;
+/**
+* Convert a string into a double type variable
+* return 0 if function failed
+*/
+float Serial::string_to_double(const std::string& s)
+{
+	std::stringstream convert(s);
+	float x = 0;
 
-	   if (!(convert >> x))
-	   {
-		 //std::cout << " failed ";
-		 return 0;
-	   }
-	   return x;
-	 } 
+	if (!(convert >> x))
+	{
+		_RPT0(_CRT_ERROR, "Problem Conversion string to double \n");
+		return 0;
+	}
+	return x;
+}
 
 
-    /**
-     * Write a string to the serial device.
-     * \param s string to write
-     * \throws boost::system::system_error on failure
-     */
-    void Serial::writeString(std::string s)
-    {
-        boost::asio::write(serial,boost::asio::buffer(s.c_str(),s.size()));
-    }
+/**
+ * Write a string to the serial device.
+ * \param s string to write
+ * \throws boost::system::system_error on failure
+ */
+void Serial::writeString(std::string s)
+{
+	boost::asio::write(serial, boost::asio::buffer(s.c_str(), s.size()));
+}
 
-    /**
-     * Blocks until a line is received from the serial device.
-     * Eventual '\n' or '\r\n' characters at the end of the string are removed.
-     * \return a string containing the received line
-     * \throws boost::system::system_error on failure
-     */
-    std::string Serial::readLine()
-    {
-        //Reading data char by char, code is optimized for simplicity, not speed
-        using namespace boost;
-        char c;
-        std::string result;
-        for(;;)
-        {
-            asio::read(serial,asio::buffer(&c,1));
-            switch(c)
-            {
-                case '\r':
-                    break;
-                case '\n':
-                    return result;
-                default:
-                    result+=c;
-            }
-        }
-    }
+/**
+ * Blocks until a line is received from the serial device.
+ * Eventual '\n' or '\r\n' characters at the end of the string are removed.
+ * \return a string containing the received line
+ * \throws boost::system::system_error on failure
+ */
+std::string Serial::readLine()
+{
+	//Reading data char by char, code is optimized for simplicity, not speed
+	using namespace boost;
+	char c;
+	std::string result;
+	for (;;)
+	{
+		asio::read(serial, asio::buffer(&c, 1));
+		switch (c)
+		{
+		case '\r':
+			break;
+		case '\n':
+			return result;
+		default:
+			result += c;
+		}
+	}
+}
 
-	/** version gyro seul
+/** version gyro seul
 * \brief lit les valeurs qu'envoie l'arduino
 * les valeurs doivent être sous un format spécifique (on pourra le changer après):
 * string + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
@@ -152,7 +152,7 @@ double Serial::readDatas(int &axe)
  *	Lire les données viennent de l'arduino
  *	\return	packresult	packDatas	paquet de données contient le nom du capteur, les données selon les 3 axes et le temps
  */
-packDatas Serial::readData_s(void){
+packDatas Serial::readData_s(std::string name_sensor){
 	using namespace boost;
 	using namespace std;
 	char c;
@@ -165,9 +165,17 @@ packDatas Serial::readData_s(void){
 
 	/* Tant qu'on n'a pas fini de lire tout le paquet de donées */
 	asio::read(serial, asio::buffer(&c, 1));
-	while (c != 'a' && c != 'g'){
-		asio::read(serial, asio::buffer(&c, 1));
+	if (name_sensor == "acce"){
+		while (c != 'a'){
+			asio::read(serial, asio::buffer(&c, 1));
+		}
 	}
+	else if (name_sensor == "gyro"){
+		while (c != 'g'){
+			asio::read(serial, asio::buffer(&c, 1));
+		}
+	}
+	
 	while (c != ':'){
 		name += c;
 
@@ -217,6 +225,7 @@ packDatas Serial::readData_s(void){
 			packresult.datas.temps = string_to_double(value_t);
 			read_t = true;
 			break;
+			/* Par défault, on récupère le nom du paquet */
 		default:
 			break;
 		}
