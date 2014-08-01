@@ -12,22 +12,6 @@ Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 	}
 }
 
-Traitement::Traitement(std::string filename) :_compteur(0), _dt(0)
-{
-	char c;
-	std::fstream myfile;
-	myfile.open(filename);
-	myfile >> c;
-
-	if (c == 'a'){
-		Instrument mon_instrument("acce", "COM8", 11820);
-		_capteur = &mon_instrument;
-	}
-	else{
-		Instrument mon_instrument("gyro", "COM8", 11820);
-		_capteur = &mon_instrument;
-	}
-}
 
 /** Destructeur **/
 Traitement::~Traitement()
@@ -39,6 +23,50 @@ Traitement::~Traitement()
 }
 
 
+double	Traitement::get_dt(){
+	return _dt;
+}
+
+void Traitement::stockerValeurs(vect4D val)
+{
+	_tempsAct = val.temps;
+	_dt = (_tempsAct - _tempsPrec) / 1000.0;
+	_tempsPrec = _tempsAct;
+
+#ifdef TEST
+	_RPT1(0, "nouvelles valeurs à stocker : \r\nval.x = %f\n", val.x);
+	_RPT1(0, "val.y = %f\n", val.y);
+	_RPT1(0, "val.x = %f\n", val.z);
+#endif
+
+	if (_compteur < NB_VALEURS) // cas ou le tableau n'est pas plein
+	{
+		_valeurs[0][_compteur] = val.x;
+		_valeurs[1][_compteur] = val.y;
+		_valeurs[2][_compteur] = val.z;
+		_compteur++;
+	}
+
+	else // cas ou le tableau est deja rempli
+	{
+		//_RPT0(0, "tableau rempli !\n");
+		for (int i = 0; i<NB_VALEURS - 1; i++)
+		{
+			_valeurs[0][i] = _valeurs[0][i + 1];
+			_valeurs[1][i] = _valeurs[1][i + 1];
+			_valeurs[2][i] = _valeurs[2][i + 1];
+		}
+
+		if (_compteur < 0)
+			_compteur = 0;
+		_valeurs[0][_compteur - 1] = val.x;
+		_valeurs[1][_compteur - 1] = val.y;
+		_valeurs[2][_compteur - 1] = val.z;
+
+	}
+	//_RPT1(0, "compteur = %d\n", _compteur);
+}
+
 /**
 *      \brief stocke des valeurs passées en argument dans la matrice de valeur attribut
 *      la variable compteur permet de savoir si la matrice est remplie ou pas
@@ -47,7 +75,7 @@ Traitement::~Traitement()
 */
 void Traitement::stockerValeurs()
 {
-	_capteur->majSerial(/*_capteur->getID()*/);
+	_capteur->majMesures(/*_capteur->getID()*/);
 	_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
 	_dt = (_tempsAct - _tempsPrec) / 1000.0;
 	_tempsPrec = _tempsAct;
@@ -62,18 +90,20 @@ void Traitement::stockerValeurs()
 
 	else // cas ou le tableau est deja rempli
 	{
-		for (int i = NB_VALEURS - 1; i>0; i--)
+		//_RPT0(0, "tableau rempli !\n");
+		for (int i = 0; i < NB_VALEURS - 1; i++)
 		{
-			_valeurs[0][i] = _valeurs[0][i - 1];
-			_valeurs[1][i] = _valeurs[1][i - 1];
-			_valeurs[2][i] = _valeurs[2][i - 1];
+			_valeurs[0][i] = _valeurs[0][i + 1];
+			_valeurs[1][i] = _valeurs[1][i + 1];
+			_valeurs[2][i] = _valeurs[2][i + 1];
 		}
 
-		_valeurs[0][0] = _capteur->getMesure(1);
-		_valeurs[1][0] = _capteur->getMesure(2);
-		_valeurs[2][0] = _capteur->getMesure(3);
+		_valeurs[0][_compteur - 1] = _capteur->getMesure(1);
+		_valeurs[1][_compteur - 1] = _capteur->getMesure(2);
+		_valeurs[2][_compteur - 1] = _capteur->getMesure(3);
 
 	}
+	//_RPT1(0, "compteur = %d\n", _compteur);
 }
 
 /**
@@ -138,14 +168,6 @@ bool Traitement::tabFull()
 }
 
 
-/**
-\brief fonction inutile
-*/
-void Traitement::testd(void){
-	std::cout << "test" << std::endl;
-	_RPT0(0, "test \n");
-}
-
 
 /**
 *	\brief Ecrire les données récupérées d'un capteur dans un fichier
@@ -167,24 +189,14 @@ void Traitement::writeHeading(std::string filename){
 	myfile.close();
 }
 
-void Traitement::filefromSensor(std::string filename, Instrument* inst){
-	std::fstream myfile;
-	myfile.open(filename.c_str(), std::ios::out|std::ios::app);
-	myfile << "||  ";
+//ecrit dans un fichier les mesures prises par le capteur
+void Traitement::filefromSensor(std::fstream& myfile, Instrument* inst){
+
 	for (int i = 1; i <= 4; i++){
-		if (inst->getMesure(i) == 0){
-			myfile << "  ";
 			myfile << inst->getMesure(i);
-			myfile << "  ";
-			myfile << "  ||  ";
-		}
-		else{
-			myfile << inst->getMesure(i);
-			myfile << "  ||  ";
-		}
+			myfile << " ; ";
 	}
 	myfile << "\n" ;
-	myfile.close();
 }
 
 /**
@@ -195,33 +207,42 @@ void Traitement::filefromSensor(std::string filename, Instrument* inst){
 *
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(std::string filename,int turns){
-	double value_recup[4] = { 0, 0, 0, 0 };
-	vect4D data;
-	std::string premier_ligne;
-	std::string finish_line;
-	std::fstream myfile;
+vect4D Traitement::readDatafromFile(std::fstream& myfile, int cursor){
+	vect4D data = { 0, 0, 0, 0 };
 	char c = NULL;
+	std::string chaine;
 
-	myfile.open(filename);
-	/* Enlève l'entête du fichier */
-	for (int i = 0; i < turns;i++)
-	getline(myfile, premier_ligne);	
-	/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
-	for (int i = 1; i <= 4; i++){
+	if (myfile.eof() == false)
+	{
+		/* Enlève l'entête du fichier */
+		for (int i = 0; i < cursor; i++)
+			std::getline(myfile, chaine);
+		//		_RPT0(0, "lecture du fichier\n");
+		/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
+		myfile >> data.x;
 		myfile >> c;
-		if (c == '|'){
-				myfile >> c;
-				if (c == '|'){
-					myfile >> value_recup[i-1];
-				}
-			}
-			else{
-			myfile >> value_recup[i-1];
-			}
-		}
-		getline(myfile, finish_line);
-	data.x = value_recup[0]; data.y = value_recup[1]; data.z = value_recup[2]; data.temps = value_recup[3];
+		myfile >> data.y;
+		myfile >> c;
+		myfile >> data.z;
+		myfile >> c;
+		myfile >> data.temps;
+	}
+
+#ifdef TEST
+	_RPT1(0, "valeur x = %f\n", data.x);
+	_RPT1(0, "valeur y = %f\n", data.y);
+	_RPT1(0, "valeur z = %f\n", data.z);
+	_RPT1(0, "valeur t = %f\n", data.temps);
+#endif
+
 	return data;
+
 }
 
+/** \brief ou==Ouverture d'un fichier en mode lecture */
+void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
+{
+	myfile.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
+	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
+		_RPT0(0, "erreur lors de l'ouverture du fichier");
+}

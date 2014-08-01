@@ -1,4 +1,6 @@
 #include "SceneOpenGL.h"
+#include "Kalman.h"
+//#include "source\test\test_Traitement.cpp"
 //#include "Mobile.h"
 
 #pragma comment (lib, "glew32.lib")
@@ -114,18 +116,33 @@ void SceneOpenGL::bouclePrincipale()
 	int turn = 1;
 	std::string port = PORTSERIE;
 	int baudRate = BAUD;
+	quaternion<double> un_quaternion;
+
+	/* Initialisation du filtre de Kalman + Système */
+	matrix<double> mat_cov(4, 4, 0), init_predict(4, 1, 0);
+	for (int i = 0; i < 4; i++)
+		mat_cov(i, i) = 1.5;
+	for (int i = 0; i < 4; i++)
+		init_predict(i, 0) = 0.05;
+	Kalman rotation(0, 4, 4, 100, init_predict, mat_cov);
+	vect4D v_angulaire_t, acceleration_t;
 
 	Serial link(port, baudRate);
-	Instrument gyro("gyro", &link);
-	Instrument acce("acce", &link);
+	Instrument_serie gyro("gyro", &link);
+	Instrument_serie acce("acce", &link);
 	Traitement trait_gyro(&gyro);
 	Traitement trait_acce(&acce);
 	/* l'objet qui servira a récupérer les valeurs de l'arduino puis a faire un moyenne sur plusieurs valeurs pour des résultats plus stables*/
 
 	/* Fichier sauvegarder données*/
-	std::string filename = gyro.getnomfichier();
-	std::string filename2 = acce.getnomfichier();
 	//	Mobile gant;
+
+	fstream file_gyro;
+	fstream file_acce;
+
+	trait_gyro.openfile_readwrite(file_gyro, "gyro.txt");
+	trait_acce.openfile_readwrite(file_acce, "acce.txt");
+	_RPT0(0, "ouverture du fichier \n");
 
 	vect3D angle = { 0.0, 0.0, 0.0 };
 
@@ -140,8 +157,8 @@ void SceneOpenGL::bouclePrincipale()
 
 	projection = perspective(1.22, (double)m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
 	modelview = mat4(1.0);
-	trait_gyro.writeHeading(filename);
-	trait_acce.writeHeading(filename2);
+	//trait_gyro.writeHeading(filename);
+	//trait_acce.writeHeading(filename2);
 	// Boucle principale
 	while (!terminer)
 	{
@@ -171,22 +188,43 @@ void SceneOpenGL::bouclePrincipale()
 		*  Ecrire les donnnées (data) dans le fichier filename2
 		*/
 		
-		trait_gyro.filefromSensor(filename, &gyro);
+		trait_gyro.filefromSensor(file_gyro,&gyro);
 
-		trait_acce.filefromSensor(filename2, &acce);
+		trait_acce.filefromSensor(file_acce, &acce);
 
+		/*
+
+		acceleration.x = acceleration_t.x;
+		acceleration.y = acceleration_t.y;
+		acceleration.z = acceleration_t.z;
+		_RPT3(0, "acceleration_t x : %f, y : %f, z : %f \n", acceleration_t.x, acceleration_t.y, acceleration_t.z);
+
+		v_angulaire.x = v_angulaire_t.x;
+		v_angulaire.y = v_angulaire_t.y;
+		v_angulaire.z = v_angulaire_t.z;
+	
+		_RPT3(0, "v_angulaire_t x : %f, y : %f, z : %f \n", v_angulaire_t.x, v_angulaire_t.y, v_angulaire_t.z);
+		*/
 		if (trait_gyro.tabFull() == true)
 		{
+			acceleration_t = acce.getMesures();
+			v_angulaire_t = gyro.getMesures();
 
-			angle = angle + trait_gyro.calculerAngle_deg();
+			_RPT1(0, "DELTA TEMPS : %f \n", trait_gyro.get_dt());
+			un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, trait_gyro.get_dt());
+			
+			angle = quatToAngles(un_quaternion);
+			//angle = angle + trait_gyro.calculerAngle_deg();
+			_RPT4(0, "QUATERNION %f  %f  %f  %f \n", un_quaternion.R_component_1(), un_quaternion.R_component_2(), un_quaternion.R_component_3(), un_quaternion.R_component_4());
+			_RPT3(0, "ANGLES EULER X: %f Y: %f Z: %f \n", angle.x, angle.y, angle.z);
 
 			cout << angle.x << endl;
 			cout << angle.y << endl;
 			cout << angle.z << endl;
 
-			modelview = rotate(modelview, (float)(angle.x), vec3(1, 0, 0));
-			modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
-			modelview = rotate(modelview, (float)(angle.z), vec3(0, 0, 1));
+			modelview = rotate(modelview, (float)(angle.x*M_2PI / 360.0), vec3(1, 0, 0));
+			modelview = rotate(modelview, (float)(angle.y*M_2PI / 360.0), vec3(0, 1, 0));
+			modelview = rotate(modelview, (float)(angle.z*M_2PI / 360.0), vec3(0, 0, 1));
 			// Rotation du repère
 
 		} //end if(tabFull == true)

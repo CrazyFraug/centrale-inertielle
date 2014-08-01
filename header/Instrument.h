@@ -9,7 +9,7 @@
 vect3D operator+(vect3D v1, vect3D v2);
 
 vect3D operator*(vect3D v2, double* v1);
-
+vect3D operator*(vect3D v2, double v1);
 vect4D operator+(vect4D v1, vect3D v2);
 
 class Instrument {
@@ -19,16 +19,13 @@ private:
 	vect4D _mesures;
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
-	Serial* _serialLink;
-	std::string nom_fichier;
 
 	//retire les valeurs initiales des mesures
 	void soustraireVI(void);
 
 public:
 	//constructor
-	Instrument(char* nom, Serial* link);
-	Instrument(char* nom, std::string port, int baudRate);
+	Instrument(char* nom);
 
 	//destructor//
 	~Instrument();
@@ -37,7 +34,6 @@ public:
 	vect4D getMesures(void);
 	double getMesure(int axe);
 	clock_t* getTemps(void);
-	std::string Instrument::getnomfichier(void);
 
 	char* getID();
 	/** \brief return the time of the last measure according to the parameter axe
@@ -45,33 +41,40 @@ public:
 	clock_t getTemps(int axe);
 
 	/**Setter**/
-
-	/** \brief fills the _t_acq table with the new values (as parameter)
-	*/
 	void setTemps(clock_t* nvTemps);
-
-	/** \brief fills the _valeursInitiales table with the new values (as parameter)
-	*/
 	void setVI(vect3D valeurs);
+	void setMesuresX(double);
+	void setMesuresY(double);
+	void setMesuresZ(double);
+	void setMesuresT(double);
+	void setMesures(vect4D nvMesures);
 
-	/**met a jour les valeurs des mesures de l'instrument avec les valeurs passées en paramètre*/
-	void majMesures(vect4D nvMesures);
+	/**Mise a jour des mesures stockées */
+	virtual void majMesures();
 
-	/**
-	* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
-	* renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
-	* lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
-	*/
-	void majSerial();
-
-	//calibrer l'instrument en initialisant les valeurs initiales
+	/**calibrer l'instrument en initialisant les valeurs initiales*/
 	void calibrer(void);
 
+	/*Fonctions d'affichage*/
 	void afficherMesures() const;
 	void afficherTemps() const;
 	void afficherVI() const;
-
 };
 
+
+class Instrument_serie : public Instrument
+{
+private:
+	Serial* _serialLink;
+	std::string nom_fichier;
+public:
+	Instrument_serie(char* nom, Serial* link);
+	Instrument_serie(char* nom, std::string port, int baudRate);
+	~Instrument_serie();
+	std::string getnomfichier(void);
+	void majMesures();
+	/** \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série	*/
+	void majSerial();
+};
 
 #endif

@@ -12,14 +12,8 @@
 	À évaluer : les bruits de mesure de l'accéléromètre - matrice R
 			  : l'initialisation de la matrice de covariance			
 *****************************************************************************************/
-quaternion<double> test_kalman_rotation(vect4D v_angulaire, vect4D acceleration, double dt){
-	/* Initialisation du filtre de Kalman + Système */
-	matrix<double> mat_cov(4, 4,0), init_predict(4,1,0);
-	for (int i=0; i < 4; i++)
-		mat_cov(i, i) = 1.5;
-	for (int i = 0; i < 4; i++)
-		init_predict(i, 0) = 0.05;
-	Kalman rotation(0, 4, 4, 100, init_predict, mat_cov);
+quaternion<double> test_kalman_rotation(vect4D v_angulaire, vect4D acceleration, double dt, Kalman kalm){
+	
 	/* Affectation les données pour le filtre de Kalman + Système */
 	double sx, sy, sz; 
 	sx = sy = sz = 0.5;
@@ -55,11 +49,11 @@ quaternion<double> test_kalman_rotation(vect4D v_angulaire, vect4D acceleration,
 	A(2, 0) = Ay; A(2, 1) = -Az; A(2, 3) = Ax;
 	A(3, 0) = Az; A(3, 1) = Ay; A(3, 2) = -Ax;
 
-	rotation.declare_system(A, B, C);
-	rotation.declare_noise(Q, R);
+	kalm.declare_system(A, B, C);
+	kalm.declare_noise(Q, R);
 
 	/* Etape de prédiction du système */
-	rotation.predict_step(zero_matrix<double>(4,4));
+	kalm.predict_step(zero_matrix<double>(4,4));
 
 	/*	
 	 *	Récupération des accélérations pour l'observation du système 
@@ -83,70 +77,77 @@ quaternion<double> test_kalman_rotation(vect4D v_angulaire, vect4D acceleration,
 	mesuresQuat(3, 0) = quat_meas.R_component_4();
 
 	/* Etape update les données du filtre de Kalman */
-	estimate_result = rotation.update_step(mesuresQuat);
+	estimate_result = kalm.update_step(mesuresQuat);
 
 	quaternion<double> quat_estimate(estimate_result(0, 0), estimate_result(1, 0), estimate_result(2, 0), estimate_result(3, 0));
 	return quat_estimate;
 }
 
-//int main(){
-//	Serial link("COM8", 115200);
-//	Instrument acce("acce", &link);
-//	Instrument gyro("gyro", &link);
-//
-//	Traitement trait_acce(&acce);
-//	Traitement trait_gyro(&gyro);
-//
-//	quaternion<double> quat_test;
-//	std::string filename_test = "test_kalman.txt", file_sensor_name = "test_sensor.txt", file_excel = "excel.csv";
-//	std::fstream filetest, filesensor, fileexcel;
-//	filetest.open(filename_test,std::ios::app);
-//	filesensor.open(file_sensor_name);
-//	filetest << "|| Angles X  || Angle Y || Angle Z  || \n";
-//	filesensor << "|| Angles X  || Angle Y || Angle Z  || \n";
-//	filetest.close();
-//	filesensor.close();
-//	int turn = 1;
-//	vect3D angles_test;
-//	vect3D angles_sensor;
-//	matrix<double> mat_test(4, 1, 0);
-//	trait_gyro.writeHeading(gyro.getnomfichier());
-//	trait_acce.writeHeading(acce.getnomfichier());
-//	_RPT0(0, "DECLARATION VARIABLE OK \n");
-//	while (1){
-//		trait_acce.stockerValeurs();
-//		trait_gyro.stockerValeurs();
-//		vect4D v_angulaire, acceleration;
-//
-//		trait_acce.filefromSensor(acce.getnomfichier(), &acce);
-//		trait_gyro.filefromSensor(gyro.getnomfichier(), &gyro);
-//
-//		if (trait_gyro.tabFull() == true)
-//		{
-//			fileexcel.open(file_excel, std::ios::app);
-//			filetest.open(filename_test,std::ios::app);
-//			filesensor.open(file_sensor_name,std::ios::app);
-//			angles_sensor = trait_gyro.calculerAngle_deg();
-//			filesensor << "||  " << angles_sensor.x << "  ||  " << angles_sensor.y << "  ||  " << angles_sensor.z << "  ||\n";
-//			v_angulaire = trait_gyro.readDatafromFile(gyro.getnomfichier(), turn);
-//			acceleration = trait_acce.readDatafromFile(acce.getnomfichier(), turn);
-//			
-//			quat_test = test_kalman_rotation(v_angulaire, acceleration, trait_gyro.get_dt());
-//			angles_test = quatToAngles(quat_test);
-//			filetest << "||  ;" << angles_test.x << "  || ; " << angles_test.y << "  || ; " << angles_test.z << "  ||;\n";
-//			fileexcel << acceleration.temps << ";";
-//			fileexcel << angles_sensor.x << ";" << angles_test.x << ";";
-//			fileexcel << angles_sensor.y << ";" << angles_test.y << ";";
-//			fileexcel << angles_sensor.z << ";" << angles_test.z << "\n";
-//			filetest.close();
-//			filesensor.close();	
-//			fileexcel.close();
-//		}
-//		else{ 
-//			_RPT0(0, " FALSE \n");
-//		}
-//		turn++;
-//	}
-//
-//}
+int main(){
+	Serial link("COM8", 115200);
+	Instrument_serie acce("acce", &link);
+	Instrument_serie gyro("gyro", &link);
+
+	Traitement trait_acce(&acce);
+	Traitement trait_gyro(&gyro);
+
+	quaternion<double> quat_test;
+	std::string file_excel = "excel.csv";
+	std::fstream fileexcel, file_gyro, file_acce;
+
+	trait_acce.openfile_readwrite(file_acce, "acce.csv");
+	trait_gyro.openfile_readwrite(file_gyro, "gyro.csv");
+
+	fileexcel.open(file_excel, std::ios::app);
+	fileexcel << "temps;angleX_sensor;angleX_Kalman;angleY_sensor;angleY_Kalman;angleZ_sensor;angleZ_Kalman \n";
+	int turn = 1;
+	vect3D angles_test;
+	vect3D angles_sensor = { 0, 0, 0 };
+	matrix<double> mat_test(4, 1, 0);
+	//trait_gyro.writeHeading(gyro.getnomfichier());
+	//trait_acce.writeHeading(acce.getnomfichier());
+	_RPT0(0, "DECLARATION VARIABLE OK \n");
+
+	/* Initialisation du filtre de Kalman + Système */
+	matrix<double> mat_cov(4, 4, 0), init_predict(4, 1, 0);
+	for (int i = 0; i < 4; i++)
+		mat_cov(i, i) = 1.5;
+	for (int i = 0; i < 4; i++)
+		init_predict(i, 0) = 0.05;
+	Kalman rotation(0, 4, 4, 100, init_predict, mat_cov);
+
+	while (1){
+		trait_acce.stockerValeurs();
+		trait_gyro.stockerValeurs();
+		vect4D v_angulaire, acceleration;
+
+		trait_acce.filefromSensor(file_acce, &acce);
+		trait_gyro.filefromSensor(file_gyro, &gyro);
+
+		if (trait_gyro.tabFull() == true)
+		{
+			fileexcel.open(file_excel, std::ios::app);
+			angles_sensor = angles_sensor + trait_gyro.calculerAngle_deg();
+			v_angulaire = trait_gyro.readDatafromFile(file_gyro, turn);
+			acceleration = trait_acce.readDatafromFile(file_acce, turn);
+			
+			_RPT3(0, "acceleration_t x : %f, y : %f, z : %f \n", acceleration.x, acceleration.y, acceleration.z);
+
+			_RPT3(0, "v_angulaire_t x : %f, y : %f, z : %f \n", v_angulaire.x, v_angulaire.y, v_angulaire.z);
+
+			quat_test = test_kalman_rotation(v_angulaire, acceleration, trait_gyro.get_dt(),rotation);
+			angles_test = quatToAngles(quat_test);
+			fileexcel << acceleration.temps << ";";
+			fileexcel << angles_sensor.x << ";" << angles_test.x << ";";
+			fileexcel << angles_sensor.y << ";" << angles_test.y << ";";
+			fileexcel << angles_sensor.z << ";" << angles_test.z << "\n";
+			fileexcel.close();
+		}
+		else{ 
+			_RPT0(0, " FALSE \n");
+		}
+		turn++;
+	}
+
+}
 

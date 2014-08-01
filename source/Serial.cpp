@@ -232,93 +232,94 @@ packDatas Serial::readData_s(std::string name_sensor){
 	}
 	return packresult;
 }
-///**
-//* \brief lit les valeurs qu'envoie l'arduino
-//* les valeurs doivent être sous un format spécifique (on pourra le changer après):
-//* type(char*) + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
-//* exemple : "gyro:0.45y;0.12x;-5.2z;"
-//* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
-//*/
-//double Serial::readDatas(int &axe, char* type, bool &capteur)
-//{
-//	using namespace boost;
-//	using namespace std;
-//	char c;
-//	string result;
-//	axe = 0;
 
-//	for (;;)
+/**
+* \brief lit les valeurs qu'envoie l'arduino
+* les valeurs doivent être sous un format spécifique (on pourra le changer après):
+* type(char*) + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
+* exemple : "gyro:0.45y;0.12x;-5.2z;"
+* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
+*/
+double Serial::readDatas(int &axe, char* type, bool &capteur)
+{
+	using namespace boost;
+	using namespace std;
+	char c;
+	string result;
+	axe = 0;
 
-//	{
-//		asio::read(serial, asio::buffer(&c, 1));
-//		switch (c)
-//		{//crlf \r\n
+	for (;;)
 
-//		case '\r':
-//			break;
+	{
+		asio::read(serial, asio::buffer(&c, 1));
+		switch (c)
+		{//crlf \r\n
 
-//		case '\n':
-//			result.clear();
-//			break;
+		case '\r':
+			break;
 
-//		case ';':
-//			result.clear();
-//			break;
+		case '\n':
+			result.clear();
+			break;
 
-//		case 'x':
-//			asio::read(serial, asio::buffer(&c, 1));
+		case ';':
+			result.clear();
+			break;
 
-//			if (c == ';' && capteur)
-//			{
-//				axe = 1;
-//				return string_to_double(result);
-//			}
-//			//else result.clear();
+		case 'x':
+			asio::read(serial, asio::buffer(&c, 1));
 
-//			break;
+			if (c == ';' && capteur)
+			{
+				axe = 1;
+				return string_to_double(result);
+			}
+			//else result.clear();
 
-//		case 'y':
-//			asio::read(serial, asio::buffer(&c, 1));
-//			if (c == ';' && capteur)
-//			{
-//				axe = 2;
-//				return string_to_double(result);
-//			}
-//			else { result += 'y'; result += c; }
-//			break;
+			break;
 
-//		case 'z':
-//			asio::read(serial, asio::buffer(&c, 1));
-//			if (c == ';' && capteur)
-//			{
-//				axe = 3;
-//				return string_to_double(result);
-//			}
+		case 'y':
+			asio::read(serial, asio::buffer(&c, 1));
+			if (c == ';' && capteur)
+			{
+				axe = 2;
+				return string_to_double(result);
+			}
+			else { result += 'y'; result += c; }
+			break;
 
-//			//else result.clear();
-//			break;
+		case 'z':
+			asio::read(serial, asio::buffer(&c, 1));
+			if (c == ';' && capteur)
+			{
+				axe = 3;
+				return string_to_double(result);
+			}
 
-//		case 't':
-//			asio::read(serial, asio::buffer(&c, 1));
-//			if (c == ';' && capteur)
-//			{
-//				axe = 4;
-//				return string_to_double(result);
-//			}
-//			else result.clear();
-//			break;
+			//else result.clear();
+			break;
 
-//		case ':':
-//			if (result == type)
-//			{
-//				capteur = true;
-//			}
-//			else capteur = false;
-//			result.clear();
-//			break;
-//		default:
-//			result += c;
-//		}
+		case 't':
+			asio::read(serial, asio::buffer(&c, 1));
+			if (c == ';' && capteur)
+			{
+				axe = 4;
+				return string_to_double(result);
+			}
+			else result.clear();
+			break;
 
-//	}
-//}
+		case ':':
+			if (result == type)
+			{
+				capteur = true;
+			}
+			else capteur = false;
+			result.clear();
+			break;
+		default:
+			result += c;
+		}
+
+	}
+}
