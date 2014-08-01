@@ -147,7 +147,7 @@ void Traitement::afficherValeurs()
 		_RPT1(0, "moyenne X = %f\n", moyenner(1));
 		_RPT1(0, "moyenne Y = %f\n", moyenner(2));
 		_RPT1(0, "moyenne Z = %f\n", moyenner(3));
-		
+
 		std::cout << "moyenne X = " << moyenner(1) << "                      " << std::endl;
 		std::cout << "moyenne Y = " << moyenner(2) << "                      " << std::endl;
 		std::cout << "moyenne Z = " << moyenner(3) << "                      " << std::endl;
@@ -190,13 +190,14 @@ void Traitement::writeHeading(std::string filename){
 }
 
 //ecrit dans un fichier les mesures prises par le capteur
-void Traitement::filefromSensor(std::fstream& myfile, Instrument* inst){
-
+void Traitement::filefromSensor(std::fstream& myfile, std::string filename, Instrument* inst){
+	myfile.open(filename, std::ios::app);
 	for (int i = 1; i <= 4; i++){
-			myfile << inst->getMesure(i);
-			myfile << " ; ";
+		myfile << inst->getMesure(i);
+		myfile << ";";
 	}
-	myfile << "\n" ;
+	myfile << "\n";
+	myfile.close();
 }
 
 /**
@@ -207,34 +208,48 @@ void Traitement::filefromSensor(std::fstream& myfile, Instrument* inst){
 *
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(std::fstream& myfile, int cursor){
-	vect4D data = { 0, 0, 0, 0 };
-	char c = NULL;
+vect4D Traitement::readDatafromFile(std::fstream& myfile, std::string filename, int cursor){
+	vect4D data;
+	char c;
+	int pos;
 	std::string chaine;
-
+	myfile.open(filename, std::ios::in || std::ios::out || std::ios::app);
+	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
+		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
+	pos = myfile.tellg();
+	_RPT1(0, "POSITION : %d \n", pos);
 	if (myfile.eof() == false)
 	{
 		/* Enlève l'entête du fichier */
 		for (int i = 0; i < cursor; i++)
 			std::getline(myfile, chaine);
+		_RPT1(0, "LINE : %s \n", chaine);
 		//		_RPT0(0, "lecture du fichier\n");
 		/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
 		myfile >> data.x;
 		myfile >> c;
+		_RPT1(0, "CHARACTERE %d \n", c);
 		myfile >> data.y;
 		myfile >> c;
+		_RPT1(0, "CHARACTERE %d \n", c);
 		myfile >> data.z;
 		myfile >> c;
+		_RPT1(0, "CHARACTERE %d \n", c);
 		myfile >> data.temps;
+		myfile >> c;
+		_RPT1(0, "CHARACTERE %d \n", c);
 	}
-
+	myfile.close();
 #ifdef TEST
 	_RPT1(0, "valeur x = %f\n", data.x);
 	_RPT1(0, "valeur y = %f\n", data.y);
 	_RPT1(0, "valeur z = %f\n", data.z);
 	_RPT1(0, "valeur t = %f\n", data.temps);
 #endif
-
+	_RPT1(0, "valeur x = %f\n", data.x);
+	_RPT1(0, "valeur y = %f\n", data.y);
+	_RPT1(0, "valeur z = %f\n", data.z);
+	_RPT1(0, "valeur t = %f\n", data.temps);
 	return data;
 
 }
@@ -244,5 +259,5 @@ void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
 {
 	myfile.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
 	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
-		_RPT0(0, "erreur lors de l'ouverture du fichier");
+		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
 }
