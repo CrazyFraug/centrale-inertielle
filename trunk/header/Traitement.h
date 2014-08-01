@@ -8,6 +8,7 @@
 #include <boost/numeric/ublas/io.hpp>
 
 #define NB_VALEURS 2
+#define G 9.81
 
 typedef boost::numeric::ublas::matrix<double> matrix_double;
 
@@ -27,8 +28,8 @@ public:
 	void calculer_dt();
 	bool tabFull(void);
 	void writeHeading(std::string filename);
-	void filefromSensor(std::fstream& myfile, Instrument* inst);
-	vect4D readDatafromFile(std::fstream& myfile, int turns);
+	void filefromSensor(std::fstream& myfile, std::string filename, Instrument* inst);
+	vect4D readDatafromFile(std::fstream& myfile, std::string filename, int cursor);
 	void openfile_readwrite(std::fstream& myfile, std::string filename);
 
 private:
