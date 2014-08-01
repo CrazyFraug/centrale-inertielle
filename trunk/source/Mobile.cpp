@@ -72,28 +72,6 @@ void Mobile::get_angles(double vAngle_phi, double vAngle_teta, double vAngle_psi
 	}
 
 
-CQRQuaternionHandle* Mobile::calculerOrientation(double pitch, double roll, double yaw, double* matrice[3][3])
-{
-	CQRQuaternionHandle* quat_rotation;
-	quat_rotation = new CQRQuaternionHandle;
-	CQRCreateEmptyQuaternion(quat_rotation);
-	CQRAngles2Quaternion(*quat_rotation, pitch,roll,yaw); //if enlevé
-	return quat_rotation;
-
-}
-
-
-/** Fonction calcule le changement de coordonnées du vecteur à partir d'un quat rotation
- * In : CQRQuaternionHandle quat_rotation, double* w, double* v -> v le vecteur d'origine, et w le vecteur après rotation
- * Out: 0 if succcess
- * Remarque : 
-*/
-
-int Mobile::rotate_vector(CQRQuaternionHandle quat_rotation, double* w, double* v)
-{
-        return CQRRotateByQuaternion(w,quat_rotation,v);
-}
-
 
 /** Soustraction de l'influence de l'accélération g sur chacun des axes de l'accéléromètre*/
 
@@ -120,14 +98,6 @@ void Mobile::calcul_vitesse(acc_translation translation, double dt) {
 		v_tr.v_x += translation.acc_x*dt*100/CLOCKS_PER_SEC;
 		v_tr.v_y += translation.acc_y*dt*100/CLOCKS_PER_SEC;
 		v_tr.v_z += translation.acc_z*dt*100/CLOCKS_PER_SEC;
-	}
-
-	void Mobile::afficher_mobile()
-	{
-		cout << "angles : " << endl ;
-		cout << "phi  = " << orientation.phi << endl ;
-		cout << "teta = " << orientation.teta << endl ;
-		cout << "psi  = " << orientation.psi << endl ;
 	}
 
 
@@ -197,44 +167,26 @@ double Mobile::best_Value_z (void){
     mean_value = sum_table/4;
     return mean_value;
 }
-/** Fonction calcule le changement du repère absolu avec une translation
- * In : acc_x, acc_y, acc_z - les accélérations reçus de l'accéléromètre
- * Remarques : Erreur accéléromètre -> erreur de calcul -> Filtre de Kalman à calculer - 14h22 03/07/2014
- *             Redéfinir le dt (temps entre deux acquisitions d'accélération) - 05/07/2014
-*/
-void Mobile::chgt_repere_translation(double acc_x, double acc_y, double acc_z){
-    double dt = (t_act - t_pred);
-    t_acquisition = dt;
-    //set_Acceleration(acc_x,acc_y,acc_z);
-    //calcul_vitesse(acc_trans,dt);
-    //cout << "dt : " << dt << endl;
-    position_absolue.x += v_tr.v_x*dt;
-    position_absolue.y += v_tr.v_y*dt;
-    position_absolue.z += v_tr.v_z*dt;
-}
 
 void Mobile::afficher_position()
-	{
-		//cout.width(4);
-		//cout.fill('0');
-		cout << "Position : " << endl ;
-		cout << "X  = " << position_absolue.x << endl ;
-		cout << "Y = " << position_absolue.y<< endl ;
-		cout << "Z  = " << position_absolue.z << endl ;
-	}
+{
+	cout << "Position : " << endl ;
+	cout << "X  = " << position_absolue.x << endl ;
+	cout << "Y = " << position_absolue.y<< endl ;
+	cout << "Z  = " << position_absolue.z << endl ;
+}
 
 void Mobile::afficher_vitesse()
-	{
-		cout << "Vitesse : " << endl ;
-		cout << "Vitesse X  = " << v_tr.v_x<< endl ;
-		cout << "Vitesse Y = " << v_tr.v_y<< endl ;
-		cout << "Vitesse Z  = " << v_tr.v_z<< endl ;
-		cout << "t_acquisition :" << t_acquisition << endl;
-		cout << "t_pred :" << t_pred<< endl;
-		cout << "t_actuel :" << t_act << endl;
-	}
+{
+	cout << "Vitesse : " << endl ;
+	cout << "Vitesse X  = " << v_tr.v_x<< endl ;
+	cout << "Vitesse Y = " << v_tr.v_y<< endl ;
+	cout << "Vitesse Z  = " << v_tr.v_z<< endl ;
+}
 
-void Mobile::afficher_angle(void) {
+void Mobile::afficher_angle(void) 
+{
+	cout << "angles : " << endl;
 	cout << "phi : " << orientation.phi << endl;
 	cout << "teta : " << orientation.teta << endl;
 	cout << "psi : " << orientation.psi << endl;

@@ -1,5 +1,6 @@
 #include "SceneOpenGL.h"
 
+
 int main(int argc, char *argv[]) {
 
 	SceneOpenGL scene("letitre", 800, 600);

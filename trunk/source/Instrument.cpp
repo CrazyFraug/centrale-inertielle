@@ -21,6 +21,16 @@ vect3D operator*(vect3D v2, double* v1)
 	return result;
 }
 
+/* \brief Surcharge operateur* pour un vecteur 3D et un double*/
+vect3D operator*(vect3D v2, double v1)
+{
+	vect3D result;
+	result.x = v2.x * v1;
+	result.y = v2.y * v1;
+	result.z = v2.z * v1;
+	return result;
+}
+
 /* \brief Surcharge operateur+ pour un vecteur 4D et un 3D
 * le temps reste inchangé */
 vect4D operator+(vect4D v1, vect3D v2) 
@@ -39,34 +49,8 @@ vect4D operator+(vect4D v1, vect3D v2)
 * \param nom : chaine de caractere qui identifie l'instrument
 * \param link : communication série associée
 */
-Instrument::Instrument(char* nom, Serial* link) :ID(nom), _serialLink(link)
+Instrument::Instrument(char* nom) :ID(nom)
 {
-	_mesures.x = 0;
-	_mesures.y = 0;
-	_mesures.z = 0;
-	_mesures.temps = clock();
-	_valeursInitiales.x = 0;
-	_valeursInitiales.y = 0;
-	_valeursInitiales.z = 0;
-	_t_acq[0] = clock();
-	_t_acq[1] = clock();
-	_t_acq[2] = clock();
-	std::string filename = ID;
-	filename += ".txt";
-	nom_fichier = filename;
-}
-
-
-/** 
-* \brief Constructeur d'Instrument
-* prend en argument les parametre de la communication série
-* \param nom : chaine de caractere qui identifie l'instrument
-* \param port : nom du port serie utilisé, défini en tant que constante dans SceneOpenGL.h
-* \param baudRate : baudrate de la laison série
-*/
-Instrument::Instrument(char* nom, std::string port, int baudRate):ID(nom)
-{
-	_serialLink = new Serial(port, baudRate);
 	_mesures.x = 0;
 	_mesures.y = 0;
 	_mesures.z = 0;
@@ -130,9 +114,6 @@ char* Instrument::getID(void){
 	return ID;
 }
 
-std::string Instrument::getnomfichier(void){
-	return nom_fichier;
-}
 /**Setter**/
 
 /** \brief fills the _t_acq table with the new values (as parameter)
@@ -154,9 +135,16 @@ void Instrument::setVI(vect3D valeurs)
 }
 
 
+void Instrument::setMesuresX(double val){ _mesures.x = val; }
+void Instrument::setMesuresY(double val){ _mesures.y = val; }
+void Instrument::setMesuresZ(double val){ _mesures.z = val; }
+void Instrument::setMesuresT(double val){ _mesures.temps = val; }
 /** Autres methodes **/
 
+void Instrument::majMesures()
+{
 
+}
 /** \brief retire les conditions initiales (in progress)*/
 void Instrument::soustraireVI(void) 
 {
@@ -164,115 +152,21 @@ void Instrument::soustraireVI(void)
 	_mesures.y -= _valeursInitiales.y;
 	_mesures.z -= _valeursInitiales.z;
 }
-/**
-* \brief met a jour les mesures de l'instrument avec les valeurs passées en paramètre
-*/
-void Instrument::majMesures(vect4D nvMesures)
-{
-	_mesures.x = nvMesures.x;
-	_mesures.y = nvMesures.y;
-	_mesures.z = nvMesures.z;
-	_mesures.temps = nvMesures.temps;
-	soustraireVI();
-}
 
-/** version gyro seul
-* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
-* renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
-* lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
-*/
-void Instrument::majSerial()
-{
-	/*double value;
-	int axe = 0;
-	bool axe1(false), axe2(false), axe3(false), axe4(false);
-	while ((axe1 == false) || (axe2 == false) || (axe3 == false))
-	{
-		value = _serialLink->readDatas(axe);
-		switch (axe)
-		{
-		case 1:
-			_mesures.x = -value;
-			_t_acq[0] = clock();
-			axe1 = true;
-			break;
-		case 2:
-			_mesures.y = value;
-			_t_acq[1] = clock();
-			axe2 = true;
-			break;
-		case 3:
-			_mesures.z = -value;
-			_t_acq[2] = clock();
-			axe3 = true;
-			break;
-		case 4:
-			_mesures.temps = value;
-			axe4 = true;
-			break;
-		}
-	}*/
-	_RPT1(0, "SENSOR NAME: %s \n", _serialLink->readData_s(ID).sensor_name.c_str());
-	if (strcmp(ID, _serialLink->readData_s(ID).sensor_name.c_str())==0){
-		_mesures.x = _serialLink->readData_s(ID).datas.x;
-		_mesures.y = _serialLink->readData_s(ID).datas.y;
-		_mesures.z = _serialLink->readData_s(ID).datas.z;
-		_mesures.temps = _serialLink->readData_s(ID).datas.temps;
-	}
-	//soustraireVI();
-}
 
-///** 
-//	* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série 
-//	* renvoie aussi l'heure à laquelle ces valeurs ont été mises à jour;
-//	* lit forcément les valeurs de chaque axe au moins une fois (axe4 = axe du temps)
-//	*/
-//void Instrument::majSerial(char* type)
-//{
-//	double value;
-//	bool capteur(false);
-//	int axe=0;
-//	bool axe1(false), axe2(false), axe3(false), axe4(false);
-//	while((axe1==false) || (axe2==false) || (axe3==false))
-//	{
-//		value = _p_serialLink->readDatas(axe, type, capteur);
-//		switch (axe)
-//		{
-//		case 1:
-//			_mesures.x = -value;
-//			_t_acq[0] = clock();
-//			axe1 = true;
-//			break;
-//		case 2:
-//			_mesures.y = value;
-//			_t_acq[1] = clock();
-//			axe2 = true;
-//			break;
-//		case 3:
-//			_mesures.z = -value;
-//			_t_acq[2] = clock();
-//			axe3 = true;
-//			break;
-//		case 4 :
-//			_mesures.temps = value;
-//			axe4 = true;
-//			break;
-//		}
-//	}
-//	soustraireVI();
-//}
-		
+
+
 //calibrer l'instrument en initialisant les valeurs initiales
 void Instrument::calibrer(void)
 {
-	majSerial();
+	majMesures();
 	_mesures.x = 0;
 	_mesures.y = 0;
 	_mesures.z = 0;
 
 	while((_mesures.x == 0) || (_mesures.y == 0) || (_mesures.z == 0))
 	{
-		majSerial();
+		majMesures();
 		
 	}
 	_valeursInitiales.x = _mesures.x;
@@ -321,4 +215,46 @@ void Instrument::afficherVI() const
 	std::cout << "vi2 = " << _valeursInitiales.y << std::endl;
 	std::cout << "vi3 = " << _valeursInitiales.z << std::endl;
 
+}
+
+/** Sous-classe Instrument_serie **/
+
+
+/**
+* \brief Constructeur d'Instrument_serie
+* prend en argument un objet de type Serial
+* \param nom : chaine de caractere qui identifie l'instrument
+* \param link : communication série associée
+*/
+Instrument_serie::Instrument_serie(char* nom, Serial* link) :Instrument(nom), _serialLink(link)
+{
+	std::string filename = getID();
+	filename += ".txt";
+	nom_fichier = filename;
+}
+
+Instrument_serie::~Instrument_serie() { }
+
+void Instrument_serie::majMesures()
+{
+	majSerial();
+}
+
+/**
+* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
+*/
+void Instrument_serie::majSerial()
+{
+	_RPT1(0, "SENSOR NAME: %s \n", _serialLink->readData_s(getID()).sensor_name.c_str());
+	if (strcmp(getID(), _serialLink->readData_s(getID()).sensor_name.c_str()) == 0){
+		setMesuresX(_serialLink->readData_s(getID()).datas.x);
+		setMesuresY(_serialLink->readData_s(getID()).datas.y);
+		setMesuresZ(_serialLink->readData_s(getID()).datas.z);
+		setMesuresT(_serialLink->readData_s(getID()).datas.temps);
+	}
+}
+
+
+std::string Instrument_serie::getnomfichier(void){
+	return nom_fichier;
 }

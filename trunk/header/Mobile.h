@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <math.h>
 
+
 #include "Structure.h"
 
 #define G 9.81
@@ -21,38 +22,29 @@ private :
 	repere_distance position_relative;
 	vitesse_rotation v_rot;
 	vitesse_translation v_tr;
-	clock_t t_acquisition, t_acqGyro, t_pred, t_act, t_orientation, t_position, t_v_rot, t_v_tr;
+	clock_t t_acquisition;
     void norm_Angle(double alpha);
-	double* vecteur_orientation;
+	double vecteur_orientation;
 
 public:
 	Mobile(void);
 	~Mobile();
-	//void set_Acceleration (double acc_x, double acc_y, double acc_z);
-	void get_Acceleration(double acc_x, double acc_y, double acc_z, int i);
-	void maj_orientation(double phi, double teta, double psi);
+	//getter//
+	double* get_VectOrient() ;
+	void get_angles(double vAngle_phi, double vAngle_teta, double vAngle_psi);
+	//setter//
 	void set_vitesse (double v_x, double v_y, double v_z);
-	void calcul_vitesse(acc_translation translation, double dt);
-	
-	void chgt_repere_translation(double acc_x, double acc_y, double acc_z);
-	//void calcul_v_rot(accel_rotation rotation);
-	void afficher_mobile(void);
+	void set_VectOrient(double* val) ;
+
+	void maj_orientation(double phi, double teta, double psi);
+	void maj_position(double x, double y, double z);
+
 	void afficher_position(void);
 	void afficher_vitesse(void);
-
-	double best_Value_x (void);
-	double best_Value_y (void);
-	double best_Value_z (void);
-	//acc_translation acc_trans;
-    void afficher_acc_stock(void);
-	double meanValue (int tailleTab, double* mesures);
-    double acc_x_stock[4];
-    double acc_y_stock[4];
-    double acc_z_stock[4];
 	void afficher_angle (void);
-	double* get_VectOrient() ;
-	void set_VectOrient(double* val) ;
-	void get_angles(double vAngle_phi, double vAngle_teta, double vAngle_psi);
+	
+
+	
 };
 
 #endif

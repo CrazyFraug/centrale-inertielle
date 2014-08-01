@@ -55,6 +55,8 @@ public:
 	*/
 	double readDatas(int &axe);
 
+	double readDatas(int &axe, char* type, bool &capteur);
+
 	packDatas readData_s(std::string name_sensor);
 
 private:

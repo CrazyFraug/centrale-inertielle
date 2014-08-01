@@ -15,19 +15,22 @@ class Traitement
 {
 public:
 	Traitement(Instrument* inst);
-	Traitement(std::string filename);
 	~Traitement();
 
+	double get_dt(void);
 	void testd(void);
 	void stockerValeurs();
+	void stockerValeurs(vect4D val);
 	double moyenner(int axe);
 	vect3D calculerAngle_deg();
 	void afficherValeurs(void);
 	void calculer_dt();
 	bool tabFull(void);
 	void writeHeading(std::string filename);
-	void filefromSensor(std::string filename, Instrument* inst);
-	vect4D readDatafromFile(std::string filename, int turns);
+	void filefromSensor(std::fstream& myfile, Instrument* inst);
+	vect4D readDatafromFile(std::fstream& myfile, int turns);
+	void openfile_readwrite(std::fstream& myfile, std::string filename);
+
 private:
 	int _test;
 	int _compteur;
