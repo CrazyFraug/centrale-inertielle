@@ -260,7 +260,7 @@ vect4D Traitement::readDatafromFile(std::fstream& myfile, std::string filename, 
 }
 
 
-/** \brief ou==Ouverture d'un fichier en mode lecture */
+/** \brief Ouverture d'un fichier en mode lecture */
 void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
 {
 	myfile.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
