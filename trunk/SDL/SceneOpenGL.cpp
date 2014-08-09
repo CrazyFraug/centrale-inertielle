@@ -130,11 +130,19 @@ void SceneOpenGL::bouclePrincipale()
 	vect4D v_angulaire_t, acceleration_t;
 
 	double temps_Act, temps_Pre, dt;
-	temps_Act = temps_Pre = dt = 0;
-	Simulation simu_acce("acce");
-	Simulation simu_gyro("gyro");
-	Simulation simu_magn("mnet");
-	Simulation simu_orie("orie");
+	Serial link(port, baudRate);
+	Instrument_serie accel("acce", &link);
+	Traitement trait_accel(&accel);
+	Instrument_serie gyros("gyro", &link);
+	Traitement trait_gyros(&gyros);
+	Instrument_serie magne("mnet", &link);
+	Traitement trait_magne(&magne);
+	Instrument_serie orient("orie", &link);
+	Traitement trait_orient(&orient);
+	Simulation simu_acce("acce", &trait_accel);
+	Simulation simu_gyro("gyro", &trait_gyros);
+	Simulation simu_magn("mnet", &trait_magne);
+	Simulation simu_orie("orie", &trait_orient);
 	/* l'objet qui servira a récupérer les valeurs de l'arduino puis a faire un moyenne sur plusieurs valeurs pour des résultats plus stables*/
 
 	vect3D angle = { 0.0, 0.0, 0.0 };
