@@ -32,8 +32,8 @@ public:
 	vect4D readDatafromFile(std::string filename, int turns);
 	void openfile_readwrite(std::fstream& myfile, std::string filename);
 	void getTraitement(Traitement *un_Traitement);
-
 	void afficherTraitement(void);
+
 private:
 	int _test;
 	int _compteur;
