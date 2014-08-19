@@ -184,7 +184,7 @@ void SceneOpenGL::bouclePrincipaleSensor()
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 		/* Filtre de Kalman */
-		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, trait_gyros.get_dt(), rotation);
+		un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, trait_gyros.get_dt(), rotation);
 
 		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
 		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
@@ -252,6 +252,7 @@ void SceneOpenGL::bouclePrincipaleSensor()
 void SceneOpenGL::bouclePrincipaleSimu()
 {
 
+	//declaration var a faire dans le main //
 	bool terminer(false);
 	unsigned int frameRate(1000 / 200);
 	Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
@@ -322,7 +323,7 @@ void SceneOpenGL::bouclePrincipaleSimu()
 		dt = temps_Act - temps_Pre;
 		temps_Pre = temps_Act;
 		/* Filtre de Kalman */
-		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
+		un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
 
 		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
 		*	angle			--	Angle convertit à partir du quaternion après filtré		*/

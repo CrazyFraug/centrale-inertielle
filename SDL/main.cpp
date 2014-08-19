@@ -5,12 +5,12 @@
 int main(int argc, char *argv[]) {
 
 	int mode = 0;
-	int nb_capteur;
+	//int nb_capteur;
 	SceneOpenGL scene("letitre", 800, 600);
 
 	if (scene.InitialiserFenetre() == false) { system("PAUSE"); return -1; }
 
-	if (!scene.iniGL()) 	{ system("PAUSE"); return -1; }
+	if (!scene.iniGL()) { system("PAUSE"); return -1; }
 
 	mode = choiceMode();
 	if (mode == 1){
