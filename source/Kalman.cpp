@@ -10,7 +10,9 @@
 */
 matrix<double> product_matrix(matrix<double> M1, matrix<double> M2){
 	if (M1.size2() != M2.size1()){
+		matrix<double> result(M1.size1(), M2.size2(), 0);
 		_RPT0(_CRT_ERROR, "ERROR SIZE MATRIX \n");
+		return result;
 	}
 	else{
 		matrix<double> result(M1.size1(), M2.size2(), 0);
@@ -212,7 +214,7 @@ Le résultat du filtre est sortie sous forme quarternion<double>
 
 *	\test	test_Kalman_rotation	à tester les constants pour valider l'algorithme!
 */
-quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman rotation){
+quaternion<double> Kalman::kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman rotation){
 	/********************************************************************/
 	/*	Définition les matrices A, B, C, Q, R							*
 	*	Affectation les données pour le filtre de Kalman + Système		*/
@@ -275,7 +277,7 @@ quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect
 	/*	Récupération des accélérations pour l'observation du système	*
 	*	Passage de l'accélération en angles d'Euler						*/
 	/********************************************************************/
-	vect3D angle_meas{ 0, 0, 0 };
+	vect3D angle_meas = { 0, 0, 0 };
 	double ax, ay, az, mx, my, mz;
 	ax = acceleration.x;
 	ay = -acceleration.y;

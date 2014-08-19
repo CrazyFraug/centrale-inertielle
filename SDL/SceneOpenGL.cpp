@@ -129,7 +129,7 @@ void SceneOpenGL::bouclePrincipale()
 	Kalman rotation(0, 4, 4, 100, init_predict, mat_cov);
 	vect4D v_angulaire_t, acceleration_t, orientation_t, magnetic_t;
 
-	double temps_Act, temps_Pre, dt;
+	double temps_Act, temps_Pre(0.0), dt;
 	Serial link(port, baudRate);
 	Instrument_serie accel("acce", &link);
 	Traitement trait_accel(&accel);
@@ -146,6 +146,7 @@ void SceneOpenGL::bouclePrincipale()
 	/* l'objet qui servira a récupérer les valeurs de l'arduino puis a faire un moyenne sur plusieurs valeurs pour des résultats plus stables*/
 
 	vect3D angle = { 0.0, 0.0, 0.0 };
+	vect3D orientation_data;
 
 	// Matrices
 	mat4 projection;
@@ -188,7 +189,7 @@ void SceneOpenGL::bouclePrincipale()
 		temps_Pre = temps_Act;
 
 		/* Filtre de Kalman */
-		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
+		un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
 
 		/*	angle_sensor	--	Angle calculé directement par le	s mesures du gyroscope	*
 		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
@@ -221,8 +222,10 @@ void SceneOpenGL::bouclePrincipale()
 		orientation_data.x = orientation_t.x;
 		orientation_data.y = orientation_t.y;
 		orientation_data.z = orientation_t.z;
+
+		bool heading(false);
 		/*	Ecrire les valeurs d'angle et d'angle_sensor dans le fichier excel	 */
-		writeResult(v_angulaire_t.temps, orientation_data, angle, "result.csv");
+		writeResult(v_angulaire_t.temps, orientation_data, angle, "result.csv", heading);
 
 		cout << angle.x << endl;
 		cout << angle.y << endl;

@@ -44,7 +44,7 @@ public:
 	void predict_step(matrix<double> value_cmd);
 	matrix<double> update_step(matrix<double> value_mesure);
 
-	quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, double dt);
+	quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman rotation);
 
 private:
 	system_state sys;

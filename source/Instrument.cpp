@@ -45,9 +45,8 @@ vect4D operator+(vect4D v1, vect3D v2)
 
 /**
 * \brief Constructeur d'Instrument
-* prend en argument un objet de type Serial
+* prend en argument une chaine de caracteres
 * \param nom : chaine de caractere qui identifie l'instrument
-* \param link : communication série associée
 */
 Instrument::Instrument(char* nom) :ID(nom)
 {
@@ -63,19 +62,6 @@ Instrument::Instrument(char* nom) :ID(nom)
 	_t_acq[2] = clock();
 }
 
-Instrument::Instrument() : ID()
-{
-	_mesures.x = 0;
-	_mesures.y = 0;
-	_mesures.z = 0;
-	_mesures.temps = clock();
-	_valeursInitiales.x = 0;
-	_valeursInitiales.y = 0;
-	_valeursInitiales.z = 0;
-	_t_acq[0] = clock();
-	_t_acq[1] = clock();
-	_t_acq[2] = clock();
-}
 /** \brief Destructeur
 */
 Instrument::~Instrument()
