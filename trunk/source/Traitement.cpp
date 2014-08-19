@@ -294,3 +294,19 @@ void Traitement::afficherTraitement(void){
 	_capteur->afficherCapteur();
 	_RPT1(0, "dt : %f \n", _dt);
 }
+
+int choiceMode(){
+	int mode;
+	std::cout << "MODE DE SIMULATION : " << std::endl;
+	std::cout << "1 - Simulation avec capteur" << std::endl;
+	std::cout << "2 - Simulation avec fichier de valeurs" << std::endl;
+	std::cout << "La mode de simulation choisie : ";
+	std::cin >> mode;
+	std::cout << std::endl;
+	while (mode != 1 && mode != 2){
+		std::cout << "La mode choisie doit etre 1 ou 2 : ";
+		std::cin >> mode;
+		std::cout << std::endl;
+	}
+	return mode;
+}
