@@ -43,5 +43,5 @@ private:
 									   * _dt = _tempsAct - _tempsPrec ce qui correspond à la différence de temps entre les deux mesures effectuées.*/
 };
 void writeHeading(std::string filename);
-int choiceMode(std::string nameSensor);
+int choiceMode();
 #endif

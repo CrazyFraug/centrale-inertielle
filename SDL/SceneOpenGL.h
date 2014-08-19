@@ -16,7 +16,7 @@
 #include <time.h>
 //#include "Shader.h" 
 #include "Cube.h"
-#include "Traitement.h"	
+#include "Simulation.h"	
 #include "Simulation.h"
 #include "Kalman.h"
 
@@ -36,7 +36,8 @@ public:
 	//méthodes:
 	bool InitialiserFenetre();
 	bool iniGL();
-	void bouclePrincipale();
+	void bouclePrincipaleSensor();
+	void bouclePrincipaleSimu();
 
 private:
 
