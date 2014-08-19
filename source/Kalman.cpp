@@ -27,6 +27,16 @@ matrix<double> product_matrix(matrix<double> M1, matrix<double> M2){
 	}
 }
 
+void printMatrix(matrix<double> A){
+	for (int i = 0; i < A.size1(); i++){
+		_RPT0(0, "| ");
+		for (int j = 0; j < A.size2(); j++){
+			_RPT1(0, " %f ", A(i, j));
+		}
+		_RPT0(0, " |\n");
+	}
+}
+
 
 /** \brief Constructor d'un objet Kalman
 
@@ -213,8 +223,14 @@ Le résultat du filtre est sortie sous forme quarternion<double>
 *	\return quaternion<double>	result_estimate	--	un quaternion après avoir estimé
 
 *	\test	test_Kalman_rotation	à tester les constants pour valider l'algorithme!
+
 */
-quaternion<double> Kalman::kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman rotation){
+
+
+
+
+
+void declareKalman(Kalman *rotation){
 	/********************************************************************/
 	/*	Définition les matrices A, B, C, Q, R							*
 	*	Affectation les données pour le filtre de Kalman + Système		*/
@@ -240,6 +256,44 @@ quaternion<double> Kalman::kalman_rotation(vect4D v_angulaire, vect4D accelerati
 	/* Mettre à jour la matrice de transition A							*/
 	/********************************************************************/
 	double wx, wy, wz, Ax, Ay, Az;
+
+	Ax = 0;
+	Ay = 0;
+	Az = 0;
+
+	A(0, 0) = 1;
+	A(0, 0) = 1; A(1, 1) = 1; A(2, 2) = 1; A(3, 3) = 1; //diagonale
+	A(0, 1) = -Ax; A(0, 2) = -Ay; A(0, 3) = -Az;
+	A(1, 0) = Ax; A(1, 2) = Az; A(1, 3) = -Ay;
+	A(2, 0) = Ay; A(2, 1) = -Az; A(2, 3) = Ax;
+	A(3, 0) = Az; A(3, 1) = Ay; A(3, 2) = -Ax;
+
+	/*******************************************************************/
+
+
+	/********************************************************************/
+	/* Déclare le système avec les matrices A, B, C, Q et R				*/
+	/********************************************************************/
+	rotation->declare_system(A, B, C);
+
+	rotation->declare_noise(Q, R);
+	/********************************************************************/
+
+	/********************************************************************/
+	/* Etape de prédiction du système									*/
+	/********************************************************************/
+	rotation->predict_step(zero_matrix<double>(4, 4));
+	/********************************************************************/
+}
+
+quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman *rotation){
+
+	/********************************************************************/
+	/* Mettre à jour la matrice de transition A							*/
+	/********************************************************************/
+	matrix<double> A(4, 4, 0), B(0, 0, 0), C(4, 4, 0);
+	C(0, 0) = C(1, 1) = C(2, 2) = C(3, 3) = 1;
+	double wx, wy, wz, Ax, Ay, Az;
 	wx = -v_angulaire.x;
 	wy = v_angulaire.y;
 	wz = v_angulaire.z;
@@ -255,52 +309,38 @@ quaternion<double> Kalman::kalman_rotation(vect4D v_angulaire, vect4D accelerati
 	A(2, 0) = Ay; A(2, 1) = -Az; A(2, 3) = Ax;
 	A(3, 0) = Az; A(3, 1) = Ay; A(3, 2) = -Ax;
 
-	/*******************************************************************/
-
-
-	/********************************************************************/
-	/* Déclare le système avec les matrices A, B, C, Q et R				*/
-	/********************************************************************/
-	rotation.declare_system(A, B, C);
-
-	rotation.declare_noise(Q, R);
-	/********************************************************************/
-
-
-	/********************************************************************/
-	/* Etape de prédiction du système									*/
-	/********************************************************************/
-	rotation.predict_step(zero_matrix<double>(4, 4));
-	/********************************************************************/
+	rotation->declare_system(A, B, C);
 
 	/********************************************************************/
 	/*	Récupération des accélérations pour l'observation du système	*
 	*	Passage de l'accélération en angles d'Euler						*/
 	/********************************************************************/
-	vect3D angle_meas = { 0, 0, 0 };
-	double ax, ay, az, mx, my, mz;
-	ax = acceleration.x;
-	ay = -acceleration.y;
-	az = -acceleration.z;
-	mx = magnetic.x;
-	my = magnetic.y;
-	mz = magnetic.z;
+	vect3D angle_meas{ 0, 0, 0 };
+	//double ax, ay, az, mx, my, mz;
+	//ax = acceleration.x;
+	//ay = -acceleration.y;
+	//az = -acceleration.z;
+	//mx = magnetic.x;
+	//my = magnetic.y;
+	//mz = magnetic.z;
 	quaternion<double> quat_meas;
-	angle_meas.x = atan2(ay, az) * 180 / (atan(1) * 4);
-	if ((ay*sin(angle_meas.x) + az*cos(angle_meas.x)) == 0){
-		if (ax > 0){
-			angle_meas.y = 90;
-		}
-		else{
-			angle_meas.y = -90;
-		}
-	}
-	else{
-		angle_meas.y = atan2(-ay, (ay*sin(angle_meas.x) + az*cos(angle_meas.x))) * 180 / (atan(1) * 4);
-	}
-	angle_meas.z = atan2(mz*sin(angle_meas.x) - my*cos(angle_meas.x), mx*cos(angle_meas.y) + my*sin(angle_meas.y)*sin(angle_meas.x) + mz*sin(angle_meas.y)*cos(angle_meas.x)) * 180 / (atan(1) * 4);//atan(mz*cos(angle_meas.x) + my*sin(angle_meas.x) / mx*cos(angle_meas.z)+mz*sin(angle_meas.z)*sin(angle_meas.x)+my*sin(angle_meas.z)*cos(angle_meas.x))*180/(atan(1)*4);
+	//angle_meas.x = atan2(ay, az) * 180 / (atan(1) * 4);
+	//if ((ay*sin(angle_meas.x) + az*cos(angle_meas.x)) == 0){
+	//	if (ax > 0){
+	//		angle_meas.y = 90;
+	//	}
+	//	else{
+	//		angle_meas.y = -90;
+	//	}
+	//}
+	//else{
+	//	angle_meas.y = atan2(-ay, (ay*sin(angle_meas.x) + az*cos(angle_meas.x))) * 180 / (atan(1) * 4);
+	//}
+	//angle_meas.z = atan2(mz*sin(angle_meas.x) - my*cos(angle_meas.x), mx*cos(angle_meas.y) + my*sin(angle_meas.y)*sin(angle_meas.x) + mz*sin(angle_meas.y)*cos(angle_meas.x)) * 180 / (atan(1) * 4);//atan(mz*cos(angle_meas.x) + my*sin(angle_meas.x) / mx*cos(angle_meas.z)+mz*sin(angle_meas.z)*sin(angle_meas.x)+my*sin(angle_meas.z)*cos(angle_meas.x))*180/(atan(1)*4);
 
-
+	angle_meas.x = orientation.x;
+	angle_meas.y = orientation.y;
+	angle_meas.z = orientation.z;
 	quat_meas = anglesToQuat(angle_meas.x, angle_meas.y, angle_meas.z);
 	/********************************************************************/
 
@@ -317,7 +357,7 @@ quaternion<double> Kalman::kalman_rotation(vect4D v_angulaire, vect4D accelerati
 	mesuresQuat(2, 0) = quat_meas.R_component_3();
 	mesuresQuat(3, 0) = quat_meas.R_component_4();
 
-	estimate_result = rotation.update_step(mesuresQuat);
+	estimate_result = rotation->update_step(mesuresQuat);
 
 	quaternion<double> quat_estimate(estimate_result(0, 0), estimate_result(1, 0), estimate_result(2, 0), estimate_result(3, 0));
 	return quat_estimate;
