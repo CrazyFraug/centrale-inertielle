@@ -18,7 +18,7 @@
 #include "Cube.h"
 #include "Traitement.h"	
 #include "Simulation.h"
-//#include "Instrument.h"
+#include "Kalman.h"
 
 #define M_2PI 6.28318530718 
 #define bufferSize 4

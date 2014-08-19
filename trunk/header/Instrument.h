@@ -59,6 +59,10 @@ public:
 	void afficherMesures() const;
 	void afficherTemps() const;
 	void afficherVI() const;
+	void afficherCapteur(void);
+
+	std::string getnomfichier(void);
+
 };
 
 
