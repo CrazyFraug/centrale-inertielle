@@ -120,12 +120,14 @@ void SceneOpenGL::bouclePrincipaleSensor()
 	/* Initialisation du filtre de Kalman + Système */
 	matrix<double> mat_cov(4, 4, 0), init_predict(4, 1, 0);
 	for (int i = 0; i < 4; i++)
-		mat_cov(i, i) = 1;
+		mat_cov(i, i) = 0.05;
 	init_predict(0, 0) = 1;
 	init_predict(1, 0) = 0;
 	init_predict(2, 0) = 0;
 	init_predict(3, 0) = 0;
-	Kalman rotation(0, 4, 4, 100, init_predict, mat_cov);
+	Kalman une_rotation(0, 4, 4, 100, init_predict, mat_cov);
+	declareKalman(&une_rotation); 
+	
 	vect4D v_angulaire_t, acceleration_t, magnetic_t, orientation_t;
 	double temps_Act, temps_Pre, dt;
 	temps_Act = temps_Pre = dt = 0;
@@ -184,7 +186,9 @@ void SceneOpenGL::bouclePrincipaleSensor()
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 		/* Filtre de Kalman */
-		un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, trait_gyros.get_dt(), rotation);
+
+		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, trait_gyros.get_dt(), &une_rotation);
+
 
 		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
 		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
@@ -261,12 +265,13 @@ void SceneOpenGL::bouclePrincipaleSimu()
 	/* Initialisation du filtre de Kalman + Système */
 	matrix<double> mat_cov(4, 4, 0), init_predict(4, 1, 0);
 	for (int i = 0; i < 4; i++)
-		mat_cov(i, i) = 1;
+		mat_cov(i, i) = 0.05;
 	init_predict(0, 0) = 1;
 	init_predict(1, 0) = 0;
 	init_predict(2, 0) = 0;
 	init_predict(3, 0) = 0;
-	Kalman rotation(0, 4, 4, 100, init_predict, mat_cov);
+	Kalman une_rotation(0, 4, 4, 100, init_predict, mat_cov);
+	declareKalman(&une_rotation);
 	vect4D v_angulaire_t, acceleration_t, magnetic_t, orientation_t;
 	double temps_Act, temps_Pre, dt;
 	temps_Act = temps_Pre = dt = 0;
@@ -323,7 +328,8 @@ void SceneOpenGL::bouclePrincipaleSimu()
 		dt = temps_Act - temps_Pre;
 		temps_Pre = temps_Act;
 		/* Filtre de Kalman */
-		un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
+		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, &une_rotation);
+
 
 		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
 		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
