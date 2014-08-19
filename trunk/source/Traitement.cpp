@@ -11,6 +11,14 @@ Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 		_valeurs[i] = new double[NB_VALEURS];
 	}
 }
+Traitement::Traitement() :_compteur(0), _dt(0)
+{
+	/** Allocation mémoire de la matrice de valeurs **/
+	for (int i = 0; i<3; i++)
+	{
+		_valeurs[i] = new double[NB_VALEURS];
+	}
+}
 
 
 /** Destructeur **/
@@ -22,11 +30,17 @@ Traitement::~Traitement()
 	}
 }
 
+Instrument* Traitement::getInstrument(void){
+	return (_capteur);
+}
 
 double	Traitement::get_dt(){
 	return _dt;
 }
 
+void Traitement::setInstrument(Instrument_serie *un_Instrument){
+	_capteur = un_Instrument;
+}
 
 void Traitement::stockerValeurs(vect4D val)
 {
@@ -132,9 +146,9 @@ double Traitement::moyenner(int axe)
 vect3D Traitement::calculerAngle_deg()
 {
 	vect3D angles;
-	angles.x = moyenner(1)*_dt;
-	angles.y = moyenner(2)*_dt;
-	angles.z = moyenner(3)*_dt;
+	angles.x = moyenner(1)*_dt * 180 / (atan(1) * 4);
+	angles.y = moyenner(2)*_dt * 180 / (atan(1) * 4);
+	angles.z = moyenner(3)*_dt * 180 / (atan(1) * 4);
 	_RPT1(0, " _dt = %f ms\n", _dt);
 	std::cout << " _dt = " << _dt << " ms " << std::endl;
 	return angles;
@@ -191,14 +205,20 @@ bool Traitement::tabFull()
 *
 *   \test  test_filefromSensor
 */
-void Traitement::writeHeading(std::string filename){
+void writeHeading(std::string filename){
 	std::fstream myfile;
 	myfile.open(filename.c_str(), std::ios::app);
-	if (filename == "gyro.txt"){
-		myfile << "||  Gyr_X  ||  Gyr_Y  ||  Gyr_Z  ||  temps  || \n";
+	if (filename == "gyro.csv"){
+		myfile << "Gyr_X;Gyr_Y;Gyr_Z;temps\n";
 	}
-	else if (filename == "acce.txt"){
-		myfile << "||  Acc_X  ||  Acc_Y  ||  Acc_Z  ||  temps  || \n";
+	else if (filename == "acce.csv"){
+		myfile << "Acc_X;Acc_Y;Acc_Z;temps\n";
+	}
+	else if (filename == "magn.csv"){
+		myfile << "Mag_X;Mag_Y;Mag_Z;temps\n";
+	}
+	else if (filename == "orie.csv"){
+		myfile << "Ori_X,Ori_Y;Ori_Z;temps\n";
 	}
 	myfile.close();
 }
@@ -206,7 +226,8 @@ void Traitement::writeHeading(std::string filename){
 /**
 * \brief Ecrit dans un fichier les mesures prises par le capteur
 */
-void Traitement::filefromSensor(std::fstream& myfile, std::string filename, Instrument* inst){
+void Traitement::filefromSensor(std::string filename, Instrument* inst){
+	std::fstream myfile;
 	myfile.open(filename, std::ios::app);
 	for (int i = 1; i <= 4; i++){
 		myfile << inst->getMesure(i);
@@ -222,13 +243,14 @@ void Traitement::filefromSensor(std::fstream& myfile, std::string filename, Inst
 *   \return data		vect4D		vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(std::fstream& myfile, std::string filename, int cursor)
+vect4D Traitement::readDatafromFile(std::string filename, int cursor)
 {
-	vect4D data;
+	vect4D data = { 0, 0, 0, 0 };
+	std::fstream myfile;
 	char c;
 	std::string chaine;
 
-	myfile.open(filename, std::ios::in || std::ios::out || std::ios::app);
+	myfile.open(filename, std::ios::in || std::ios::out);
 	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
 		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
 
@@ -260,10 +282,15 @@ vect4D Traitement::readDatafromFile(std::fstream& myfile, std::string filename, 
 }
 
 
-/** \brief Ouverture d'un fichier en mode lecture */
+/** \brief ou==Ouverture d'un fichier en mode lecture */
 void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
 {
 	myfile.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
 	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
 		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
+}
+
+void Traitement::afficherTraitement(void){
+	_capteur->afficherCapteur();
+	_RPT1(0, "dt : %f \n", _dt);
 }
