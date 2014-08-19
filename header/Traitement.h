@@ -10,15 +10,16 @@
 #define NB_VALEURS 2
 #define G 9.81
 
-typedef boost::numeric::ublas::matrix<double> matrix_double;
-
 class Traitement
 {
 public:
 	Traitement(Instrument* inst);
+	Traitement();
 	~Traitement();
 
+	Instrument *getInstrument(void);
 	double get_dt(void);
+	void setInstrument(Instrument_serie *un_Instrument);
 	void testd(void);
 	void stockerValeurs();
 	void stockerValeurs(vect4D val);
@@ -27,11 +28,12 @@ public:
 	void afficherValeurs(void);
 	void calculer_dt();
 	bool tabFull(void);
-	void writeHeading(std::string filename);
-	void filefromSensor(std::fstream& myfile, std::string filename, Instrument* inst);
-	vect4D readDatafromFile(std::fstream& myfile, std::string filename, int cursor);
+	void filefromSensor(std::string filename, Instrument* inst);
+	vect4D readDatafromFile(std::string filename, int turns);
 	void openfile_readwrite(std::fstream& myfile, std::string filename);
+	void getTraitement(Traitement *un_Traitement);
 
+	void afficherTraitement(void);
 private:
 	int _test;
 	int _compteur;
@@ -40,5 +42,6 @@ private:
 	double _dt, _tempsPrec, _tempsAct; /*variables comprenant le l'heure à laquelle la mesure a ete effectuee (selon l'arduino)
 									   * _dt = _tempsAct - _tempsPrec ce qui correspond à la différence de temps entre les deux mesures effectuées.*/
 };
-
+void writeHeading(std::string filename);
+int choiceMode(std::string nameSensor);
 #endif
