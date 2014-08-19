@@ -127,7 +127,7 @@ void SceneOpenGL::bouclePrincipale()
 	init_predict(2, 0) = 0;
 	init_predict(3, 0) = 0;
 	Kalman rotation(0, 4, 4, 100, init_predict, mat_cov);
-	vect4D v_angulaire_t, acceleration_t;
+	vect4D v_angulaire_t, acceleration_t, orientation_t, magnetic_t;
 
 	double temps_Act, temps_Pre, dt;
 	Serial link(port, baudRate);
@@ -186,10 +186,11 @@ void SceneOpenGL::bouclePrincipale()
 		temps_Act = v_angulaire_t.temps;
 		dt = temps_Act - temps_Pre;
 		temps_Pre = temps_Act;
+
 		/* Filtre de Kalman */
 		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
 
-		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
+		/*	angle_sensor	--	Angle calculé directement par le	s mesures du gyroscope	*
 		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
 		/*angle_sensor = angle_sensor + trait_gyro.calculerAngle_deg();
 		angle = quatToAngles_deg(un_quaternion);*/
