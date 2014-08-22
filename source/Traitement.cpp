@@ -1,5 +1,6 @@
 #include "Traitement.h"
 #include <iostream>
+/* test SVN modif */
 
 /** Constructeur **/
 Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
