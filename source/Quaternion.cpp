@@ -92,6 +92,15 @@ double calculateNorm(quaternion<double> q)
 }
 
 /**
+* \brief  Normalise un quaternion
+* \param q : quaternion à normaliser
+*/
+void normalise(quaternion<double> &q)
+{
+	q = q/calculateNorm(q);
+}
+
+/**
 * \brief produit hamiltonien de 2 quaternions
 */
 quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2)
@@ -106,6 +115,9 @@ quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2)
 	return result;
 }
 
+/**
+* \brief retourne la matrice de rotation correspondant au quaternion en argument
+*/
 matrix<double> quatToMat(quaternion<double> q)
 {
 	matrix<double> rotation(3, 3);

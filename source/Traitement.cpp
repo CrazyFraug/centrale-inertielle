@@ -1,24 +1,16 @@
 #include "Traitement.h"
 #include <iostream>
-/* test SVN modif */
 
 /** Constructeur **/
-Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
-{
-	_capteur = inst;
-	/** Allocation mémoire de la matrice de valeurs **/
-	for (int i = 0; i<3; i++)
-	{
-		_valeurs[i] = new double[NB_VALEURS];
-	}
-}
-Traitement::Traitement() :_compteur(0), _dt(0)
+
+Traitement::Traitement(std::string id, std::string filename) :_compteur(0), _dt(0), _id(id)
 {
 	/** Allocation mémoire de la matrice de valeurs **/
 	for (int i = 0; i<3; i++)
 	{
 		_valeurs[i] = new double[NB_VALEURS];
 	}
+	_filename = filename;
 }
 
 
@@ -31,82 +23,51 @@ Traitement::~Traitement()
 	}
 }
 
-Instrument* Traitement::getInstrument(void){
-	return (_capteur);
-}
+/** Setter **/
+void Traitement::set_dt(double t) {_dt = t;}
 
-double	Traitement::get_dt(){
-	return _dt;
-}
+void Traitement::set_tempsPrec(double t) {_tempsPrec = t;}
 
-void Traitement::setInstrument(Instrument_serie *un_Instrument){
-	_capteur = un_Instrument;
-}
+/** Getter **/
+double	Traitement::get_dt() {return _dt;}
 
-void Traitement::stockerValeurs(vect4D val)
+int Traitement::get_compteur(void) {return _compteur;}
+
+double Traitement::get_tempsPrec(void) {return _tempsPrec;}
+
+bool Traitement::get_finFichier(void) {return _finFichier;}
+
+
+/** Autres méthodes **/
+
+vect4D Traitement::acquisition(void)
 {
-	_tempsAct = val.temps;
-	_dt = (_tempsAct - _tempsPrec) / 1000.0;
-	_tempsPrec = _tempsAct;
-
-#ifdef TEST
-	_RPT1(0, "nouvelles valeurs à stocker : \r\nval.x = %f\n", val.x);
-	_RPT1(0, "val.y = %f\n", val.y);
-	_RPT1(0, "val.x = %f\n", val.z);
-#endif
-
-	if (_compteur < NB_VALEURS) // cas ou le tableau n'est pas plein
-	{
-		_valeurs[0][_compteur] = val.x;
-		_valeurs[1][_compteur] = val.y;
-		_valeurs[2][_compteur] = val.z;
-		_compteur++;
-	}
-
-	else // cas ou le tableau est deja rempli
-	{
-		//_RPT0(0, "tableau rempli !\n");
-		for (int i = 0; i<NB_VALEURS - 1; i++)
-		{
-			_valeurs[0][i] = _valeurs[0][i + 1];
-			_valeurs[1][i] = _valeurs[1][i + 1];
-			_valeurs[2][i] = _valeurs[2][i + 1];
-		}
-
-		if (_compteur < 0)
-			_compteur = 0;
-		_valeurs[0][_compteur - 1] = val.x;
-		_valeurs[1][_compteur - 1] = val.y;
-		_valeurs[2][_compteur - 1] = val.z;
-
-	}
-	//_RPT1(0, "compteur = %d\n", _compteur);
+	return readDatafromFile();
 }
+
 
 /**
 *      \brief stocke des valeurs passées en argument dans la matrice de valeur attribut
 *      la variable compteur permet de savoir si la matrice est remplie ou pas
 *      si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en argument
-*      \param val vect3D défini dans structure.h contenant les mesures a stocker
+*      \param mesures vect4D défini dans structure.h contenant les mesures a stocker et le temps 
 */
-void Traitement::stockerValeurs()
+void Traitement::stockerValeurs(void)
 {
-	_capteur->majMesures(/*_capteur->getID()*/);
-	_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
+	vect4D mesures = acquisition();
+	_tempsAct = mesures.temps; /* axe temporel (mesures.temps) */
 	_dt = (_tempsAct - _tempsPrec) / 1000.0;
 	_tempsPrec = _tempsAct;
 
 	if (_compteur < NB_VALEURS) // cas ou le tableau n'est pas plein
 	{
-		_valeurs[0][_compteur] = _capteur->getMesure(1);
-		_valeurs[1][_compteur] = _capteur->getMesure(2);
-		_valeurs[2][_compteur] = _capteur->getMesure(3);
+		_valeurs[0][_compteur] = mesures.x;
+		_valeurs[1][_compteur] = mesures.y;
+		_valeurs[2][_compteur] = mesures.z;
 		_compteur++;
 	}
-
 	else // cas ou le tableau est deja rempli
 	{
-		//_RPT0(0, "tableau rempli !\n");
 		for (int i = 0; i < NB_VALEURS - 1; i++)
 		{
 			_valeurs[0][i] = _valeurs[0][i + 1];
@@ -114,12 +75,14 @@ void Traitement::stockerValeurs()
 			_valeurs[2][i] = _valeurs[2][i + 1];
 		}
 
-		_valeurs[0][_compteur - 1] = _capteur->getMesure(1);
-		_valeurs[1][_compteur - 1] = _capteur->getMesure(2);
-		_valeurs[2][_compteur - 1] = _capteur->getMesure(3);
+		_valeurs[0][_compteur - 1] = mesures.x;
+		_valeurs[1][_compteur - 1] = mesures.y;
+		_valeurs[2][_compteur - 1] = mesures.z;
+		std::cout << mesures.x << " ; " << mesures.y << " ; " << mesures.z << " ; " << mesures.temps << "                                 " << std::endl;
 
 	}
-	//_RPT1(0, "compteur = %d\n", _compteur);
+	//_RPT1(0, "stocker val: mesures.x = %d\n", mesures.x);
+
 }
 
 /**
@@ -127,7 +90,7 @@ void Traitement::stockerValeurs()
 *  \param axe numero de la ligne que l'on veut moyenner
 *  \return la moyenne d'une ligne
 */
-double Traitement::moyenner(int axe)
+double Traitement::moyennerAxe(int axe)
 {
 	double moyenne = 0;
 	for (int i = 0; i < _compteur; i++)
@@ -135,28 +98,86 @@ double Traitement::moyenner(int axe)
 		moyenne += _valeurs[axe - 1][i];
 	}
 
-	return (moyenne / NB_VALEURS);
+	return (moyenne / _compteur);
+}
+
+/**
+* \brief renvoie la moyenne des valeurs de chaque axe sous forme de vect3D
+* \param nb : nombre de valeurs à moyenner. La fonction réalisera la moyenne des "nb" dernières valeurs mesurées
+*/
+vect3D Traitement::moyenner(int nb)
+{
+	vect3D res = {0,0,0};
+	if(nb>_compteur)
+	{
+		nb = _compteur;
+	}
+
+	for (int i =0; i<nb; i++)
+	{
+		res.x += _valeurs[0][_compteur-i-1];
+		res.y += _valeurs[1][_compteur-i-1];
+		res.z += _valeurs[2][_compteur-i-1];
+	}
+	res.x /= nb;
+	res.y /= nb;
+	res.z /= nb;
+	return res;
+}
+
+/**
+*	\brief renvoie la dernière valeurs stockée par chaque axe ainsi que le temps auquel elles ont été stockées
+*/
+vect4D Traitement::lastVal(void)
+{
+	vect4D res;
+	res.temps = _tempsAct;
+	res.x = _valeurs[0][_compteur-1];
+	res.y = _valeurs[1][_compteur-1];
+	res.z = _valeurs[2][_compteur-1];
+
+	return res;
 }
 
 
 /**
 * \brief calcul la variation d'angle (en degré)
 * la fonction utilise les attributs privés _dt et appelle la fonction Traitement::moyenner pour calculer l'angle
+* \param nb : nombre de colonne de _valeurs qui sont moyennées. Attribut de la fonction Traitement::moyenner(int)
 * \return angles d'euler sous forme d'un vect3D
 */
-vect3D Traitement::calculerAngle_deg()
+vect3D Traitement::calculerAngle_deg(int nb)
 {
-	vect3D angles;
-	angles.x = moyenner(1)*_dt * 180 / (atan(1) * 4);
-	angles.y = moyenner(2)*_dt * 180 / (atan(1) * 4);
-	angles.z = moyenner(3)*_dt * 180 / (atan(1) * 4);
-	_RPT1(0, " _dt = %f ms\n", _dt);
-	std::cout << " _dt = " << _dt << " ms " << std::endl;
+	while(!tabFull())
+		stockerValeurs();
+
+	stockerValeurs();
+
+	_RPT1(0,"_valeurs.x = %f\n", _valeurs[0][0]); 
+	_RPT1(0,"_valeurs.x = %f\n", _valeurs[0][1]); 
+
+	vect3D angles = {0,0,0};
+	if (_compteur>0)
+	{
+		angles = moyenner(nb);
+		//_RPT1(0, "calcul angle : %f\n", angles.x);
+		//Conversion radians en degrés:
+		//angles.x *= (_dt * 180 / (atan(1) * 4));
+		//angles.y *= (_dt * 180 / (atan(1) * 4));
+		//angles.z *= (_dt * 180 / (atan(1) * 4));
+		//Sans conversion :
+		angles.x *= (_dt);
+		angles.y *= (_dt);
+		angles.z *= (_dt);
+	}
+	else
+		_RPT0(_CRT_ERROR,"Aucune mesure n'a ete recuperee");
 	return angles;
 }
 
 /** A CHANGER
-* \brief Soustraction de l'influence de l'accélération g sur chacun des axes de l'accéléromètre
+* \brief Soustraction de l'influence de l'accélération g (intensité de la pesanteur) sur chacun des axes de l'accéléromètre
+* \param matrice : matrice de rotation
 */
 void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z)
 {
@@ -165,21 +186,20 @@ void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* 
 	(*accel_z) = G*matrice[2][2];
 }
 
+
 /**
 * \brief affiche les moyennes de chaque axe sur la sortie et sur la console
 */
 void Traitement::afficherValeurs()
 {
-	_RPT1(0, "CAPTEUR %s : \n", _capteur->getID());
-	std::cout << "CAPTEUR " << _capteur->getID() << ": " << std::endl;
 	if (_compteur == NB_VALEURS) {
-		_RPT1(0, "moyenne X = %f\n", moyenner(1));
-		_RPT1(0, "moyenne Y = %f\n", moyenner(2));
-		_RPT1(0, "moyenne Z = %f\n", moyenner(3));
+		_RPT1(0, "moyenne X = %f\n", moyennerAxe(1));
+		_RPT1(0, "moyenne Y = %f\n", moyennerAxe(2));
+		_RPT1(0, "moyenne Z = %f\n", moyennerAxe(3));
 
-		std::cout << "moyenne X = " << moyenner(1) << "                      " << std::endl;
-		std::cout << "moyenne Y = " << moyenner(2) << "                      " << std::endl;
-		std::cout << "moyenne Z = " << moyenner(3) << "                      " << std::endl;
+		std::cout << "moyenne X = " << moyennerAxe(1) << "                      " << std::endl;
+		std::cout << "moyenne Y = " << moyennerAxe(2) << "                      " << std::endl;
+		std::cout << "moyenne Z = " << moyennerAxe(3) << "                      " << std::endl;
 	}
 }
 
@@ -240,36 +260,58 @@ void Traitement::filefromSensor(std::string filename, Instrument* inst){
 
 /**
 *	\brief Lire les données à partir d'un fichier
-*	\param	filename	string		le nom du fichier - doit être en format "nom.txt"
-*   \return data		vect4D		vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
+*	\param	&type	std::string		modifié dans cette fonction selon à quel capteur appartiennent les mesures
+*   \return data	vect4D			vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(std::string filename, int cursor)
+vect4D Traitement::readDatafromFile()
 {
 	vect4D data = { 0, 0, 0, 0 };
 	std::fstream myfile;
 	char c;
 	std::string chaine;
+	bool typeFound(false);
 
-	myfile.open(filename, std::ios::in || std::ios::out);
+	myfile.open(_filename, std::ios::in);
 	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
-		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
+		_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier");
 
-	if (myfile.eof() == false)
+	if (!_finFichier)
 	{
 		/* Enlève l'entête du fichier */
-		for (int i = 0; i < cursor; i++)
+		for (int i = 0; i < _cursor; i++)
 			std::getline(myfile, chaine);
 
-		/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
-		myfile >> data.x;
-		myfile >> c;
-		myfile >> data.y;
-		myfile >> c;
-		myfile >> data.z;
-		myfile >> c;
-		myfile >> data.temps;
-		myfile >> c;
+		while (!typeFound && !_finFichier)
+		{
+			std::getline(myfile, chaine);
+
+			if (chaine == _id + ":")
+				typeFound = true;
+			else 
+				typeFound = false;
+
+			if (myfile.eof()) //on verifie qu'on n'est pas à la fin du fichier (eof)
+				_finFichier = true;
+
+			_cursor++;
+		}
+		
+			/* Récupération des données */
+			myfile >> data.x;
+			myfile >> c;
+			myfile >> data.y;
+			myfile >> c;
+			myfile >> data.z;
+			myfile >> c;
+			myfile >> data.temps;
+			myfile >> c;
+
+	}
+	else 
+	{
+		_RPT0(0, "end of file \n");
+		std::cout <<  " END OF FILE                                        " << std::endl;
 	}
 	myfile.close();
 #ifdef TEST
@@ -278,12 +320,18 @@ vect4D Traitement::readDatafromFile(std::string filename, int cursor)
 	_RPT1(0, "valeur z = %f\n", data.z);
 	_RPT1(0, "valeur t = %f\n", data.temps);
 #endif
+	_RPT1(0,"_cursor = %d\n", _cursor); 
 
 	return data;
 }
 
+void Traitement::resetCursor(void)
+{
+	_cursor = 0;
+	_finFichier = false;
+}
 
-/** \brief ou==Ouverture d'un fichier en mode lecture */
+/** \brief Ouverture d'un fichier en mode lecture */
 void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
 {
 	myfile.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
@@ -291,21 +339,72 @@ void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
 		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
 }
 
-void Traitement::afficherTraitement(void){
-	_capteur->afficherCapteur();
-	_RPT1(0, "dt : %f \n", _dt);
+
+//*************************************************************//
+//********************* Traitement_serie **********************//
+//*************************************************************//
+
+/** Constructeur **/
+Traitement_serie::Traitement_serie(char* nom, std::string filename, Serial* link): Traitement(filename)
+{
+	_capteur = new Instrument_serie(nom, link);
 }
 
+/** Destructeur **/
+Traitement_serie::~Traitement_serie()
+{
+	delete _capteur;
+}
+
+/** Setter **/
+
+
+/** Getter **/
+Instrument_serie* Traitement_serie::getInstrument(void){
+	return (_capteur);
+}
+
+/**
+*      \brief stocke des valeurs passées en argument dans la matrice de valeur attribut
+*      la variable compteur permet de savoir si la matrice est remplie ou pas
+*      si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en argument
+*      \param val vect3D défini dans structure.h contenant les mesures a stocker
+*/
+vect4D Traitement_serie::acquisition(void)
+{
+	return _capteur->getMesures();
+}
+
+
+void Traitement_serie::afficherTraitSerie(void){
+	_capteur->afficherCapteur();
+	_RPT1(0, "dt : %f \n", get_dt());
+}
+
+//*************************************************************//
+//******************** Fonctions globales *********************//
+//*************************************************************//
+
 int choiceMode(){
+
 	int mode;
+	HWND hwnd = GetConsoleWindow();
+	SetForegroundWindow(hwnd);
+
+	system("cls");
 	std::cout << "MODE DE SIMULATION : " << std::endl;
+	std::cout << "0 - Quitter" << std::endl;
 	std::cout << "1 - Simulation avec capteur" << std::endl;
 	std::cout << "2 - Simulation avec fichier de valeurs" << std::endl;
-	std::cout << "La mode de simulation choisie : ";
+	std::cout << "3 - Generer fichier de valeurs" << std::endl;
+	std::cout << "4 - Generer fichier a partir de la liaison serie" << std::endl;
+	std::cout << "Le mode de simulation choisi : ";
 	std::cin >> mode;
 	std::cout << std::endl;
-	while (mode != 1 && mode != 2){
-		std::cout << "La mode choisie doit etre 1 ou 2 : ";
+
+	while (mode != 1 && mode != 2 && mode != 3 && mode != 0)
+	{
+		std::cout << "Le mode choisi est incorrect : ";
 		std::cin >> mode;
 		std::cout << std::endl;
 	}

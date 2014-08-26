@@ -3,45 +3,79 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include "Instrument.h"
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include "Kalman.h"
+//#include <boost/numeric/ublas/matrix.hpp>
+//#include <boost/numeric/ublas/io.hpp>
 
 #define NB_VALEURS 2
 #define G 9.81
+#define FILENAME "simMeasures.txt"
+#define DIRECTIONS "directions.txt"
 
 class Traitement
 {
 public:
-	Traitement(Instrument* inst);
-	Traitement();
-	~Traitement();
-
-	Instrument *getInstrument(void);
+	Traitement(std::string id, std::string filename=FILENAME);
+	virtual ~Traitement();
+	//Setter//
+	void set_dt(double t);
+	void set_tempsPrec(double t);
+	//Getter//
 	double get_dt(void);
-	void setInstrument(Instrument_serie *un_Instrument);
-	void testd(void);
-	void stockerValeurs();
-	void stockerValeurs(vect4D val);
-	double moyenner(int axe);
-	vect3D calculerAngle_deg();
-	void afficherValeurs(void);
+	double get_tempsPrec(void);
+	int get_compteur(void);
+	static bool get_finFichier(void);
+	//Gestion des valeurs//
+	virtual vect4D acquisition(void);
+	void stockerValeurs(void);
+	double moyennerAxe(int axe);
+	vect3D moyenner(int nb);
+	vect3D calculerAngle_deg(int nb);
 	void calculer_dt();
 	bool tabFull(void);
+	vect4D lastVal(void);
+	vect4D returnData(void);
+	//Affichage//
+	void afficherValeurs(void);
+	//Gestion du fichier de valeur//
 	void filefromSensor(std::string filename, Instrument* inst);
-	vect4D readDatafromFile(std::string filename, int turns);
+	vect4D readDatafromFile();
 	void openfile_readwrite(std::fstream& myfile, std::string filename);
-	void getTraitement(Traitement *un_Traitement);
-	void afficherTraitement(void);
+	static void resetCursor(void);
 
-private:
-	int _test;
+protected:
+	std::string _filename, _id;
+	static int _cursor;
 	int _compteur;
 	double* _valeurs[3]; //matrice à 3 lignes pour contenir les mesures selon les 3 axes
-	Instrument* _capteur;
-	double _dt, _tempsPrec, _tempsAct; /*variables comprenant le l'heure à laquelle la mesure a ete effectuee (selon l'arduino)
+	double _dt, _tempsPrec, _tempsAct; /*variables comprenant l'heure à laquelle la mesure à été effectuée (selon l'arduino)
 									   * _dt = _tempsAct - _tempsPrec ce qui correspond à la différence de temps entre les deux mesures effectuées.*/
+	static bool _finFichier;
 };
+
+
+class Traitement_serie : public Traitement
+{
+private:
+	Instrument_serie* _capteur;
+
+public:
+	Traitement_serie(char* nom, std::string filename, Serial* link);
+	~Traitement_serie();
+	//Getter//
+	Instrument_serie *getInstrument(void);
+	//Affichage//
+	void afficherTraitSerie(void);
+	vect4D acquisition(void);
+	void stockerValeurs();
+
+};
+
+// Fonctions globales
 void writeHeading(std::string filename);
 int choiceMode();
+
+
 #endif

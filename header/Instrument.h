@@ -71,9 +71,11 @@ class Instrument_serie : public Instrument
 private:
 	Serial* _serialLink;
 	std::string nom_fichier;
+	bool _inst_unique;
+
 public:
 	Instrument_serie(char* nom, Serial* link);
-	Instrument_serie(char* nom, std::string port, int baudRate);
+	Instrument_serie(char* nom, std::string port, unsigned int baudRate);
 	~Instrument_serie();
 	std::string getnomfichier(void);
 	void majMesures();

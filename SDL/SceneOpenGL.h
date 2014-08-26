@@ -18,13 +18,11 @@
 #include "Cube.h"
 #include "Simulation.h"	
 #include "Simulation.h"
-#include "Kalman.h"
+//#include "Kalman.h"
+#include "Mobile.h"
 
 #define M_2PI 6.28318530718 
 #define bufferSize 4
-#define PORTSERIE "COM8"
-#define BAUD 115200
-
 
 class SceneOpenGL
 {
@@ -37,7 +35,7 @@ public:
 	bool InitialiserFenetre();
 	bool iniGL();
 	void bouclePrincipaleSensor();
-	void bouclePrincipaleSimu();
+	void bouclePrincipaleSimu(Mobile &gant, Traitement **simu);
 
 private:
 

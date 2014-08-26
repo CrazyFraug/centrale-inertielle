@@ -14,7 +14,7 @@ using namespace boost::numeric::ublas;
 * 2-Convertir les angles d'Euler en quaternions
 * 3-Appliquer Kalman
 * 4-Réaliser la rotation (cette étape peut peut-être se faire avec la matrice de rotation, 
-* 							ce qui nous éviterais les singularités des angles d'euler à +90 et -90)
+* 							ce qui nous éviterais les singularités des angles d'euler à +90 et -90 degrés)
 */
 quaternion<double> anglesToQuat(double phi, double teta, double rho);
 vect3D quatToAngles(quaternion<double> quaternion);

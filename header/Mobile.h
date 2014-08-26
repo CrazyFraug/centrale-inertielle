@@ -18,6 +18,7 @@ private :
 	vect3D _angles ;
 	vect3D _position ;
 	vect3D _vitesse ;
+	quaternion<double> _quat;
 
 public:
 	Mobile(void);

@@ -236,9 +236,32 @@ Instrument_serie::Instrument_serie(char* nom, Serial* link) :Instrument(nom), _s
 	std::string filename = getID();
 	filename += ".txt";
 	nom_fichier = filename;
+	_inst_unique = false;
 }
 
-Instrument_serie::~Instrument_serie() { }
+/**
+* \brief Surcharge du constructeur d'Instrument_serie
+* prend en argument le nom de l'instrument, le nom du port et son baudrate
+* \param nom : chaine de caractere qui identifie l'instrument
+* \param port : nom du port série associée (ex:"COM8")
+* \param baudrate : baudrate (vitesse de transmission des données par la liaison série)
+*/
+Instrument_serie::Instrument_serie(char* nom, std::string port, unsigned int baudrate) :Instrument(nom)
+{
+	_serialLink = new Serial(port, baudrate);
+	std::string filename = getID();
+	filename += ".txt";
+	nom_fichier = filename;
+	_inst_unique = true;
+}
+
+Instrument_serie::~Instrument_serie() 
+{
+	if (_inst_unique)
+	{
+		delete _serialLink;
+	}
+}
 
 void Instrument_serie::majMesures()
 {
