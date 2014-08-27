@@ -4,12 +4,12 @@
 
 
 /**
- * Constructor.
- * \param port device name, example "/dev/ttyUSB0" or "COM4"
- * \param baud_rate communication speed, example 9600 or 115200
- * \throws boost::system::system_error if cannot open the
- * serial device
- */
+* Constructor.
+* \param port device name, example "/dev/ttyUSB0" or "COM4"
+* \param baud_rate communication speed, example 9600 or 115200
+* \throws boost::system::system_error if cannot open the
+* serial device
+*/
 Serial::Serial(std::string port, unsigned int baud_rate)
 : io(), serial(io, port)
 {
@@ -21,7 +21,7 @@ Serial::Serial(std::string port, unsigned int baud_rate)
 * Convert a string into a double type variable
 * return 0 if function failed
 */
-float Serial::string_to_double(const std::string& s)
+float string_to_double(const std::string& s)
 {
 	std::stringstream convert(s);
 	float x = 0;
@@ -36,21 +36,21 @@ float Serial::string_to_double(const std::string& s)
 
 
 /**
- * Write a string to the serial device.
- * \param s string to write
- * \throws boost::system::system_error on failure
- */
+* Write a string to the serial device.
+* \param s string to write
+* \throws boost::system::system_error on failure
+*/
 void Serial::writeString(std::string s)
 {
 	boost::asio::write(serial, boost::asio::buffer(s.c_str(), s.size()));
 }
 
 /**
- * Blocks until a line is received from the serial device.
- * Eventual '\n' or '\r\n' characters at the end of the string are removed.
- * \return a string containing the received line
- * \throws boost::system::system_error on failure
- */
+* Blocks until a line is received from the serial device.
+* Eventual '\n' or '\r\n' characters at the end of the string are removed.
+* \return a string containing the received line
+* \throws boost::system::system_error on failure
+*/
 std::string Serial::readLine()
 {
 	//Reading data char by char, code is optimized for simplicity, not speed
@@ -149,10 +149,12 @@ double Serial::readDatas(int &axe)
 }
 
 /**
- *	Lire les données viennent de l'arduino
- *	\return	packresult	packDatas	paquet de données contient le nom du capteur, les données selon les 3 axes et le temps
- */
+*	Lire les données viennent de l'arduino
+*	\return	packresult	packDatas	paquet de données contient le nom du capteur, les données selon les 3 axes et le temps
+*/
 packDatas Serial::readData_s(std::string name_sensor){
+	static double t_pred_out, average_pred_out = 0, t_begin = 0;
+
 	using namespace boost;
 	using namespace std;
 	char c;
@@ -162,7 +164,9 @@ packDatas Serial::readData_s(std::string name_sensor){
 	packDatas packresult;
 
 	name.clear();
-
+	t_begin = clock();
+	average_pred_out = 0.8*average_pred_out + (1 - 0.8)*(clock() - t_pred_out);
+	_RPT1(0, "AVERAGE PRED OUT : %f \n", average_pred_out);
 	/* Tant qu'on n'a pas fini de lire tout le paquet de donées */
 	asio::read(serial, asio::buffer(&c, 1));
 	if (name_sensor == "acce"){
@@ -175,7 +179,19 @@ packDatas Serial::readData_s(std::string name_sensor){
 			asio::read(serial, asio::buffer(&c, 1));
 		}
 	}
-	
+	else if (name_sensor == "mnet")
+	{
+		while (c != 'm'){
+			asio::read(serial, asio::buffer(&c, 1));
+		}
+	}
+	else if (name_sensor == "orie")
+	{
+		while (c != 'o'){
+			asio::read(serial, asio::buffer(&c, 1));
+		}
+	}
+
 	while (c != ':'){
 		name += c;
 
@@ -230,6 +246,10 @@ packDatas Serial::readData_s(std::string name_sensor){
 			break;
 		}
 	}
+	_RPT1(0, "DUREE READ_DATA_S : %f \n", clock() - t_begin);
+	_RPT1(0, "TOTAL : %f \n", clock() - t_pred_out);
+	t_pred_out = clock();
+
 	return packresult;
 }
 

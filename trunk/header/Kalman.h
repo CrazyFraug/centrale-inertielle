@@ -6,7 +6,7 @@
 
 using namespace boost::numeric::ublas;
 
-/** struct représentant l'etat du systeme 
+/** struct représentant l'etat du systeme
 * composé de 3 matrice ainsi que des dimensions de la représentation d'état et des entrée sorties
 */
 typedef struct _systemstate{
@@ -52,6 +52,6 @@ private:
 	kalmanstate kalm_sys;
 
 };
-void declareKalman(Kalman *rotation);
-quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman* rotation);
+//void declareKalman( Kalman *rotation);
+quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman &rotation);
 #endif // KALMAN_H

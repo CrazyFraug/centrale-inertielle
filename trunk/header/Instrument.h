@@ -26,7 +26,7 @@ private:
 public:
 	//constructor
 	Instrument(char* nom);
-
+	Instrument();
 	//destructor//
 	~Instrument();
 
@@ -51,18 +51,15 @@ public:
 
 	/**Mise a jour des mesures stockées */
 	virtual void majMesures();
-
+	virtual std::string getnomfichier(void);
 	/**calibrer l'instrument en initialisant les valeurs initiales*/
 	void calibrer(void);
 
 	/*Fonctions d'affichage*/
+	void afficherCapteur(void);
 	void afficherMesures() const;
 	void afficherTemps() const;
 	void afficherVI() const;
-	void afficherCapteur(void);
-
-	std::string getnomfichier(void);
-
 };
 
 
@@ -73,12 +70,11 @@ private:
 	std::string nom_fichier;
 public:
 	Instrument_serie(char* nom, Serial* link);
-	Instrument_serie(char* nom, std::string port, int baudRate);
 	~Instrument_serie();
 	std::string getnomfichier(void);
-	void majMesures();
 	/** \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série	*/
-	void majSerial();
+	void majMesures(void);
+	void majSerial(/*char* IDSensor*/);
 };
 
 #endif

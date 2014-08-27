@@ -1,13 +1,13 @@
 #include "Traitement.h"
 #include <iostream>
-/* test SVN modif */
-
+#include <hash_map>
+#define _DEFINE_DEPRECATED_HASH_CLASSES 0
 /** Constructeur **/
 Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 {
 	_capteur = inst;
 	/** Allocation mémoire de la matrice de valeurs **/
-	for (int i = 0; i<3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		_valeurs[i] = new double[NB_VALEURS];
 	}
@@ -15,7 +15,7 @@ Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 Traitement::Traitement() :_compteur(0), _dt(0)
 {
 	/** Allocation mémoire de la matrice de valeurs **/
-	for (int i = 0; i<3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		_valeurs[i] = new double[NB_VALEURS];
 	}
@@ -25,7 +25,7 @@ Traitement::Traitement() :_compteur(0), _dt(0)
 /** Destructeur **/
 Traitement::~Traitement()
 {
-	for (int i = 0; i<3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		delete _valeurs[i];
 	}
@@ -66,7 +66,7 @@ void Traitement::stockerValeurs(vect4D val)
 	else // cas ou le tableau est deja rempli
 	{
 		//_RPT0(0, "tableau rempli !\n");
-		for (int i = 0; i<NB_VALEURS - 1; i++)
+		for (int i = 0; i < NB_VALEURS - 1; i++)
 		{
 			_valeurs[0][i] = _valeurs[0][i + 1];
 			_valeurs[1][i] = _valeurs[1][i + 1];
@@ -206,8 +206,7 @@ bool Traitement::tabFull()
 *
 *   \test  test_filefromSensor
 */
-void writeHeading(std::string filename){
-	std::fstream myfile;
+void writeHeading(std::string filename, std::fstream &myfile){
 	myfile.open(filename.c_str(), std::ios::app);
 	if (filename == "gyro.csv"){
 		myfile << "Gyr_X;Gyr_Y;Gyr_Z;temps\n";
@@ -219,7 +218,7 @@ void writeHeading(std::string filename){
 		myfile << "Mag_X;Mag_Y;Mag_Z;temps\n";
 	}
 	else if (filename == "orie.csv"){
-		myfile << "Ori_X,Ori_Y;Ori_Z;temps\n";
+		myfile << "Ori_X;Ori_Y;Ori_Z;temps\n";
 	}
 	myfile.close();
 }
@@ -227,15 +226,20 @@ void writeHeading(std::string filename){
 /**
 * \brief Ecrit dans un fichier les mesures prises par le capteur
 */
-void Traitement::filefromSensor(std::string filename, Instrument* inst){
-	std::fstream myfile;
-	myfile.open(filename, std::ios::app);
+void Traitement::filefromSensor(std::string filename, std::fstream &myfile, Instrument* inst){
+
+	if (!myfile.is_open()){
+		myfile.open(filename, std::ios::app);
+	}
+	else{
+		_RPT0(0, "Le fichier est ouvert \n");
+	}
 	for (int i = 1; i <= 4; i++){
 		myfile << inst->getMesure(i);
 		myfile << ";";
 	}
 	myfile << "\n";
-	myfile.close();
+	myfile.flush();
 }
 
 /**
@@ -244,34 +248,52 @@ void Traitement::filefromSensor(std::string filename, Instrument* inst){
 *   \return data		vect4D		vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
 *   \test  test_readDatafromFile
 */
-vect4D Traitement::readDatafromFile(std::string filename, int cursor)
+vect4D Traitement::readDatafromFile(std::string filename, std::fstream &myfile, int cursor)
 {
 	vect4D data = { 0, 0, 0, 0 };
-	std::fstream myfile;
 	char c;
+	int i = 0;
 	std::string chaine;
-
-	myfile.open(filename, std::ios::in || std::ios::out);
-	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
-		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
-
-	if (myfile.eof() == false)
-	{
-		/* Enlève l'entête du fichier */
-		for (int i = 0; i < cursor; i++)
+	if (!myfile.is_open()){
+		myfile.open(filename, std::ios::in || std::ios::out);
+		while (myfile.eof() == false)
+		{
+			/* Enlève l'entête du fichier */
 			std::getline(myfile, chaine);
-
-		/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
-		myfile >> data.x;
-		myfile >> c;
-		myfile >> data.y;
-		myfile >> c;
-		myfile >> data.z;
-		myfile >> c;
-		myfile >> data.temps;
-		myfile >> c;
+			_RPT1(0, "%s \n", chaine.c_str());
+			dataFromFile[i] = chaine;
+			/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
+			i++;
+		}
 	}
-	myfile.close();
+	int m = 0;
+	std::string val_x, val_y, val_z, val_t;
+	for (int n = 0; n < 4; n++){
+
+		while (dataFromFile[cursor][m] != ';')
+		{
+			if (n == 0){
+				val_x += dataFromFile[cursor][m];
+			}
+			else if (n == 1){
+				val_y += dataFromFile[cursor][m];
+			}
+			else if (n == 2){
+				val_z += dataFromFile[cursor][m];
+			}
+			else if (n == 3){
+				val_t += dataFromFile[cursor][m];
+			}
+
+			m++;
+		}
+		m++;
+	}
+	data.x = string_to_double(val_x);
+	data.y = string_to_double(val_y);
+	data.z = string_to_double(val_z);
+	data.temps = string_to_double(val_t);
+
 #ifdef TEST
 	_RPT1(0, "valeur x = %f\n", data.x);
 	_RPT1(0, "valeur y = %f\n", data.y);

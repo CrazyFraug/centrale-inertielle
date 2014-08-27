@@ -120,17 +120,17 @@ void SceneOpenGL::bouclePrincipaleSensor()
 	/* Initialisation du filtre de Kalman + Système */
 	matrix<double> mat_cov(4, 4, 0), init_predict(4, 1, 0);
 	for (int i = 0; i < 4; i++)
-		mat_cov(i, i) = 0.05;
-	init_predict(0, 0) = 1;
+		mat_cov(i, i) = 0.5;
+	init_predict(0, 0) = 0.7071067811865476;
 	init_predict(1, 0) = 0;
-	init_predict(2, 0) = 0;
+	init_predict(2, 0) = -0.7071067811865476;
 	init_predict(3, 0) = 0;
 	Kalman une_rotation(0, 4, 4, 100, init_predict, mat_cov);
-	declareKalman(&une_rotation); 
-	
-	vect4D v_angulaire_t, acceleration_t, magnetic_t, orientation_t;
-	double temps_Act, temps_Pre, dt;
-	temps_Act = temps_Pre = dt = 0;
+	//declareKalman(&une_rotation);
+
+	vect4D v_angulaire_t, acceleration_t, magnetic_t, orientation_t, v_angulaire_t_deg;
+	vect4D initKalman = { 0, 0, 0, 0 };
+	vect4D vAngulaireInit = { 0, 0, 0, 0 };
 
 	Serial link(port, baudRate);
 	Instrument_serie accel("acce", &link);
@@ -152,13 +152,22 @@ void SceneOpenGL::bouclePrincipaleSensor()
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	Cube lecube(2.0, "Shaders/couleur3D.vert", "Shaders/couleur3D.frag");
-
+	int step = 0;
 	vect3D orientation_data;
 	double ax, ay, az, mx, my, mz;
 	bool headingResult(false);
 	projection = perspective(1.22, (double)m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
 	modelview = mat4(1.0);
 	// Boucle principale
+	std::fstream filegyro;
+	std::fstream fileacce;
+	std::fstream filemnet;
+	std::fstream fileorie;
+
+	writeHeading("acce.csv", fileacce);
+	writeHeading("gyro.csv", filegyro);
+	writeHeading("mnet.csv", filemnet);
+	writeHeading("orie.csv", fileorie);
 	while (!terminer)
 	{
 		debutBoucle = SDL_GetTicks();
@@ -174,64 +183,58 @@ void SceneOpenGL::bouclePrincipaleSensor()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		/* Récupère les mesures d'accélération, de vitesse angulaire et du magnétomètre */
-		trait_accel.stockerValeurs();
+
 		trait_gyros.stockerValeurs();
+		trait_accel.stockerValeurs();
 		trait_magne.stockerValeurs();
 		trait_orient.stockerValeurs();
-
+		trait_gyros.filefromSensor("gyro.csv", filegyro, &gyros);
+		trait_accel.filefromSensor("acce.csv", fileacce, &accel);
+		trait_magne.filefromSensor("mnet.csv", filemnet, &magne);
+		trait_orient.filefromSensor("orie.csv", fileorie, &orient);
 		acceleration_t = accel.getMesures();
 		v_angulaire_t = gyros.getMesures();
 		magnetic_t = magne.getMesures();
 		orientation_t = orient.getMesures();
+		_RPT4(0, "ACCELERATION - X : %f - Y : %f - Z : %f - T : %f \n", acceleration_t.x, acceleration_t.y, acceleration_t.z, acceleration_t.temps);
+		_RPT4(0, "GYROSCOPE - X : %f - Y : %f - Z : %f - T : %f \n", v_angulaire_t.x, v_angulaire_t.y, v_angulaire_t.z, v_angulaire_t.temps);
+		_RPT4(0, "MAGNETIC - X : %f - Y : %f - Z : %f - T : %f\n", magnetic_t.x, magnetic_t.y, magnetic_t.z, magnetic_t.temps);
+		_RPT4(0, "ORIENTATION - X : %f - Y : %f - Z : %f - T : %f\n", orientation_t.x, orientation_t.y, orientation_t.z, orientation_t.temps);
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 		/* Filtre de Kalman */
-
-		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, trait_gyros.get_dt(), &une_rotation);
-
-
-		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
-		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
-		/*angle_sensor = angle_sensor + trait_gyro.calculerAngle_deg();
-		angle = quatToAngles_deg(un_quaternion);*/
-		ax = acceleration_t.x;
-		ay = acceleration_t.y;
-		az = acceleration_t.z;
-		mx = magnetic_t.x;
-		my = magnetic_t.y;
-		mz = magnetic_t.z;
-		accel.afficherMesures();
-		magne.afficherMesures();
-		/* Test équations de calculs d'orientation avec accélération */
-		angle.x = (float)atan2(-ay, -az) * 360 / M_2PI;
-		if ((-ay*sin(angle.x) + -az*cos(angle.x)) == 0){
-			if (ax > 0){
-				angle.y = 90;
-			}
-			else{
-				angle.y = -90;
-			}
+		if (step < 100){
+			un_quaternion = kalman_rotation(vAngulaireInit, acceleration_t, magnetic_t, initKalman, trait_gyros.get_dt(), une_rotation);
 		}
 		else{
-			angle.y = (float)atan2(-ax, (-ay*sin(angle.x) + -az*cos(angle.x))) * 360 / M_2PI;
+			/*if ((v_angulaire_t.x > 0.001 || v_angulaire_t.x < -0.001)  &&
+			(v_angulaire_t.y > 0.001 || v_angulaire_t.y < -0.001)  &&
+			(v_angulaire_t.z > 0.001 || v_angulaire_t.z < -0.001)){
+			*/
+			un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, trait_gyros.get_dt(), une_rotation);
 		}
-		angle.z = (float)atan2(mz*sin(angle.x) - my*cos(angle.x), mx*cos(angle.y) + my*sin(angle.y)*sin(angle.x) + mz*sin(angle.y)*cos(angle.x)) * 360 / M_2PI;//atan(mz*cos(angle_meas.x) + my*sin(angle_meas.x) / mx*cos(angle_meas.z)+mz*sin(angle_meas.z)*sin(angle_meas.x)+my*sin(angle_meas.z)*cos(angle_meas.x))*180/(atan(1)*4);
-
+		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
+		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
+		/*angle_sensor = angle_sensor + trait_gyro.calculerAngle_deg();*/
+		angle = quatToAngles_deg(un_quaternion);
 
 		_RPT4(0, "QUATERNION %f  %f  %f  %f \n", un_quaternion.R_component_1(), un_quaternion.R_component_2(), un_quaternion.R_component_3(), un_quaternion.R_component_4());
 		_RPT3(0, "ANGLES EULER X: %f Y: %f Z: %f \n", angle.x, angle.y, angle.z);
+
+		/*}*/
 		orientation_data.x = orientation_t.x;
 		orientation_data.y = orientation_t.y;
 		orientation_data.z = orientation_t.z;
 		/*	Ecrire les valeurs d'angle et d'angle_sensor dans le fichier excel	 */
 		writeResult(v_angulaire_t.temps, orientation_data, angle, "result.csv", headingResult);
 		headingResult = true;
+
 		cout << angle.x << endl;
 		cout << angle.y << endl;
 		cout << angle.z << endl;
 
 		modelview = rotate(modelview, (float)(angle.x*M_2PI / 360.0), vec3(1, 0, 0));
-		modelview = rotate(modelview, (float)(orientation_data.y*M_2PI / 360.0), vec3(0, 1, 0));
+		modelview = rotate(modelview, (float)(angle.y*M_2PI / 360.0), vec3(0, 1, 0));
 		modelview = rotate(modelview, (float)(angle.z*M_2PI / 360.0), vec3(0, 0, 1));
 		// Rotation du repère
 
@@ -246,35 +249,35 @@ void SceneOpenGL::bouclePrincipaleSensor()
 		//framerate
 		finBoucle = SDL_GetTicks();
 		tempsEcoule = finBoucle - debutBoucle;
-
+		step++;
 		if (tempsEcoule < frameRate)
 			SDL_Delay(frameRate - tempsEcoule);
 	}
 }
 
-
 void SceneOpenGL::bouclePrincipaleSimu()
 {
 
-	//declaration var a faire dans le main //
 	bool terminer(false);
 	unsigned int frameRate(1000 / 200);
 	Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
 	int turn = 1;
-	quaternion<double> un_quaternion;
+
+	static double t_Pred, t_Act, dt;
+	t_Pred = t_Act = dt = 0;
+	quaternion<double> un_quaternion, quaternion_test;
 	/* Initialisation du filtre de Kalman + Système */
 	matrix<double> mat_cov(4, 4, 0), init_predict(4, 1, 0);
 	for (int i = 0; i < 4; i++)
-		mat_cov(i, i) = 0.05;
-	init_predict(0, 0) = 1;
+		mat_cov(i, i) = 0.5;
+	init_predict(0, 0) = 0.7071067811865476;
 	init_predict(1, 0) = 0;
-	init_predict(2, 0) = 0;
+	init_predict(2, 0) = -0.7071067811865476;
 	init_predict(3, 0) = 0;
 	Kalman une_rotation(0, 4, 4, 100, init_predict, mat_cov);
-	declareKalman(&une_rotation);
 	vect4D v_angulaire_t, acceleration_t, magnetic_t, orientation_t;
-	double temps_Act, temps_Pre, dt;
-	temps_Act = temps_Pre = dt = 0;
+	vect4D initKalman = { 0, 0, 0, 0 };
+	vect4D vAngulaireInit = { 0, 0, 0, 0 };
 
 	Instrument accel("acce");
 	Traitement trait_accel(&accel);
@@ -287,6 +290,8 @@ void SceneOpenGL::bouclePrincipaleSimu()
 
 	vect3D angle = { 0.0, 0.0, 0.0 };
 	vect3D angle_sensor = { 0.0, 0.0, 0.0 };
+
+	vect3D angle_test = { 0.0, 0.0, 0.0 };
 	// Matrices
 	mat4 projection;
 	mat4 modelview;
@@ -296,8 +301,12 @@ void SceneOpenGL::bouclePrincipaleSimu()
 
 	Cube lecube(2.0, "Shaders/couleur3D.vert", "Shaders/couleur3D.frag");
 
+
+	std::fstream filegyro;
+	std::fstream fileacce;
+	std::fstream filemnet;
+	std::fstream fileorie;
 	vect3D orientation_data;
-	double ax, ay, az, mx, my, mz;
 	bool headingResult(false);
 	projection = perspective(1.22, (double)m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
 	modelview = mat4(1.0);
@@ -317,48 +326,43 @@ void SceneOpenGL::bouclePrincipaleSimu()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		/* Récupère les mesures d'accélération, de vitesse angulaire et du magnétomètre */
-		acceleration_t = trait_accel.readDatafromFile("acce.csv", turn);
-		v_angulaire_t = trait_gyros.readDatafromFile("gyro.csv", turn);
-		magnetic_t = trait_magne.readDatafromFile("magn.csv", turn);
-		orientation_t = trait_orient.readDatafromFile("orientation.csv", turn);
+		acceleration_t = trait_accel.readDatafromFile("acce.csv", fileacce, turn);
+		v_angulaire_t = trait_gyros.readDatafromFile("gyro.csv", filegyro, turn);
+		magnetic_t = trait_magne.readDatafromFile("mnet.csv", filemnet, turn);
+		orientation_t = trait_orient.readDatafromFile("orie.csv", fileorie, turn);
+		t_Act = acceleration_t.temps;
+		dt = (t_Act - t_Pred) / 1000;
+		t_Pred = acceleration_t.temps;
+		_RPT4(0, "ACCELERATION - X : %f - Y : %f - Z : %f - T : %f \n", acceleration_t.x, acceleration_t.y, acceleration_t.z, acceleration_t.temps);
+		_RPT4(0, "GYROSCOPE - X : %f - Y : %f - Z : %f - T : %f \n", v_angulaire_t.x, v_angulaire_t.y, v_angulaire_t.z, v_angulaire_t.temps);
+		_RPT4(0, "MAGNETIC - X : %f - Y : %f - Z : %f - T : %f\n", magnetic_t.x, magnetic_t.y, magnetic_t.z, magnetic_t.temps);
+		_RPT4(0, "ORIENTATION - X : %f - Y : %f - Z : %f - T : %f\n", orientation_t.x, orientation_t.y, orientation_t.z, orientation_t.temps);
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
-		/*if (trait_gyro.tabFull() == true){*/
-		temps_Act = v_angulaire_t.temps;
-		dt = temps_Act - temps_Pre;
-		temps_Pre = temps_Act;
 		/* Filtre de Kalman */
-		un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, &une_rotation);
+		_RPT1(0, "DT : %f \n", dt);
 
-
-		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
-		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
-		/*angle_sensor = angle_sensor + trait_gyro.calculerAngle_deg();
-		angle = quatToAngles_deg(un_quaternion);*/
-
-		ax = acceleration_t.x;
-		ay = acceleration_t.y;
-		az = acceleration_t.z;
-		mx = magnetic_t.x;
-		my = magnetic_t.y;
-		mz = magnetic_t.z;
-		/* Test équations de calculs d'orientation avec accélération */
-		angle.x = (float)atan2(ay, az) * 360 / M_2PI;
-		if ((ay*sin(angle.x) + az*cos(angle.x)) == 0){
-			if (ax > 0){
-				angle.y = 90;
-			}
-			else{
-				angle.y = -90;
-			}
+		if (turn < 100){
+			un_quaternion = kalman_rotation(vAngulaireInit, acceleration_t, magnetic_t, initKalman, dt, une_rotation);
 		}
 		else{
-			angle.y = (float)atan2(-ax, (ay*sin(angle.x) + az*cos(angle.x))) * 360 / M_2PI;
+			/*if ((v_angulaire_t.x > 0.001 || v_angulaire_t.x < -0.001)  &&
+			(v_angulaire_t.y > 0.001 || v_angulaire_t.y < -0.001)  &&
+			(v_angulaire_t.z > 0.001 || v_angulaire_t.z < -0.001)){
+			*/
+
+			un_quaternion = kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, une_rotation);
+
 		}
-		angle.z = (float)atan2(mz*sin(angle.x) - my*cos(angle.x), mx*cos(angle.y) + my*sin(angle.y)*sin(angle.x) + mz*sin(angle.y)*cos(angle.x)) * 360 / M_2PI;//atan(mz*cos(angle_meas.x) + my*sin(angle_meas.x) / mx*cos(angle_meas.z)+mz*sin(angle_meas.z)*sin(angle_meas.x)+my*sin(angle_meas.z)*cos(angle_meas.x))*180/(atan(1)*4);
-
-
+		/*	angle_sensor	--	Angle calculé directement par les mesures du gyroscope	*
+		*	angle			--	Angle convertit à partir du quaternion après filtré		*/
+		/*angle_sensor = angle_sensor + trait_gyro.calculerAngle_deg();*/
+		angle = quatToAngles_deg(un_quaternion);
+		quaternion_test = anglesToQuat(orientation_t.x, orientation_t.y, orientation_t.z);
 		_RPT4(0, "QUATERNION %f  %f  %f  %f \n", un_quaternion.R_component_1(), un_quaternion.R_component_2(), un_quaternion.R_component_3(), un_quaternion.R_component_4());
+		_RPT4(0, "QUATERNION TEST %f  %f  %f  %f \n", quaternion_test.R_component_1(), quaternion_test.R_component_2(), quaternion_test.R_component_3(), quaternion_test.R_component_4());
+		angle_test = quatToAngles_deg(quaternion_test);
+		_RPT3(0, "ANGLES TEST X: %f Y: %f Z: %f \n", angle_test.x, angle_test.y, angle_test.z);
 		_RPT3(0, "ANGLES EULER X: %f Y: %f Z: %f \n", angle.x, angle.y, angle.z);
 		orientation_data.x = orientation_t.x;
 		orientation_data.y = orientation_t.y;
@@ -379,6 +383,7 @@ void SceneOpenGL::bouclePrincipaleSimu()
 
 		/*else _RPT0(0, " FALSE \n");*/
 		turn++;
+		_RPT1(0, "TURN : %d\n", turn);
 		lecube.afficher(projection, modelview);
 
 		// Actualisation de la fenêtre
@@ -390,12 +395,13 @@ void SceneOpenGL::bouclePrincipaleSimu()
 
 		if (tempsEcoule < frameRate)
 			SDL_Delay(frameRate - tempsEcoule);
-		if ((acceleration_t.x == 0 && acceleration_t.y == 0 && acceleration_t.z == 0) ||
-			(v_angulaire_t.x == 0 && v_angulaire_t.y == 0 && v_angulaire_t.z == 0) ||
-			(magnetic_t.x == 0 && magnetic_t.y == 0 && magnetic_t.z == 0) ||
+		if ((acceleration_t.x == 0 && acceleration_t.y == 0 && acceleration_t.z == 0) &&
+			(v_angulaire_t.x == 0 && v_angulaire_t.y == 0 && v_angulaire_t.z == 0) &&
+			(magnetic_t.x == 0 && magnetic_t.y == 0 && magnetic_t.z == 0) &&
 			(orientation_t.x == 0 && orientation_t.y == 0 && orientation_t.z == 0)){
 			terminer = true;
 			std::cout << "FIN DE SIMULATION" << std::endl;
+			_RPT0(0, "FIN DE SIMULATION");
 		}
 	}
 }
