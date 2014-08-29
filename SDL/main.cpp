@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define NB_SENSOR 4
-#define PORTSERIE "COM8"
+#define PORTSERIE "COM9"
 #define BAUD 115200
 #define SAMPLETIME 20
 
@@ -11,7 +11,7 @@
 double addError(double average, double variation, double bias=0);
 void getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree);
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
-void fileFromSerial(std::string filename, Serial &link);
+void fileFromSerial(std::string filename, Serial &link, int nbMes);
 
 int Traitement::_cursor = 0;
 bool Traitement::_finFichier = false;
@@ -22,10 +22,7 @@ int main(int argc, char *argv[]) {
 	Mobile gant;
 
 	Traitement *tab[4];
-	tab[0] = new Traitement("gyro");
-	tab[1] = new Traitement("acce");
-	tab[2] = new Traitement("mnet");
-	tab[3] = new Traitement("orie");
+	Traitement_serie *tabInst[4];
 
 	SceneOpenGL scene("letitre", 800, 600);
 
@@ -37,12 +34,20 @@ int main(int argc, char *argv[]) {
 	while (mode != 0)
 	{
 		if (mode == 1){
-			static Serial link(PORTSERIE,BAUD);
-			Traitement_serie inst("accel","filename", &link);
-			//scene.bouclePrincipaleSensor();
+			Serial link(PORTSERIE,BAUD);
+			tabInst[0] = new Traitement_serie ("gyro","filename.txt", &link);
+			tabInst[1] = new Traitement_serie ("acce","filename.txt", &link);
+			tabInst[2] = new Traitement_serie ("mnet","filename.txt", &link);
+			tabInst[3] = new Traitement_serie ("orie","filename.txt", &link);
+			scene.bouclePrincipaleSensor(tabInst);
 		}
 		else if (mode == 2)
 		{
+			tab[0] = new Traitement("gyro","serial.txt");
+			tab[1] = new Traitement("acce","serial.txt");
+			tab[2] = new Traitement("mnet","serial.txt");
+			tab[3] = new Traitement("orie","serial.txt");
+
 			scene.bouclePrincipaleSimu(gant, tab);
 		}
 
@@ -60,14 +65,28 @@ int main(int argc, char *argv[]) {
 		}
 		else if (mode == 4)
 		{
-			static Serial link(PORTSERIE,BAUD);
-
-			fileFromSerial("serial.txt", link);
+			Serial link(PORTSERIE,BAUD);
+			int nbMes;
+			std::cout << "entrez le nombre de mesures a copier : " << std::endl;
+			std::cin >> nbMes;
+			fileFromSerial("serial.txt", link, nbMes);
 		}
+
+		tab[0]->resetCompteur();
+		tab[1]->resetCompteur();
+		tab[2]->resetCompteur();
+		tab[3]->resetCompteur();
+
+		
+		delete tab[0];
+		delete tab[1];
+		delete tab[2];
+		delete tab[3];
 
 		mode = choiceMode();
 	}
 	//system("PAUSE");
+
 	return 0;
 }
 
@@ -171,17 +190,23 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 
 }
 
-void fileFromSerial(std::string filename, Serial &link)
+void fileFromSerial(std::string filename, Serial &link, int nbMes)
 {
 	std::fstream file;
-	bool fin(false);
+	std::string tmp;
+	int i =0;
 	file.open(filename, std::ios::out);
-	while(!fin)
+	static HANDLE h = NULL;  
+	h = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD c = { 0, 7 };  
+	while(i++ < nbMes)
 	{
-		file << link.readLine();
-		if (file.eof())
-			fin = true;
+		tmp = link.readLine();
+		file << tmp << '\n';
+		SetConsoleCursorPosition(h,c);
+		std::cout << tmp << std::endl;
 	}
+	file.close();
 }
 
 /**

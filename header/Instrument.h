@@ -15,7 +15,7 @@ vect4D operator+(vect4D v1, vect3D v2);
 class Instrument {
 
 private:
-	char* ID;
+	std::string ID;
 	vect4D _mesures;
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
@@ -25,7 +25,7 @@ private:
 
 public:
 	//constructor
-	Instrument(char* nom);
+	Instrument(std::string nom);
 
 	//destructor//
 	~Instrument();
@@ -35,7 +35,7 @@ public:
 	double getMesure(int axe);
 	clock_t* getTemps(void);
 
-	char* getID();
+	std::string getID();
 	/** \brief return the time of the last measure according to the parameter axe
 	*/
 	clock_t getTemps(int axe);
@@ -74,7 +74,7 @@ private:
 	bool _inst_unique;
 
 public:
-	Instrument_serie(char* nom, Serial* link);
+	Instrument_serie(std::string nom, Serial* link);
 	Instrument_serie(char* nom, std::string port, unsigned int baudRate);
 	~Instrument_serie();
 	std::string getnomfichier(void);

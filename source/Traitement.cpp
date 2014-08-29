@@ -57,8 +57,11 @@ void Traitement::stockerValeurs(void)
 	vect4D mesures = acquisition();
 	_tempsAct = mesures.temps; /* axe temporel (mesures.temps) */
 	_dt = (_tempsAct - _tempsPrec) / 1000.0;
+	_RPT1(0,"(stockerValeurs) _tempsPrec= %f\n",_tempsPrec);
+	_RPT1(0,"(stockerValeurs) _tempsAct = %f\n",_tempsAct);
 	_tempsPrec = _tempsAct;
 
+	_RPT1(0,"(stockerValeurs) _dt = %f\n",_dt);
 	if (_compteur < NB_VALEURS) // cas ou le tableau n'est pas plein
 	{
 		_valeurs[0][_compteur] = mesures.x;
@@ -112,16 +115,19 @@ vect3D Traitement::moyenner(int nb)
 	{
 		nb = _compteur;
 	}
-
+	_RPT1(0,"(moyenner) _tempsPrec= %f\n",_tempsPrec);
+	_RPT1(0,"(moyenner) valeur de nb : %d\n", nb);
 	for (int i =0; i<nb; i++)
 	{
 		res.x += _valeurs[0][_compteur-i-1];
 		res.y += _valeurs[1][_compteur-i-1];
 		res.z += _valeurs[2][_compteur-i-1];
+		_RPT1(0,"(moyenner) valeur de res.x : %f\n", res.x);
 	}
 	res.x /= nb;
 	res.y /= nb;
 	res.z /= nb;
+	_RPT1(0,"(moyenner) valeur de res.x : %f\n", res.x);
 	return res;
 }
 
@@ -141,38 +147,36 @@ vect4D Traitement::lastVal(void)
 
 
 /**
-* \brief calcul la variation d'angle (en degré)
+* \brief renvoie une moyenne des valeurs de mesures apres une intégration
 * la fonction utilise les attributs privés _dt et appelle la fonction Traitement::moyenner pour calculer l'angle
 * \param nb : nombre de colonne de _valeurs qui sont moyennées. Attribut de la fonction Traitement::moyenner(int)
-* \return angles d'euler sous forme d'un vect3D
+* \return val sous forme d'un vect3D
 */
-vect3D Traitement::calculerAngle_deg(int nb)
+vect3D Traitement::renvoyerVal(int nb)
 {
-	while(!tabFull())
-		stockerValeurs();
+	/*while(!tabFull())
+		stockerValeurs();*/
+	if (nb<1)
+		_RPT0(_CRT_ERROR,"le parametre int nb doit etre superieur ou egal a 1\n");
 
 	stockerValeurs();
+	_RPT1(0,"(renvoyerVal)_valeurs.x = %f\n", _valeurs[0][0]); 
+	//_RPT1(0,"(renvoyerVal)_valeurs.x = %f\n", _valeurs[0][1]); 
 
-	_RPT1(0,"_valeurs.x = %f\n", _valeurs[0][0]); 
-	_RPT1(0,"_valeurs.x = %f\n", _valeurs[0][1]); 
-
-	vect3D angles = {0,0,0};
-	if (_compteur>0)
+	vect3D val = {0,0,0};
+	if (_compteur>1)
 	{
-		angles = moyenner(nb);
-		//_RPT1(0, "calcul angle : %f\n", angles.x);
-		//Conversion radians en degrés:
-		//angles.x *= (_dt * 180 / (atan(1) * 4));
-		//angles.y *= (_dt * 180 / (atan(1) * 4));
-		//angles.z *= (_dt * 180 / (atan(1) * 4));
+		val = moyenner(nb);
+		_RPT1(0,"(renvoyerVal) val.x = %f\n", val.x); 
 		//Sans conversion :
-		angles.x *= (_dt);
-		angles.y *= (_dt);
-		angles.z *= (_dt);
+		val.x *= (_dt);
+		val.y *= (_dt);
+		val.z *= (_dt);
+		_RPT1(0,"(renvoyerVal) val.x = %f\n", val.x); 
 	}
-	else
-		_RPT0(_CRT_ERROR,"Aucune mesure n'a ete recuperee");
-	return angles;
+
+	val.x = -val.x;
+	return val;
 }
 
 /** A CHANGER
@@ -291,18 +295,23 @@ vect4D Traitement::readDatafromFile()
 			else 
 				typeFound = false;
 
-			if (myfile.eof()) //on verifie qu'on n'est pas à la fin du fichier (eof)
+			if (myfile.eof()) //on verifie que l'on n'est pas à la fin du fichier (eof)
 				_finFichier = true;
 
 			_cursor++;
+			//_RPT2(0,"curseur %s : %d\n",_id.c_str(),_cursor);
 		}
 		
 			/* Récupération des données */
+			myfile >> c;
 			myfile >> data.x;
+			myfile >> c;
 			myfile >> c;
 			myfile >> data.y;
 			myfile >> c;
+			myfile >> c;
 			myfile >> data.z;
+			myfile >> c;
 			myfile >> c;
 			myfile >> data.temps;
 			myfile >> c;
@@ -314,22 +323,31 @@ vect4D Traitement::readDatafromFile()
 		std::cout <<  " END OF FILE                                        " << std::endl;
 	}
 	myfile.close();
+#define TEST
 #ifdef TEST
-	_RPT1(0, "valeur x = %f\n", data.x);
-	_RPT1(0, "valeur y = %f\n", data.y);
-	_RPT1(0, "valeur z = %f\n", data.z);
-	_RPT1(0, "valeur t = %f\n", data.temps);
+	_RPT1(0, "[readData] valeur x = %f\n", data.x);
+	_RPT1(0, "[readData] valeur y = %f\n", data.y);
+	_RPT1(0, "[readData] valeur z = %f\n", data.z);
+	_RPT1(0, "[readData] valeur t = %f\n", data.temps);
 #endif
-	_RPT1(0,"_cursor = %d\n", _cursor); 
+	_RPT0(0,"fin readData \n"); 
 
 	return data;
 }
 
+/** \brief reset _cursor */
 void Traitement::resetCursor(void)
 {
 	_cursor = 0;
 	_finFichier = false;
 }
+
+/** \brief reset _compteur pour effectuer une nouvelle simulation */
+void Traitement::resetCompteur(void)
+{
+	_compteur = 0;
+}
+
 
 /** \brief Ouverture d'un fichier en mode lecture */
 void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
@@ -345,9 +363,9 @@ void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
 //*************************************************************//
 
 /** Constructeur **/
-Traitement_serie::Traitement_serie(char* nom, std::string filename, Serial* link): Traitement(filename)
+Traitement_serie::Traitement_serie(std::string id, std::string filename, Serial* link): Traitement(filename)
 {
-	_capteur = new Instrument_serie(nom, link);
+	_capteur = new Instrument_serie(id, link);
 }
 
 /** Destructeur **/
@@ -402,7 +420,7 @@ int choiceMode(){
 	std::cin >> mode;
 	std::cout << std::endl;
 
-	while (mode != 1 && mode != 2 && mode != 3 && mode != 0)
+	while (mode != 1 && mode != 2 && mode != 3 && mode != 0 && mode != 4)
 	{
 		std::cout << "Le mode choisi est incorrect : ";
 		std::cin >> mode;

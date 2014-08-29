@@ -17,6 +17,11 @@ Serial::Serial(std::string port, unsigned int baud_rate)
 }
 
 
+void Serial::closePort(void)
+{
+	serial.close();
+}
+
 /**
 * Convert a string into a double type variable
 * return 0 if function failed
