@@ -34,7 +34,7 @@ public:
 	//méthodes:
 	bool InitialiserFenetre();
 	bool iniGL();
-	void bouclePrincipaleSensor();
+	void bouclePrincipaleSensor(Traitement_serie **inst);
 	void bouclePrincipaleSimu(Mobile &gant, Traitement **simu);
 
 private:

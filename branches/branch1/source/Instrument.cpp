@@ -48,7 +48,7 @@ vect4D operator+(vect4D v1, vect3D v2)
 * prend en argument une chaine de caracteres
 * \param nom : chaine de caractere qui identifie l'instrument
 */
-Instrument::Instrument(char* nom) :ID(nom)
+Instrument::Instrument(std::string nom) :ID(nom)
 {
 	_mesures.x = 0;
 	_mesures.y = 0;
@@ -108,7 +108,7 @@ clock_t* Instrument::getTemps(void) { return _t_acq; }
 */
 clock_t Instrument::getTemps(int axe) { return _t_acq[axe - 1]; }
 
-char* Instrument::getID(void){
+std::string Instrument::getID(void){
 	return ID;
 }
 
@@ -222,8 +222,9 @@ void Instrument::afficherVI() const
 
 }
 
-/** Sous-classe Instrument_serie **/
-
+//*************************************************************//
+//********************* Instrument_serie **********************//
+//*************************************************************//
 
 /**
 * \brief Constructeur d'Instrument_serie
@@ -231,7 +232,7 @@ void Instrument::afficherVI() const
 * \param nom : chaine de caractere qui identifie l'instrument
 * \param link : communication série associée
 */
-Instrument_serie::Instrument_serie(char* nom, Serial* link) :Instrument(nom), _serialLink(link)
+Instrument_serie::Instrument_serie(std::string nom, Serial* link) :Instrument(nom), _serialLink(link)
 {
 	std::string filename = getID();
 	filename += ".txt";
@@ -275,7 +276,7 @@ void Instrument_serie::majSerial(/*char *IDSensor*/)
 {
 	_RPT1(0, "SENSOR NAME: %s \n", getID());
 	packDatas data = _serialLink->readData_s(getID());
-	if (strcmp(getID(), data.sensor_name.c_str()) == 0){
+	if (getID() != data.sensor_name){
 		setMesuresX(data.datas.x);
 		setMesuresY(data.datas.y);
 		setMesuresZ(data.datas.z);

@@ -32,7 +32,7 @@ public:
 	void stockerValeurs(void);
 	double moyennerAxe(int axe);
 	vect3D moyenner(int nb);
-	vect3D calculerAngle_deg(int nb);
+	vect3D renvoyerVal(int nb);
 	void calculer_dt();
 	bool tabFull(void);
 	vect4D lastVal(void);
@@ -43,6 +43,7 @@ public:
 	void filefromSensor(std::string filename, Instrument* inst);
 	vect4D readDatafromFile();
 	void openfile_readwrite(std::fstream& myfile, std::string filename);
+	void resetCompteur(void);
 	static void resetCursor(void);
 
 protected:
@@ -62,7 +63,7 @@ private:
 	Instrument_serie* _capteur;
 
 public:
-	Traitement_serie(char* nom, std::string filename, Serial* link);
+	Traitement_serie(std::string id, std::string filename, Serial* link);
 	~Traitement_serie();
 	//Getter//
 	Instrument_serie *getInstrument(void);

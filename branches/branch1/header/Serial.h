@@ -59,6 +59,8 @@ public:
 
 	packDatas readData_s(std::string name_sensor);
 
+	void closePort(void);
+
 private:
     boost::asio::io_service io;
     boost::asio::serial_port serial;
