@@ -177,16 +177,20 @@ void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 
 
 		vect3D anglePlus = {0,0,0};
+		_RPT0(0, "GYROSCOPE\n");
 		anglePlus = tabTrait[0]->renvoyerVal(1);
+		_RPT0(0, "ACCELEROMETRE\n");
 		vect3D acce = tabTrait[1]->renvoyerVal(1);
+		_RPT0(0, "MAGNETOMETRE\n");
 		vect3D mnet = tabTrait[2]->renvoyerVal(1);
+		_RPT0(0, "ORIENTATION\n");
 		vect3D orie = tabTrait[3]->renvoyerVal(1);
 
 		angle = angle + anglePlus;
 
-		_RPT1(0, "valeurs d'angle en x : %f\n", angle.x);
-		_RPT1(0, "valeurs d'angle en y : %f\n", angle.y);
-		_RPT1(0, "valeurs d'angle en z : %f\n", angle.z);
+		_RPT1(0, "$$Valeurs d'angle en x : %f\n", angle.x);
+		_RPT1(0, "$$Valeurs d'angle en y : %f\n", angle.y);
+		_RPT1(0, "$$Valeurs d'angle en z : %f\n", angle.z);
 
 		// Rotation du repère
 		modelview = rotate(modelview, (float)(angle.x), vec3(0, 0, 1));

@@ -104,8 +104,8 @@ Kalman::~Kalman()
 /** \brief	Fonction déclare le système sur lequel on veut travailler/filtrer
 
 *	\param	matrix<double>	A	--	matrice de transition, matrice carrée de taille = nombre d'états du système
-\param	matrix<double>	B	--	matrice de commande, matrice de taille : nombre d'états du système x nombre d'entrées
-\param	matrix<double>	C	--	matrice de sortie, matrice de taille : nombre de sortie x nombre d'états du système
+*	\param	matrix<double>	B	--	matrice de commande, matrice de taille : nombre d'états du système x nombre d'entrées
+*	\param	matrix<double>	C	--	matrice de sortie, matrice de taille : nombre de sortie x nombre d'états du système
 
 *	\return void
 */
@@ -131,7 +131,6 @@ void Kalman::declare_noise(matrix<double> Q, matrix<double> R){
 /** \brief Etape prédiction du filtre de Kalman à partir des données de la commande
 
 *	\param	matrix<double>	value_cmd	--	matrice des valeurs de la commande, matrice de taille : nombre d'états du système x nombre d'entrées
-
 *	\return void
 
 *	\test	test_Kalman	inclus dans le test_Kalman_rotation
@@ -161,7 +160,6 @@ void Kalman::predict_step(matrix<double> value_cmd)
 /** \brief Etape mettre à jour les prédictions d'état et de covariance du filtre de Kalman grâce aux valeurs mesurées
 
 *	\param	matrix<double>	value_measure			--	 matrice des valeurs mesurées, matrice de taille : nombre de sortie x nombre d'états du système
-
 *	\return	matrix<double>	kalm_sys.predict_vector	--	matrice des valeurs estimées
 
 *	\test	test_Kalman		inclus dans le test_Kalman_rotation
