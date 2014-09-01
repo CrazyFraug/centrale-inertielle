@@ -3,7 +3,7 @@
 
 /** Constructeur **/
 
-Traitement::Traitement(std::string id, std::string filename) :_compteur(0), _dt(0), _id(id)
+Traitement::Traitement(std::string id, std::string filename) :_compteur(0), _dt(0), _id(id), _tempsPrec(0)
 {
 	/** Allocation mémoire de la matrice de valeurs **/
 	for (int i = 0; i<3; i++)
@@ -115,8 +115,8 @@ vect3D Traitement::moyenner(int nb)
 	{
 		nb = _compteur;
 	}
-	_RPT1(0,"(moyenner) _tempsPrec= %f\n",_tempsPrec);
-	_RPT1(0,"(moyenner) valeur de nb : %d\n", nb);
+	//_RPT1(0,"(moyenner) _tempsPrec= %f\n",_tempsPrec);
+	//_RPT1(0,"(moyenner) valeur de nb : %d\n", nb);
 	for (int i =0; i<nb; i++)
 	{
 		res.x += _valeurs[0][_compteur-i-1];
@@ -127,7 +127,7 @@ vect3D Traitement::moyenner(int nb)
 	res.x /= nb;
 	res.y /= nb;
 	res.z /= nb;
-	_RPT1(0,"(moyenner) valeur de res.x : %f\n", res.x);
+	//_RPT1(0,"(moyenner) valeur de res.x : %f\n", res.x);
 	return res;
 }
 
@@ -154,25 +154,24 @@ vect4D Traitement::lastVal(void)
 */
 vect3D Traitement::renvoyerVal(int nb)
 {
-	/*while(!tabFull())
-		stockerValeurs();*/
+
 	if (nb<1)
 		_RPT0(_CRT_ERROR,"le parametre int nb doit etre superieur ou egal a 1\n");
 
 	stockerValeurs();
-	_RPT1(0,"(renvoyerVal)_valeurs.x = %f\n", _valeurs[0][0]); 
+	_RPT1(0,"(renvoyerVal)_valeurs.y = %f\n", _valeurs[1][0]); 
 	//_RPT1(0,"(renvoyerVal)_valeurs.x = %f\n", _valeurs[0][1]); 
 
 	vect3D val = {0,0,0};
 	if (_compteur>1)
 	{
 		val = moyenner(nb);
-		_RPT1(0,"(renvoyerVal) val.x = %f\n", val.x); 
+		//_RPT1(0,"(renvoyerVal) moyenne val.x = %f\n", val.x); 
 		//Sans conversion :
 		val.x *= (_dt);
 		val.y *= (_dt);
 		val.z *= (_dt);
-		_RPT1(0,"(renvoyerVal) val.x = %f\n", val.x); 
+		_RPT1(0,"(renvoyerVal) val.y*_dt= %f\n", val.y); 
 	}
 
 	val.x = -val.x;
@@ -299,7 +298,7 @@ vect4D Traitement::readDatafromFile()
 				_finFichier = true;
 
 			_cursor++;
-			//_RPT2(0,"curseur %s : %d\n",_id.c_str(),_cursor);
+			_RPT2(0,"curseur %s : %d\n",_id.c_str(),_cursor);
 		}
 		
 			/* Récupération des données */
