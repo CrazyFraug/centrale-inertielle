@@ -22,7 +22,6 @@ int main(int argc, char *argv[]) {
 	Mobile gant;
 
 	Traitement *tab[4];
-	Traitement_serie *tabInst[4];
 
 	SceneOpenGL scene("letitre", 800, 600);
 
@@ -35,11 +34,10 @@ int main(int argc, char *argv[]) {
 	{
 		if (mode == 1){
 			Serial link(PORTSERIE,BAUD);
-			tabInst[0] = new Traitement_serie ("gyro","filename.txt", &link);
-			tabInst[1] = new Traitement_serie ("acce","filename.txt", &link);
-			tabInst[2] = new Traitement_serie ("mnet","filename.txt", &link);
-			tabInst[3] = new Traitement_serie ("orie","filename.txt", &link);
-			scene.bouclePrincipaleSensor(tabInst);
+			tab[0] = new Traitement_serie ("gyro","filename.txt", &link);
+			tab[1] = new Traitement_serie ("acce","filename.txt", &link);
+			tab[2] = new Traitement_serie ("mnet","filename.txt", &link);
+			tab[3] = new Traitement_serie ("orie","filename.txt", &link);
 		}
 		else if (mode == 2)
 		{
@@ -47,8 +45,6 @@ int main(int argc, char *argv[]) {
 			tab[1] = new Traitement("acce","serial.txt");
 			tab[2] = new Traitement("mnet","serial.txt");
 			tab[3] = new Traitement("orie","serial.txt");
-
-			scene.bouclePrincipaleSimu(gant, tab);
 		}
 
 		else if (mode == 3)
@@ -71,6 +67,8 @@ int main(int argc, char *argv[]) {
 			std::cin >> nbMes;
 			fileFromSerial("serial.txt", link, nbMes);
 		}
+
+		scene.bouclePrincipale(gant,tab);
 
 		tab[0]->resetCompteur();
 		tab[1]->resetCompteur();

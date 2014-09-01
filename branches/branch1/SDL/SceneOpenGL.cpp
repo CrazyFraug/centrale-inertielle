@@ -108,7 +108,7 @@ bool SceneOpenGL::iniGL() {
 }
 
 
-void SceneOpenGL::bouclePrincipaleSensor(Traitement_serie **inst)
+void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 {
 
 	/* Gestion de la fermeture de la fenetre et du framerate */
@@ -175,115 +175,12 @@ void SceneOpenGL::bouclePrincipaleSensor(Traitement_serie **inst)
 		//}
 		//angle.z = (float)atan2(mz*sin(angle.x) - my*cos(angle.x), mx*cos(angle.y) + my*sin(angle.y)*sin(angle.x) + mz*sin(angle.y)*cos(angle.x)) * 360 / M_2PI;//atan(mz*cos(angle_meas.x) + my*sin(angle_meas.x) / mx*cos(angle_meas.z)+mz*sin(angle_meas.z)*sin(angle_meas.x)+my*sin(angle_meas.z)*cos(angle_meas.x))*180/(atan(1)*4);
 
-		vect3D anglePlus = {0,0,0};
-		anglePlus = inst[0]->renvoyerVal(1);
-		vect3D acce = inst[1]->renvoyerVal(1);
-		vect3D mnet = inst[2]->renvoyerVal(1);
-		vect3D orie = inst[3]->renvoyerVal(1);
-
-		angle = angle + anglePlus;
-
-		_RPT1(0, "valeurs d'angle en x : %f\n", angle.x);
-		_RPT1(0, "valeurs d'angle en y : %f\n", angle.y);
-		_RPT1(0, "valeurs d'angle en z : %f\n", angle.z);
-
-		// Rotation du repère
-		modelview = rotate(modelview, (float)(angle.x), vec3(0, 0, 1));
-		modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
-		modelview = rotate(modelview, (float)(angle.z), vec3(1, 0, 0));
-
-		lecube.afficher(projection, modelview);
-
-		// Actualisation de la fenêtre
-		SDL_GL_SwapWindow(m_fenetre);
-
-		if (Traitement::get_finFichier())
-			terminer = true;
-
-		/* Gestion framerate */
-		finBoucle = SDL_GetTicks();
-		tempsEcoule = finBoucle - debutBoucle; // calcul du temps écoulé
-		if (tempsEcoule < frameRate)
-			SDL_Delay(frameRate - tempsEcoule); // mise en attente de l'affichage 
-
-	}//fin while(!terminer)
-
-	Traitement::resetCursor();
-
-	system("PAUSE");
-}
-
-void SceneOpenGL::bouclePrincipaleSimu(Mobile &gant, Traitement **simu)
-{
-
-	/* Gestion de la fermeture de la fenetre et du framerate */
-	bool terminer(false);
-	unsigned int frameRate(20);
-	Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
-	vect3D angle = {0,0,0};
-
-	// Matrices
-	mat4 projection;
-	mat4 modelview;
-
-	// Gestion de la console
-	COORD pos = { 0, 1 }; // position du curseur (lieu de départ où les messages seront écrits)
-	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	//Chargement des shaders
-	Cube lecube(2.0, "Shaders/couleur3D.vert", "Shaders/couleur3D.frag");
-
-	//Matrices de projection et de transformation
-	projection = perspective(1.22, (double)m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
-	modelview = mat4(1.0);
-
-	system("cls");//effacer la console
-	// Boucle principale
-	while (!terminer)
-	{
-		debutBoucle = SDL_GetTicks();
-
-		// Gestion des évènements
-		SDL_PollEvent(&m_evenements);
-		if (m_evenements.window.event == SDL_WINDOWEVENT_CLOSE)
-			terminer = true;
-
-		SetConsoleCursorPosition(console, pos);
-
-		std::cout << "Simulation en cours..." << std::endl;
-		// Nettoyage de l'écran
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// Placement de la caméra
-		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
-
-
-		/* Filtre de Kalman */
-		//un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
-
-		//angle = quatToAngles_deg(un_quaternion);*/
-
-
-		///* Test équations de calculs d'orientation avec accélération */
-		//angle.x = (float)atan2(ay, az) * 360 / M_2PI;
-		//if ((ay*sin(angle.x) + az*cos(angle.x)) == 0){
-		//	if (ax > 0){
-		//		angle.y = 90;
-		//	}
-		//	else{
-		//		angle.y = -90;
-		//	}
-		//}
-		//else{
-		//	angle.y = (float)atan2(-ax, (ay*sin(angle.x) + az*cos(angle.x))) * 360 / M_2PI;
-		//}
-		//angle.z = (float)atan2(mz*sin(angle.x) - my*cos(angle.x), mx*cos(angle.y) + my*sin(angle.y)*sin(angle.x) + mz*sin(angle.y)*cos(angle.x)) * 360 / M_2PI;//atan(mz*cos(angle_meas.x) + my*sin(angle_meas.x) / mx*cos(angle_meas.z)+mz*sin(angle_meas.z)*sin(angle_meas.x)+my*sin(angle_meas.z)*cos(angle_meas.x))*180/(atan(1)*4);
 
 		vect3D anglePlus = {0,0,0};
-		anglePlus = simu[0]->renvoyerVal(1);
-		vect3D acce = simu[1]->renvoyerVal(1);
-		vect3D mnet = simu[2]->renvoyerVal(1);
-		vect3D orie = simu[3]->renvoyerVal(1);
+		anglePlus = tabTrait[0]->renvoyerVal(1);
+		vect3D acce = tabTrait[1]->renvoyerVal(1);
+		vect3D mnet = tabTrait[2]->renvoyerVal(1);
+		vect3D orie = tabTrait[3]->renvoyerVal(1);
 
 		angle = angle + anglePlus;
 

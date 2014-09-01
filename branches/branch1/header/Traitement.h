@@ -48,8 +48,8 @@ public:
 
 protected:
 	std::string _filename, _id;
-	static int _cursor;
-	int _compteur;
+	static int _cursor; //cursor qui détermine la ligne du fichier à lire
+	int _compteur; //compte le nombre de valeurs stockés. _compteur max = nombre de colonnes max de la matrice _valeurs = constante NB_MAX
 	double* _valeurs[3]; //matrice à 3 lignes pour contenir les mesures selon les 3 axes
 	double _dt, _tempsPrec, _tempsAct; /*variables comprenant l'heure à laquelle la mesure à été effectuée (selon l'arduino)
 									   * _dt = _tempsAct - _tempsPrec ce qui correspond à la différence de temps entre les deux mesures effectuées.*/
