@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 
+/**Fonction non verifiée, utiliser danglesToQuat() de préférence */
 quaternion<double> anglesToQuat(double phi, double teta, double rho)
 {
 
@@ -33,7 +34,9 @@ quaternion<double> anglesToQuat(double phi, double teta, double rho)
 * \brief convertie des angles d'Euler (en degrés) en un quaternion unitaire
 * body 3-2-1 sequence (yaw, pitch, roll)
 * with euler angles : psi = yaw (body-Z), teta = pitch (body-Y), phi = roll (body-X)
+* l'axe z est dirigé vers le haut
 * http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+* \param phi,teta,psi : angles en degrés autour des axes de rotation x,y,z (respectivement)
 */
 quaternion<double> danglesToQuat(double phi, double teta, double psi)
 {
