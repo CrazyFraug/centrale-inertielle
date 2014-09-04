@@ -31,21 +31,25 @@ quaternion<double> anglesToQuat(double phi, double teta, double rho)
 
 /** 
 * \brief convertie des angles d'Euler (en degrés) en un quaternion unitaire
+* body 3-2-1 sequence (yaw, pitch, roll)
+* with euler angles : psi = yaw (body-Z), teta = pitch (body-Y), phi = roll (body-X)
+* http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 */
-quaternion<double> danglesToQuat(double phi, double teta, double rho)
+quaternion<double> danglesToQuat(double phi, double teta, double psi)
 {
 	quaternion<double> q1(cos(phi*M_PI / 360), sin(phi*M_PI / 360), 0, 0);
 	quaternion<double> q2(cos(teta*M_PI / 360), 0, sin(teta*M_PI / 360), 0);
-	quaternion<double> q3(cos(rho*M_PI / 360), 0, 0, sin(rho*M_PI / 360));
+	quaternion<double> q3(cos(psi*M_PI / 360), 0, 0, sin(psi*M_PI / 360));
 	quaternion<double> result(1,0,0,0);
 
-	result = result*q1*q2*q3;
+	result = result*q3*q2*q1;
 	normalizeQuat(result);
 
 	_RPT4(0, "q = %f  %f  %f  %f \n", result.R_component_1(), result.R_component_2(), result.R_component_3(), result.R_component_4());
 
 	return result;
 }
+
 
 /**
 * \brief donne la valeur de l'axe et de l'angle de rotation à partir d'un quaternion
@@ -61,19 +65,12 @@ void quatComp(quaternion<double> q, vect3D &axe, double &angle)
 }
 
 
-
-/*heading = atan2(2*qy*qw+2*qx*qz , 1 - 2*qy2 - 2*qz2)
-attitude = asin(2*qx*qy - 2*qz*qw)
-bank = atan2(2*qx*qw+2*qy*qz , 1 - 2*qx2 - 2*qy2)
-
-except when qx*qy + qz*qw = 0.5 (north pole)
-which gives:
-heading = 2 * atan2(x,w)
-bank = 0
-and when qx*qy + qz*qw = -0.5 (south pole)
-which gives:
-heading = -2 * atan2(x,w)
-bank = 0*/
+/**
+* angles_result.x = phi (roll)
+* angles_result.y = teta (pitch)
+* angles_result.z = psi (yaw)
+* singularity if 2*(qw*qy - qz*qx) = +/- 1
+*/
 vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 {
 	vect3D angles_result;
@@ -87,28 +84,33 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 	qx2 = qx*qx;
 	qy2 = qy*qy;
 	qz2 = qz*qz;
-	double unit = qx2 + qy2 + qz2 + qw2;
-	double test = qx* qy + qz* qw;
+	double test = qx* qy - qz* qw;
 
-	if (test > 0.4999 * unit)                              // 0.4999f OR 0.5f - EPSILON
+	if (test > 0.499999999)
 	{
 		// Singularity at north pole
-		angles_result.y = 2 * (float)atan2(qx, qw) * 180 / (atan(1) * 4);  // Yaw
-		angles_result.x = 90;                         // Pitch
-		angles_result.z = 0;                                // Roll
+		angles_result.x = 0;									// Roll
+		angles_result.y = M_PI/2;								// Pitch
+		angles_result.z = 2 * (float)atan2(qx, qw);				// Yaw
+		
 	}
-	else if (test < -0.4999 * unit)                        // -0.4999f OR -0.5f + EPSILON
+	else if (test < -0.499999999)
 	{
 		// Singularity at south pole
-		angles_result.y = -2 * (float)atan2(qx, qw) * 180 / (atan(1) * 4); // Yaw
-		angles_result.x = -90;                        // Pitch
-		angles_result.z = 0;                                // Roll
+		angles_result.x = 0;									// Roll
+		angles_result.y = -M_PI/2;								// Pitch
+		angles_result.z = -2 * (float)atan2(qx, qw);			// Yaw
+		
 	}
 	else{
-		angles_result.y = (float)atan2(2 * qx * qw + 2 * qy * qz, 1 - 2 * (qz2 + qw2)) * 180 / (atan(1) * 4);     // Yaw 
-		angles_result.x = (float)asin(2 * (qx * qz - qw * qy)) * 180 / (atan(1) * 4);                             // Pitch 
-		angles_result.z = (float)atan2(2 * qx * qy + 2 * qz * qw, 1 - 2 * (qy2 + qz2)) * 180 / (atan(1) * 4);      // Roll 
+		angles_result.x = (float)atan2(2*(qx*qw + qy*qz), 1 - 2*(qx2 + qy2));			// Roll
+		angles_result.y = (float)asin(2*(qw*qy - qz*qx));								// Pitch 
+		angles_result.z = (float)atan2(2*(qw*qz + qx*qy), 1 - 2*(qy2 + qz2));			// Yaw
 	}
+
+	angles_result.x *= (double)(180/M_PI);
+	angles_result.y *= (double)(180/M_PI);
+	angles_result.z *= (double)(180/M_PI);
 	return angles_result;
 }
 

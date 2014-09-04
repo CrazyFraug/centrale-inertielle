@@ -11,7 +11,7 @@ vect3D operator+(vect3D v1, vect3D v2)
 	return v;
 }
 
-/* \brief Surcharge operateur* pour un vecteur 3D et un nombre*/
+/* \brief Surcharge operateur* pour un vecteur 3D et tableau de nombres*/
 vect3D operator*(vect3D v2, double* v1)
 {
 	vect3D result;

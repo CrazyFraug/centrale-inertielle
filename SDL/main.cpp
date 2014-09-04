@@ -70,6 +70,10 @@ int main(int argc, char *argv[]) {
 			std::cin >> nbMes;
 			fileFromSerial("serial.txt", link, nbMes);
 		}
+		else if (mode == 5)
+		{
+			test_eulerQuat();
+		}
 
 		if (tabDefine)
 		{
