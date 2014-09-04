@@ -451,11 +451,12 @@ int choiceMode(){
 	std::cout << "2 - Simulation avec fichier de valeurs" << std::endl;
 	std::cout << "3 - Generer fichier de valeurs" << std::endl;
 	std::cout << "4 - Generer fichier a partir de la liaison serie" << std::endl;
+	std::cout << "5 - Test conversion quaternion" << std::endl;
 	std::cout << "Le mode de simulation choisi : ";
 	std::cin >> mode;
 	std::cout << std::endl;
 
-	while (mode != 1 && mode != 2 && mode != 3 && mode != 0 && mode != 4)
+	while (mode != 1 && mode != 2 && mode != 3 && mode != 0 && mode != 4 && mode != 5)
 	{
 		std::cout << "Le mode choisi est incorrect : ";
 		std::cin >> mode;
