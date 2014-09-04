@@ -117,10 +117,11 @@ void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 	Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
 
 	vect3D angle = {0,0,0};
+	quaternion<double> q(1,0,0,0);
 
 	// Matrices
 	mat4 projection;
-	mat4 modelview;
+	mat4 modelview, modelview2, modelview3;
 
 	// Gestion de la console
 	COORD pos = { 0, 1 }; // position du curseur (lieu de départ où les messages seront écrits)
@@ -128,10 +129,16 @@ void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 
 	//Chargement des shaders
 	Cube lecube(2.0, "Shaders/couleur3D.vert", "Shaders/couleur3D.frag");
+	Axe axeX(2.0, 0.1, "Shaders/couleur3D.vert", "Shaders/couleur3D.frag");
+	Axe axeY(2.0, 0.1, "Shaders/couleur3D.vert", "Shaders/couleur3D.frag");
+	Axe axeZ(2.0, 0.1, "Shaders/couleur3D.vert", "Shaders/couleur3D.frag");
 
 	//Matrices de projection et de transformation
 	projection = perspective(1.22, (double)m_largeurFenetre / m_hauteurFenetre, 1.0, 100.0);
 	modelview = mat4(1.0);
+	modelview3 = mat4(1.0);
+	modelview2 = mat4(1.0);
+
 
 	system("cls");//effacer la console
 	// Boucle principale
@@ -152,7 +159,6 @@ void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
-
 
 		/* Filtre de Kalman */
 		//un_quaternion = rotation.kalman_rotation(v_angulaire_t, acceleration_t, magnetic_t, orientation_t, dt, rotation);
@@ -177,27 +183,34 @@ void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 
 
 		vect3D anglePlus = {0,0,0};
+		vect3D quat_axe = {0,0,0};
+		double quat_angle = 0;
 		_RPT0(0, "GYROSCOPE\n");
-		anglePlus = tabTrait[0]->renvoyerVal(1);
-		_RPT0(0, "ACCELEROMETRE\n");
-		vect3D acce = tabTrait[1]->renvoyerVal(1);
-		_RPT0(0, "MAGNETOMETRE\n");
-		vect3D mnet = tabTrait[2]->renvoyerVal(1);
-		_RPT0(0, "ORIENTATION\n");
-		vect3D orie = tabTrait[3]->renvoyerVal(1);
+		
 
-		angle = angle + anglePlus;
 
-		_RPT1(0, "$$Valeurs d'angle en x : %f\n", angle.x);
-		_RPT1(0, "$$Valeurs d'angle en y : %f\n", angle.y);
-		_RPT1(0, "$$Valeurs d'angle en z : %f\n", angle.z);
+		//anglePlus = tabTrait[0]->renvoyerVal(1);
+		//_RPT0(0, "ACCELEROMETRE\n");
+		//vect3D acce = tabTrait[1]->renvoyerVal(1);
+		//_RPT0(0, "MAGNETOMETRE\n");
+		//vect3D mnet = tabTrait[2]->renvoyerVal(1);
+		//_RPT0(0, "ORIENTATION\n");
+		//vect3D orie = tabTrait[3]->renvoyerVal(1);
+		//angle = angle + anglePlus;
 
-		// Rotation du repère
-		modelview = rotate(modelview, (float)(angle.x), vec3(0, 0, 1));
-		modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
-		modelview = rotate(modelview, (float)(angle.z), vec3(1, 0, 0));
+		tabTrait[0]->renvoyerQuat(1, q, quat_axe, quat_angle);
+
+		//_RPT1(0, "$$Valeurs d'angle en x : %f\n", angle.x);
+		//_RPT1(0, "$$Valeurs d'angle en y : %f\n", angle.y);
+		//_RPT1(0, "$$Valeurs d'angle en z : %f\n", angle.z);
+
+		_RPT1(0, "$$$ angle du quaternion = %f\n", quat_angle);
+		_RPT3(0, "$$$ axe du quaternion = %f  %f  %f\n", quat_axe.x, quat_axe.y, quat_axe.z);
+
+		modelview = rotate(modelview, (float)(quat_angle), vec3(quat_axe.x, quat_axe.y, quat_axe.z));
 
 		lecube.afficher(projection, modelview);
+		axeX.afficher(projection, modelview);
 
 		// Actualisation de la fenêtre
 		SDL_GL_SwapWindow(m_fenetre);

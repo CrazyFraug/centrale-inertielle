@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
 
 	int mode = 0;
 	Mobile gant;
+	bool tabDefine = false;
 
 	Traitement *tab[4];
 
@@ -38,13 +39,15 @@ int main(int argc, char *argv[]) {
 			tab[1] = new Traitement_serie ("acce","filename.txt", &link);
 			tab[2] = new Traitement_serie ("mnet","filename.txt", &link);
 			tab[3] = new Traitement_serie ("orie","filename.txt", &link);
+			tabDefine = true;
 		}
 		else if (mode == 2)
 		{
-			tab[0] = new Traitement("gyro","serial.txt");
-			tab[1] = new Traitement("acce","serial.txt");
-			tab[2] = new Traitement("mnet","serial.txt");
-			tab[3] = new Traitement("orie","serial.txt");
+			tab[0] = new Traitement("gyro","simMeasures.txt");
+			tab[1] = new Traitement("acce","simMeasures.txt");
+			tab[2] = new Traitement("mnet","simMeasures.txt");
+			tab[3] = new Traitement("orie","simMeasures.txt");
+			tabDefine = true;
 		}
 
 		else if (mode == 3)
@@ -68,18 +71,22 @@ int main(int argc, char *argv[]) {
 			fileFromSerial("serial.txt", link, nbMes);
 		}
 
-		scene.bouclePrincipale(gant,tab);
+		if (tabDefine)
+		{
+			scene.bouclePrincipale(gant,tab);
 
-		tab[0]->resetCompteur();
-		tab[1]->resetCompteur();
-		tab[2]->resetCompteur();
-		tab[3]->resetCompteur();
+			tab[0]->resetCompteur();
+			tab[1]->resetCompteur();
+			tab[2]->resetCompteur();
+			tab[3]->resetCompteur();
 
-		
-		delete tab[0];
-		delete tab[1];
-		delete tab[2];
-		delete tab[3];
+			delete tab[0];
+			delete tab[1];
+			delete tab[2];
+			delete tab[3];
+			
+			tabDefine = false;
+		}
 
 		mode = choiceMode();
 	}
@@ -147,7 +154,7 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 				while ( tEcoule < temps)
 				{
 					fMeas << "gyro:" << '\n';
-					fMeas << addError(0,variation,bias) << ';' << addError(0,variation,bias) << ';' << addError(0,variation,bias) << ';' << tEcoule << ';' << '\n';
+					fMeas << 'x' << addError(0,variation,bias) << ';' << 'y' << addError(0,variation,bias) << ';' << 'z' << addError(0,variation,bias) << ';' << 't' << tEcoule << ';' << '\n';
 					tEcoule += sampleTime;
 				}
 
@@ -158,7 +165,7 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 					val2e = addError(val2,variation,bias);
 					val3e = addError(val3,variation,bias);
 					fMeas << "gyro:" << '\n';
-					fMeas << val1e << ';' << val2e << ';' << val3e << ';' << tEcoule << ';' << '\n';
+					fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
 					tEcoule += sampleTime;
 				}
 			}
@@ -170,17 +177,16 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 
 					while (tEcoule < temps+duree)
 					{
-					//Ajout des erreurs de mesure:
 					val1e = addError(val1,variation,bias);
 					val2e = addError(val2,variation,bias);
 					val3e = addError(val3,variation,bias);
-					fMeas << val1e << ';' << val2e << ';' << val3e << ';' << tEcoule << ';' << '\n';
+					fMeas << "gyro:" << '\n';
+					fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
 					tEcoule += sampleTime;
 					}
 			}
 		}
 
-		fMeas << std::ios::eofbit;
 		fMeas.close();
 		fDirection.close();
 		system("PAUSE");
