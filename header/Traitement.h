@@ -33,6 +33,7 @@ public:
 	double moyennerAxe(int axe);
 	vect3D moyenner(int nb);
 	vect3D renvoyerVal(int nb);
+	void renvoyerQuat(int nb, quaternion<double> &q_base, vect3D &axe, double &angle);
 	void calculer_dt();
 	bool tabFull(void);
 	vect4D lastVal(void);
@@ -77,6 +78,6 @@ public:
 // Fonctions globales
 void writeHeading(std::string filename);
 int choiceMode();
-
+quaternion<double> orienterVect(quaternion<double> q);
 
 #endif

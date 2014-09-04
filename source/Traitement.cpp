@@ -178,6 +178,40 @@ vect3D Traitement::renvoyerVal(int nb)
 	return val;
 }
 
+/**
+* \brief renvoie un rotation par quaternion
+*/
+void Traitement::renvoyerQuat(int nb, quaternion<double> &q_base, vect3D &axe, double &angle)
+{
+
+	quaternion<double> q(0,0,0,0);
+
+	if (nb<1)
+		_RPT0(_CRT_ERROR,"le parametre int nb doit etre superieur ou egal a 1\n");
+
+	stockerValeurs();
+
+	vect3D val = {0,0,0};
+	if (_compteur>1)
+	{
+		val = moyenner(nb);
+		//Sans conversion :
+		val.x *= (_dt);
+		val.y *= (_dt);
+		val.z *= (_dt);
+	}
+
+	//_RPT1(0, "(renvoyerQuat) val.x*dt = %f\n", val.x);
+	//_RPT1(0, "(renvoyerQuat) val.y*dt = %f\n", val.y);
+	//_RPT1(0, "(renvoyerQuat) val.z*dt = %f\n", val.z);
+
+	q = danglesToQuat(val.x, val.y, val.z);
+	q_base = q_base*q;
+	quatComp(q_base, axe, angle);
+	//val.x = -val.x;
+}
+
+
 /** A CHANGER
 * \brief Soustraction de l'influence de l'accélération g (intensité de la pesanteur) sur chacun des axes de l'accéléromètre
 * \param matrice : matrice de rotation
@@ -302,16 +336,18 @@ vect4D Traitement::readDatafromFile()
 		}
 		
 			/* Récupération des données */
-			myfile >> c;
+			myfile >> c;	
 			myfile >> data.x;
-			myfile >> c;
+			myfile >> c;	
 			myfile >> c;
 			myfile >> data.y;
 			myfile >> c;
 			myfile >> c;
 			myfile >> data.z;
 			myfile >> c;
+			_RPT1(0, "char 2 = %c\n", c);
 			myfile >> c;
+			_RPT1(0, "char 3 = %c\n", c);
 			myfile >> data.temps;
 			myfile >> c;
 
