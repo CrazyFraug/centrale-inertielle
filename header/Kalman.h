@@ -4,6 +4,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include "Quaternion.h"
 
+
 using namespace boost::numeric::ublas;
 
 /** struct représentant l'etat du systeme
@@ -36,15 +37,19 @@ typedef struct _kalmanstate{
 class Kalman
 {
 public:
-	Kalman(int nb_in, int nb_out, int nb_state, int step, matrix<double> init_predict, matrix<double> init_cov_estimate);
+	Kalman(int nb_in, int nb_out, int nb_state, int step);
 	~Kalman();
+
+	int getSizeIn();
+	int getSizeOut();
+	int getSizeState();
 
 	void declare_system(matrix<double> A, matrix<double> B, matrix<double> C);
 	void declare_noise(matrix<double> Q, matrix<double> R);
+	void initSystem(matrix<double> A, matrix<double> B, matrix<double> C, matrix<double> Q, matrix<double> R, matrix<double> X_init, matrix<double> P_init);
+	void majSystem(bool maj, char mat, matrix<double> A, matrix<double> B, matrix<double> C);
 	void predict_step(matrix<double> value_cmd);
 	matrix<double> update_step(matrix<double> value_mesure);
-
-	quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, double dt);
 
 private:
 	system_state sys;
@@ -52,6 +57,4 @@ private:
 	kalmanstate kalm_sys;
 
 };
-//void declareKalman( Kalman *rotation);
-quaternion<double> kalman_rotation(vect4D v_angulaire, vect4D acceleration, vect4D magnetic, vect4D orientation, double dt, Kalman &rotation);
 #endif // KALMAN_H

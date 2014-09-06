@@ -17,8 +17,8 @@
 //#include "Shader.h" 
 #include "Cube.h"
 #include "Simulation.h"	
-#include "Simulation.h"
-#include "Kalman.h"
+#include "Mobile.h"
+//#include "Instrument.h"
 
 #define M_2PI 6.28318530718 
 #define bufferSize 4
@@ -36,8 +36,7 @@ public:
 	//méthodes:
 	bool InitialiserFenetre();
 	bool iniGL();
-	void bouclePrincipaleSensor();
-	void bouclePrincipaleSimu();
+	int bouclePrincipale(vect3D anglesCube);
 
 private:
 
