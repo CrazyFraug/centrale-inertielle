@@ -16,6 +16,7 @@ class Instrument {
 
 private:
 	char* ID;
+	Serial *_serialLink;
 	vect4D _mesures;
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
@@ -25,7 +26,7 @@ private:
 
 public:
 	//constructor
-	Instrument(char* nom);
+	Instrument(char* nom, int mode);
 	Instrument();
 	//destructor//
 	~Instrument();
@@ -54,7 +55,7 @@ public:
 	virtual std::string getnomfichier(void);
 	/**calibrer l'instrument en initialisant les valeurs initiales*/
 	void calibrer(void);
-
+	void majSerial(/*char* IDSensor*/);
 	/*Fonctions d'affichage*/
 	void afficherCapteur(void);
 	void afficherMesures() const;
@@ -63,18 +64,19 @@ public:
 };
 
 
-class Instrument_serie : public Instrument
-{
-private:
-	Serial* _serialLink;
-	std::string nom_fichier;
-public:
-	Instrument_serie(char* nom, Serial* link);
-	~Instrument_serie();
-	std::string getnomfichier(void);
-	/** \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série	*/
-	void majMesures(void);
-	void majSerial(/*char* IDSensor*/);
-};
+//class Instrument_serie : public Instrument
+//{
+//private:
+//	Serial *_serialLink;
+//	std::string nom_fichier;
+//public:
+//	Instrument_serie(char* nom, Serial *link);
+//	Instrument_serie(char* nom);
+//	~Instrument_serie();
+//	std::string getnomfichier(void);
+//	/** \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série	*/
+//	void majMesures(void);
+//	void majSerial(/*char* IDSensor*/);
+//};
 
 #endif

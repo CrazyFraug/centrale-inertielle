@@ -1,4 +1,5 @@
 #include "Traitement.h"
+#include "Tools.h"
 #include <iostream>
 #include <hash_map>
 #define _DEFINE_DEPRECATED_HASH_CLASSES 0
@@ -12,7 +13,7 @@ Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 		_valeurs[i] = new double[NB_VALEURS];
 	}
 }
-Traitement::Traitement() :_compteur(0), _dt(0)
+Traitement::Traitement(std::string nom_capteur) :_compteur(0), _dt(0)
 {
 	/** Allocation mémoire de la matrice de valeurs **/
 	for (int i = 0; i < 3; i++)
@@ -39,7 +40,7 @@ double	Traitement::get_dt(){
 	return _dt;
 }
 
-void Traitement::setInstrument(Instrument_serie *un_Instrument){
+void Traitement::setInstrument(Instrument *un_Instrument){
 	_capteur = un_Instrument;
 }
 
@@ -198,138 +199,3 @@ bool Traitement::tabFull()
 }
 
 
-/** A CHANGER
-*	\brief Ecrire les données récupérées d'un capteur dans un fichier
-*
-*	\param filename	string		le nom du fichier - doit être en format "nom.txt" et doit être ouvert
-*   \param inst		Instrument	le capteur  dont on récupère les données
-*
-*   \test  test_filefromSensor
-*/
-void writeHeading(std::string filename, std::fstream &myfile){
-	myfile.open(filename.c_str(), std::ios::app);
-	if (filename == "gyro.csv"){
-		myfile << "Gyr_X;Gyr_Y;Gyr_Z;temps\n";
-	}
-	else if (filename == "acce.csv"){
-		myfile << "Acc_X;Acc_Y;Acc_Z;temps\n";
-	}
-	else if (filename == "magn.csv"){
-		myfile << "Mag_X;Mag_Y;Mag_Z;temps\n";
-	}
-	else if (filename == "orie.csv"){
-		myfile << "Ori_X;Ori_Y;Ori_Z;temps\n";
-	}
-	myfile.close();
-}
-
-/**
-* \brief Ecrit dans un fichier les mesures prises par le capteur
-*/
-void Traitement::filefromSensor(std::string filename, std::fstream &myfile, Instrument* inst){
-
-	if (!myfile.is_open()){
-		myfile.open(filename, std::ios::app);
-	}
-	else{
-		_RPT0(0, "Le fichier est ouvert \n");
-	}
-	for (int i = 1; i <= 4; i++){
-		myfile << inst->getMesure(i);
-		myfile << ";";
-	}
-	myfile << "\n";
-	myfile.flush();
-}
-
-/**
-*	\brief Lire les données à partir d'un fichier
-*	\param	filename	string		le nom du fichier - doit être en format "nom.txt"
-*   \return data		vect4D		vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
-*   \test  test_readDatafromFile
-*/
-vect4D Traitement::readDatafromFile(std::string filename, std::fstream &myfile, int cursor)
-{
-	vect4D data = { 0, 0, 0, 0 };
-	char c;
-	int i = 0;
-	std::string chaine;
-	if (!myfile.is_open()){
-		myfile.open(filename, std::ios::in || std::ios::out);
-		while (myfile.eof() == false)
-		{
-			/* Enlève l'entête du fichier */
-			std::getline(myfile, chaine);
-			_RPT1(0, "%s \n", chaine.c_str());
-			dataFromFile[i] = chaine;
-			/* Récupération des données du fichier tant que ce n'est pas la fin d'une ligne */
-			i++;
-		}
-	}
-	int m = 0;
-	std::string val_x, val_y, val_z, val_t;
-	for (int n = 0; n < 4; n++){
-
-		while (dataFromFile[cursor][m] != ';')
-		{
-			if (n == 0){
-				val_x += dataFromFile[cursor][m];
-			}
-			else if (n == 1){
-				val_y += dataFromFile[cursor][m];
-			}
-			else if (n == 2){
-				val_z += dataFromFile[cursor][m];
-			}
-			else if (n == 3){
-				val_t += dataFromFile[cursor][m];
-			}
-
-			m++;
-		}
-		m++;
-	}
-	data.x = string_to_double(val_x);
-	data.y = string_to_double(val_y);
-	data.z = string_to_double(val_z);
-	data.temps = string_to_double(val_t);
-
-#ifdef TEST
-	_RPT1(0, "valeur x = %f\n", data.x);
-	_RPT1(0, "valeur y = %f\n", data.y);
-	_RPT1(0, "valeur z = %f\n", data.z);
-	_RPT1(0, "valeur t = %f\n", data.temps);
-#endif
-
-	return data;
-}
-
-
-/** \brief ou==Ouverture d'un fichier en mode lecture */
-void Traitement::openfile_readwrite(std::fstream& myfile, std::string filename)
-{
-	myfile.open(filename, std::fstream::in | std::fstream::out | std::fstream::app);
-	if ((myfile.rdstate() && std::ifstream::failbit) != 0)
-		_RPT0(_CRT_ERROR, "erreur lors de l'ouverture du fichier");
-}
-
-void Traitement::afficherTraitement(void){
-	_capteur->afficherCapteur();
-	_RPT1(0, "dt : %f \n", _dt);
-}
-
-int choiceMode(){
-	int mode;
-	std::cout << "MODE DE SIMULATION : " << std::endl;
-	std::cout << "1 - Simulation avec capteur" << std::endl;
-	std::cout << "2 - Simulation avec fichier de valeurs" << std::endl;
-	std::cout << "La mode de simulation choisie : ";
-	std::cin >> mode;
-	std::cout << std::endl;
-	while (mode != 1 && mode != 2){
-		std::cout << "La mode choisie doit etre 1 ou 2 : ";
-		std::cin >> mode;
-		std::cout << std::endl;
-	}
-	return mode;
-}
