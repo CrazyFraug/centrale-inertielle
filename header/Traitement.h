@@ -24,7 +24,8 @@ public:
 	void testd(void);
 	void stockerValeurs();
 	void stockerValeurs(vect4D val);
-	double moyenner(int axe);
+	double moyennerAxe(int axe);
+	vect4D moyenner(int nb);
 	vect3D calculerAngle_deg();
 	void afficherValeurs(void);
 	void calculer_dt();

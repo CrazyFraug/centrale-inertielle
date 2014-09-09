@@ -49,8 +49,15 @@ vect4D operator+(vect4D v1, vect3D v2)
 * \param nom : chaine de caractere qui identifie l'instrument
 * \param link : communication série associée
 */
-Instrument::Instrument(char* nom) :ID(nom)
+Instrument::Instrument(char* nom, int mode) :ID(nom)
 {
+	if (mode == 1){
+		static Serial link("COM8", 115200);
+		_serialLink = &link;
+	}
+	else {
+		_serialLink = NULL;
+	}
 	_mesures.x = 0;
 	_mesures.y = 0;
 	_mesures.z = 0;
@@ -63,19 +70,6 @@ Instrument::Instrument(char* nom) :ID(nom)
 	_t_acq[2] = clock();
 }
 
-Instrument::Instrument() : ID()
-{
-	_mesures.x = 0;
-	_mesures.y = 0;
-	_mesures.z = 0;
-	_mesures.temps = clock();
-	_valeursInitiales.x = 0;
-	_valeursInitiales.y = 0;
-	_valeursInitiales.z = 0;
-	_t_acq[0] = clock();
-	_t_acq[1] = clock();
-	_t_acq[2] = clock();
-}
 /** \brief Destructeur
 */
 Instrument::~Instrument()
@@ -156,12 +150,14 @@ void Instrument::setMesuresT(double val){ _mesures.temps = val; }
 
 void Instrument::majMesures()
 {
-
+	if (_serialLink != NULL){
+		majSerial();
+	}
 }
 
 
 std::string Instrument::getnomfichier(void){
-	return NULL;
+	return fileName;
 }
 
 /** \brief retire les conditions initiales (in progress)*/
@@ -236,33 +232,33 @@ void Instrument::afficherVI() const
 
 }
 
-/** Sous-classe Instrument_serie **/
-
-
-/**
-* \brief Constructeur d'Instrument_serie
-* prend en argument un objet de type Serial
-* \param nom : chaine de caractere qui identifie l'instrument
-* \param link : communication série associée
-*/
-Instrument_serie::Instrument_serie(char* nom, Serial* link) :Instrument(nom), _serialLink(link)
-{
-	std::string filename = getID();
-	filename += ".txt";
-	nom_fichier = filename;
-}
-
-Instrument_serie::~Instrument_serie() { }
-
-void Instrument_serie::majMesures()
-{
-	majSerial();
-}
-
-/**
-* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
-*/
-void Instrument_serie::majSerial(/*char *IDSensor*/)
+///** Sous-classe Instrument_serie **/
+//
+//
+///**
+//* \brief Constructeur d'Instrument_serie
+//* prend en argument un objet de type Serial
+//* \param nom : chaine de caractere qui identifie l'instrument
+//* \param link : communication série associée
+//*/
+//Instrument_serie::Instrument_serie(char* nom, Serial *link) :Instrument(nom), _serialLink(link)
+//{
+//	std::string filename = getID();
+//	filename += ".txt";
+//	nom_fichier = filename;
+//}
+//
+//Instrument_serie::~Instrument_serie() { }
+//
+//void Instrument_serie::majMesures()
+//{
+//	majSerial();
+//}
+//
+///**
+//* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
+//*/
+void Instrument::majSerial(/*char *IDSensor*/)
 {
 	_RPT1(0, "SENSOR NAME: %s \n", getID());
 	packDatas data = _serialLink->readData_s(getID());
@@ -275,15 +271,4 @@ void Instrument_serie::majSerial(/*char *IDSensor*/)
 	else{
 		_RPT2(0, "CAPTEUR COM %s N'EST PAS LE CAPTEUR DEMANDE %s \n", data.sensor_name.c_str(), getID());
 	}
-}
-
-
-std::string Instrument_serie::getnomfichier(void){
-	return nom_fichier;
-}
-
-
-void Instrument::afficherCapteur(void){
-	_RPT1(0, "CAPTEUR: %s \n", ID);
-	afficherMesures();
 }

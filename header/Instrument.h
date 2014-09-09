@@ -20,6 +20,7 @@ private:
 	vect4D _mesures;
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
+	std::string fileName;
 
 	//retire les valeurs initiales des mesures
 	void soustraireVI(void);
@@ -27,7 +28,7 @@ private:
 public:
 	//constructor
 	Instrument(char* nom, int mode);
-	Instrument();
+
 	//destructor//
 	~Instrument();
 
@@ -35,8 +36,9 @@ public:
 	vect4D getMesures(void);
 	double getMesure(int axe);
 	clock_t* getTemps(void);
-
+	std::string getnomfichier(void);
 	char* getID();
+
 	/** \brief return the time of the last measure according to the parameter axe
 	*/
 	clock_t getTemps(int axe);
@@ -51,8 +53,8 @@ public:
 	void setMesures(vect4D nvMesures);
 
 	/**Mise a jour des mesures stockées */
-	virtual void majMesures();
-	virtual std::string getnomfichier(void);
+	void majMesures();
+
 	/**calibrer l'instrument en initialisant les valeurs initiales*/
 	void calibrer(void);
 	void majSerial(/*char* IDSensor*/);
@@ -63,20 +65,5 @@ public:
 	void afficherVI() const;
 };
 
-
-//class Instrument_serie : public Instrument
-//{
-//private:
-//	Serial *_serialLink;
-//	std::string nom_fichier;
-//public:
-//	Instrument_serie(char* nom, Serial *link);
-//	Instrument_serie(char* nom);
-//	~Instrument_serie();
-//	std::string getnomfichier(void);
-//	/** \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série	*/
-//	void majMesures(void);
-//	void majSerial(/*char* IDSensor*/);
-//};
 
 #endif

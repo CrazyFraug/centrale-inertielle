@@ -1,5 +1,5 @@
 #include "Serial.h"
-
+#include "Tools.h"
 //for arduino: SCL to A5, SDA to A4, GND to ground and Vin to 5V
 
 
@@ -15,25 +15,6 @@ Serial::Serial(std::string port, unsigned int baud_rate)
 {
 	serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
 }
-
-
-/**
-* Convert a string into a double type variable
-* return 0 if function failed
-*/
-float string_to_double(const std::string& s)
-{
-	std::stringstream convert(s);
-	float x = 0;
-
-	if (!(convert >> x))
-	{
-		_RPT0(_CRT_ERROR, "Problem Conversion string to double \n");
-		return 0;
-	}
-	return x;
-}
-
 
 /**
 * Write a string to the serial device.

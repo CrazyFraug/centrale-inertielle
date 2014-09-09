@@ -119,15 +119,26 @@ vect4D readDatafromFile(std::string filename, std::fstream &myfile, int cursor)
 
 
 int choiceMode(){
+
 	int mode;
+	HWND hwnd = GetConsoleWindow();
+	SetForegroundWindow(hwnd);
+
+	system("cls");
 	std::cout << "MODE DE SIMULATION : " << std::endl;
+	std::cout << "0 - Quitter" << std::endl;
 	std::cout << "1 - Simulation avec capteur" << std::endl;
 	std::cout << "2 - Simulation avec fichier de valeurs" << std::endl;
-	std::cout << "La mode de simulation choisie : ";
+	std::cout << "3 - Generer fichier de valeurs" << std::endl;
+	std::cout << "4 - Generer fichier a partir de la liaison serie" << std::endl;
+	std::cout << "5 - Test conversion quaternion" << std::endl;
+	std::cout << "Le mode de simulation choisi : ";
 	std::cin >> mode;
 	std::cout << std::endl;
-	while (mode != 1 && mode != 2){
-		std::cout << "La mode choisie doit etre 1 ou 2 : ";
+
+	while (mode != 1 && mode != 2 && mode != 3 && mode != 0 && mode != 4 && mode != 5)
+	{
+		std::cout << "Le mode choisi est incorrect : ";
 		std::cin >> mode;
 		std::cout << std::endl;
 	}
@@ -166,19 +177,15 @@ float string_to_double(const std::string& s)
 	return x;
 }
 
-double norm_Angle(double alpha)
+double normAngle(double alpha)
 {
 	double result = 0;
-	if (alpha > 180)
+	while (alpha > 180 || alpha <= -180)
 	{
-		result = alpha - 360;
-	}
-	else if (alpha< -180)
-	{
-		result = alpha + 360;
-	}
-	else{
-		result = alpha;
+		if (alpha > 180)
+			result = alpha - 180;
+		if (alpha <= -180)
+			result = alpha + 180;
 	}
 	return result;
 }
@@ -248,3 +255,129 @@ void printMatrix(matrix<double> A){
 	}
 }
 
+
+void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation, double bias)
+{
+	std::fstream fDirection, fMeas;
+	vect3D orientation = { 0, 0, 0 };
+	fDirection.open(direction, std::ios::in);
+	fMeas.open(filename, std::fstream::out);
+	if ((fDirection.rdstate() && std::ifstream::failbit) != 0)
+	{
+		_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier direction\n");
+	}
+	else if ((fMeas.rdstate() && std::ifstream::failbit) != 0)
+	{
+		_RPT0(0, "Fichier directions ouvert correctement\n");
+		_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier de mesure\n");
+		fDirection.close();
+	}
+	else
+	{
+		_RPT0(0, "Fichier mesures ouvert correctement\n");
+		double val1, val2, val3, tEcoule(0.0), temps, duree;
+		double val1e, val2e, val3e;
+		while (fDirection.eof() == false)
+		{
+			getDirection(fDirection, val1, val2, val3, temps, duree);
+			std::cout << "valeur 1 : " << val1 << " ; valeur 2 : " << val2 << " ; valeur 3 : " << val3 << " ; temps : " << temps << " ; duree : " << duree << std::endl;
+
+			if (temps >= tEcoule)
+			{
+				while (tEcoule < temps)
+				{
+					fMeas << "gyro:" << '\n';
+					fMeas << 'x' << addError(0, variation, bias) << ';' << 'y' << addError(0, variation, bias) << ';' << 'z' << addError(0, variation, bias) << ';' << 't' << tEcoule << ';' << '\n';
+					fMeas << "orie;" << '\n';
+					fMeas << 'x' << 0 << ';' << 'y' << 0 << ';' << 'z' << 0 << ';' << 't' << tEcoule << ';' << '\n';
+					tEcoule += sampleTime;
+				}
+
+				while (tEcoule < temps + duree)
+				{
+					//Ajout des erreurs de mesure:
+					val1e = addError(val1, variation, bias);
+					val2e = addError(val2, variation, bias);
+					val3e = addError(val3, variation, bias);
+					fMeas << "gyro:" << '\n';
+					fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
+					orientation.x += val1*SAMPLETIME / 1000;
+					orientation.y += val2*SAMPLETIME / 1000;
+					orientation.z += val3*SAMPLETIME / 1000;
+					fMeas << "orie:" << '\n';
+					fMeas << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
+					tEcoule += sampleTime;
+				}
+			}
+
+			else
+			{
+				_RPT0(0, "temps inferieur a celui de la derniere ligne + duree, temps remanié");
+				temps = tEcoule;
+
+				while (tEcoule < temps + duree)
+				{
+					val1e = addError(val1, variation, bias);
+					val2e = addError(val2, variation, bias);
+					val3e = addError(val3, variation, bias);
+					fMeas << "gyro:" << '\n';
+					fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
+					tEcoule += sampleTime;
+				}
+			}
+		}
+
+		fMeas.close();
+		fDirection.close();
+		system("PAUSE");
+	}
+
+}
+
+void fileFromSerial(std::string filename, Serial &link, int nbMes)
+{
+	std::fstream file;
+	std::string tmp;
+	int i = 0;
+	file.open(filename, std::ios::out);
+	static HANDLE h = NULL;
+	h = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD c = { 0, 7 };
+	while (i++ < nbMes)
+	{
+		tmp = link.readLine();
+		file << tmp << '\n';
+		SetConsoleCursorPosition(h, c);
+		std::cout << tmp << std::endl;
+	}
+	file.close();
+}
+
+void getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree)
+{
+	char c;
+	file >> temps;
+	file >> c;
+	file >> duree;
+	file >> c;
+	file >> val1;
+	file >> c;
+	file >> val2;
+	file >> c;
+	file >> val3;
+
+	val1 /= (duree / 1000.0);
+	val2 /= (duree / 1000.0);
+	val3 /= (duree / 1000.0);
+
+}
+
+
+double addError(double baseValeur, double variation, double bias)
+{
+	double meas = baseValeur - variation;
+	double erreur = 0;
+	erreur = (double)rand() / RAND_MAX; //generate random number between 0 and 1
+	meas += erreur*(variation * 2);
+	return (meas + bias);
+}

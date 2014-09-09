@@ -13,11 +13,11 @@ void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* 
 
 class Mobile {
 
-private :
-	vect3D _orientation ;
-	vect3D _angles ;
-	vect3D _position ;
-	vect3D _vitesse ;
+private:
+	vect3D _orientation;
+	vect3D _angles;
+	vect3D _position;
+	vect3D _vitesse;
 
 public:
 	Mobile(void);
@@ -28,10 +28,10 @@ public:
 	vect3D getPosition();
 	vect3D getVitesse();
 	/**Setter**/
-	void setVitesse (double v_x, double v_y, double v_z);
-	void setPosition(double x, double y, double z) ;
+	void setVitesse(double v_x, double v_y, double v_z);
+	void setPosition(double x, double y, double z);
 
-	void norm_Angle(double alpha);
+
 	double norm_Vecteur();
 	void rotate(vect3D rotation);
 	void rotate(quaternion<double> q);
@@ -42,8 +42,8 @@ public:
 	void afficher_position(void);
 	void afficher_angles(void);
 	void afficher_vitesse(void);
-	void afficher_orientation (void);
-	
+	void afficher_orientation(void);
+
 };
 
 #endif
