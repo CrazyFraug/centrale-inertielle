@@ -26,6 +26,7 @@ vect3D quatToAngles_deg(quaternion<double> quaternion);
 void afficherQuat(quaternion<double>);
 vect3D rotateVector(quaternion<double> q, vect3D v);
 void normalizeQuat(quaternion<double> &q, double tolerance=0);
+void centrerAngle(double &angle);	
 quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2);
 matrix<double> quatToMat(quaternion<double> q);
 quaternion<double> operator*(quaternion<double> q1, quaternion<double> q2);

@@ -40,6 +40,9 @@ quaternion<double> anglesToQuat(double phi, double teta, double rho)
 */
 quaternion<double> danglesToQuat(double phi, double teta, double psi)
 {
+	centrerAngle(phi);
+	centrerAngle(teta);
+	centrerAngle(psi);
 	quaternion<double> q1(cos(phi*M_PI / 360), sin(phi*M_PI / 360), 0, 0);
 	quaternion<double> q2(cos(teta*M_PI / 360), 0, sin(teta*M_PI / 360), 0);
 	quaternion<double> q3(cos(psi*M_PI / 360), 0, 0, sin(psi*M_PI / 360));
@@ -157,6 +160,21 @@ void normalizeQuat(quaternion<double> &q, double tolerance)
 		q = q/sqrt(norm2);
 
 }
+
+/**
+* \brief centre les angles sur 0 dans un intervalle de [-180;+180]
+*/
+void centrerAngle(double &angle)
+{
+	while (angle > 180 || angle <= -180)
+	{
+		if (angle > 180)
+			angle -= 180;
+		if (angle <= -180)
+			angle += 180;
+	}
+}
+
 
 /**
 * \brief produit hamiltonien de 2 quaternions
