@@ -1,6 +1,5 @@
-#include "SceneOpenGL.h"
-#include "Kalman.h"
 #include <boost/numeric/ublas/operation.hpp>
+#include "SceneOpenGL.h"
 //#include "source\test\test_Traitement.cpp"
 //#include "Mobile.h"
 
@@ -108,7 +107,7 @@ bool SceneOpenGL::iniGL() {
 }
 
 
-int SceneOpenGL::bouclePrincipale(vect3D anglesCube)
+int SceneOpenGL::bouclePrincipale(vect3D &axe, double &angle)
 {
 
 	static bool terminer(false);
@@ -144,10 +143,7 @@ int SceneOpenGL::bouclePrincipale(vect3D anglesCube)
 		// Placement de la caméra
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 
-		modelview = rotate(modelview, (float)(anglesCube.x*M_2PI / 360.0), vec3(1, 0, 0));
-		modelview = rotate(modelview, (float)(anglesCube.y*M_2PI / 360.0), vec3(0, 1, 0));
-		modelview = rotate(modelview, (float)(anglesCube.z*M_2PI / 360.0), vec3(0, 0, 1));
-		// Rotation du repère
+		modelview = rotate(modelview, (float)(angle), vec3(axe.x, axe.y, axe.z));// Rotation du repère
 		lecube.afficher(projection, modelview);
 
 		// Actualisation de la fenêtre

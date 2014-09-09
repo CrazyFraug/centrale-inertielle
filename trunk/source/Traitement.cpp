@@ -128,7 +128,7 @@ void Traitement::stockerValeurs()
 *  \param axe numero de la ligne que l'on veut moyenner
 *  \return la moyenne d'une ligne
 */
-double Traitement::moyenner(int axe)
+double Traitement::moyennerAxe(int axe)
 {
 	double moyenne = 0;
 	for (int i = 0; i < _compteur; i++)
@@ -136,7 +136,35 @@ double Traitement::moyenner(int axe)
 		moyenne += _valeurs[axe - 1][i];
 	}
 
-	return (moyenne / NB_VALEURS);
+	return (moyenne / _compteur);
+}
+
+/**
+* \brief renvoie la moyenne des valeurs de chaque axe sous forme de vect3D
+* \param nb : nombre de valeurs à moyenner. La fonction réalisera la moyenne des "nb" dernières valeurs mesurées
+*/
+vect4D Traitement::moyenner(int nb)
+{
+	vect4D res = { 0, 0, 0, 0 };
+	if (nb>_compteur)
+	{
+		nb = _compteur;
+	}
+	//_RPT1(0,"(moyenner) _tempsPrec= %f\n",_tempsPrec);
+	//_RPT1(0,"(moyenner) valeur de nb : %d\n", nb);
+	for (int i = 0; i<nb; i++)
+	{
+		res.x += _valeurs[0][_compteur - i - 1];
+		res.y += _valeurs[1][_compteur - i - 1];
+		res.z += _valeurs[2][_compteur - i - 1];
+		_RPT1(0, "(moyenner) valeur de res.x : %f\n", res.x);
+	}
+	res.x /= nb;
+	res.y /= nb;
+	res.z /= nb;
+	res.temps = _tempsAct;
+	//_RPT1(0,"(moyenner) valeur de res.x : %f\n", res.x);
+	return res;
 }
 
 
@@ -148,9 +176,9 @@ double Traitement::moyenner(int axe)
 vect3D Traitement::calculerAngle_deg()
 {
 	vect3D angles;
-	angles.x = moyenner(1)*_dt * 180 / (atan(1) * 4);
-	angles.y = moyenner(2)*_dt * 180 / (atan(1) * 4);
-	angles.z = moyenner(3)*_dt * 180 / (atan(1) * 4);
+	angles.x = moyennerAxe(1)*_dt * 180 / (atan(1) * 4);
+	angles.y = moyennerAxe(2)*_dt * 180 / (atan(1) * 4);
+	angles.z = moyennerAxe(3)*_dt * 180 / (atan(1) * 4);
 	_RPT1(0, " _dt = %f ms\n", _dt);
 	std::cout << " _dt = " << _dt << " ms " << std::endl;
 	return angles;
@@ -174,13 +202,13 @@ void Traitement::afficherValeurs()
 	_RPT1(0, "CAPTEUR %s : \n", _capteur->getID());
 	std::cout << "CAPTEUR " << _capteur->getID() << ": " << std::endl;
 	if (_compteur == NB_VALEURS) {
-		_RPT1(0, "moyenne X = %f\n", moyenner(1));
-		_RPT1(0, "moyenne Y = %f\n", moyenner(2));
-		_RPT1(0, "moyenne Z = %f\n", moyenner(3));
+		_RPT1(0, "moyenne X = %f\n", moyennerAxe(1));
+		_RPT1(0, "moyenne Y = %f\n", moyennerAxe(2));
+		_RPT1(0, "moyenne Z = %f\n", moyennerAxe(3));
 
-		std::cout << "moyenne X = " << moyenner(1) << "                      " << std::endl;
-		std::cout << "moyenne Y = " << moyenner(2) << "                      " << std::endl;
-		std::cout << "moyenne Z = " << moyenner(3) << "                      " << std::endl;
+		std::cout << "moyenne X = " << moyennerAxe(1) << "                      " << std::endl;
+		std::cout << "moyenne Y = " << moyennerAxe(2) << "                      " << std::endl;
+		std::cout << "moyenne Z = " << moyennerAxe(3) << "                      " << std::endl;
 	}
 }
 

@@ -1,43 +1,26 @@
 #include "Quaternion.h"
+#include "Tools.h"
 #include <math.h>
-quaternion<double> anglesToQuat(double phi, double teta, double rho)
+
+quaternion<double> anglesToQuat(double phi_deg, double teta_deg, double rho_deg)
 {
+	normAngle(phi_deg);
+	normAngle(teta_deg);
+	normAngle(rho_deg);
+	quaternion<double> q1(cos(phi_deg*M_PI / 360), sin(phi_deg*M_PI / 360), 0, 0);
+	quaternion<double> q2(cos(teta_deg*M_PI / 360), 0, sin(teta_deg*M_PI / 360), 0);
+	quaternion<double> q3(cos(rho_deg*M_PI / 360), 0, 0, sin(rho_deg*M_PI / 360));
+	quaternion<double> result(1, 0, 0, 0);
 
-	double c1, c2, c3;
-	double s1, s2, s3;
-	double q1, q2, q3, q4;
-	double norm;
-	c1 = cos(phi / 2);
-	c2 = cos(teta / 2);
-	c3 = cos(rho / 2);
-	s1 = sin(phi / 2);
-	s2 = sin(teta / 2);
-	s3 = sin(rho / 2);
-	q1 = c1*s2*c3 - s1*c2*s3;
-	q2 = c1*c2*c3 + s1*s2*s3;
-	q3 = c1*c2*s3 - s1*s2*c3;
-	q4 = s1*c2*c3 + c1*s2*s3;
-	norm = sqrt(pow(q1, 2) + pow(q2, 2) + pow(q3, 2) + pow(q4, 2));
-	quaternion<double> quat_resultat(q1 / norm, q2 / norm, q3 / norm, q4 / norm);
-	/*quaternion<double> q1(cos(phi / 2), sin(phi / 2), 0, 0);
-	quaternion<double> q2(cos(teta / 2), 0, sin(teta / 2), 0);
-	quaternion<double> q3(cos(rho / 2), 0, 0, sin(rho / 2));*/
+	result = result*q3*q2*q1;
+	normalizeQuat(result, 0);
 
-	return quat_resultat;
+	_RPT4(0, "q = %f  %f  %f  %f \n", result.R_component_1(), result.R_component_2(), result.R_component_3(), result.R_component_4());
+
+	return result;
 }
 
-/*heading = atan2(2*qy*qw+2*qx*qz , 1 - 2*qy2 - 2*qz2)
-attitude = asin(2*qx*qy - 2*qz*qw)
-bank = atan2(2*qx*qw+2*qy*qz , 1 - 2*qx2 - 2*qy2)
 
-except when qx*qy + qz*qw = 0.5 (north pole)
-which gives:
-heading = 2 * atan2(x,w)
-bank = 0
-and when qx*qy + qz*qw = -0.5 (south pole)
-which gives:
-heading = -2 * atan2(x,w)
-bank = 0*/
 vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 {
 	vect3D angles_result;
@@ -51,29 +34,44 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 	qx2 = qx*qx;
 	qy2 = qy*qy;
 	qz2 = qz*qz;
-	double unit = qx2 + qy2 + qz2 + qw2;
-	double test = qx* qy + qz* qw;
+	double test = qx* qy - qz* qw;
 
-	if (test > 0.4999 * unit)                              // 0.4999f OR 0.5f - EPSILON
+	if (test > 0.499999999)
 	{
 		// Singularity at north pole
-		angles_result.y = 2 * (float)atan2(qx, qw) * 180 / (atan(1) * 4);  // Yaw
-		angles_result.x = 90;                         // Pitch
-		angles_result.z = 0;                                // Roll
+		angles_result.x = 0;									// Roll
+		angles_result.y = M_PI / 2;								// Pitch
+		angles_result.z = 2 * (float)atan2(qx, qw);				// Yaw
+
 	}
-	else if (test < -0.4999 * unit)                        // -0.4999f OR -0.5f + EPSILON
+	else if (test < -0.499999999)
 	{
 		// Singularity at south pole
-		angles_result.y = -2 * (float)atan2(qx, qw) * 180 / (atan(1) * 4); // Yaw
-		angles_result.x = -90;                        // Pitch
-		angles_result.z = 0;                                // Roll
+		angles_result.x = 0;									// Roll
+		angles_result.y = -M_PI / 2;							// Pitch
+		angles_result.z = -2 * (float)atan2(qx, qw);			// Yaw
+
 	}
 	else{
-		angles_result.y = (float)atan2(2 * qx * qw + 2 * qy * qz, 1 - 2 * (qz2 + qw2)) * 180 / (atan(1) * 4);     // Yaw 
-		angles_result.x = (float)asin(2 * (qx * qz - qw * qy)) * 180 / (atan(1) * 4);                             // Pitch 
-		angles_result.z = (float)atan2(2 * qx * qy + 2 * qz * qw, 1 - 2 * (qy2 + qz2)) * 180 / (atan(1) * 4);      // Roll 
+		angles_result.x = (float)atan2(2 * (qx*qw + qy*qz), 1 - 2 * (qx2 + qy2));		// Roll
+		angles_result.y = (float)asin(2 * (qw*qy - qz*qx));								// Pitch 
+		angles_result.z = (float)atan2(2 * (qw*qz + qx*qy), 1 - 2 * (qy2 + qz2));		// Yaw
 	}
+
+	angles_result.x *= (double)(180 / M_PI);
+	angles_result.y *= (double)(180 / M_PI);
+	angles_result.z *= (double)(180 / M_PI);
 	return angles_result;
+}
+
+
+void quatComp(quaternion<double> q, vect3D &axe, double &angle)
+{
+	angle = 2 * acos(q.R_component_1());
+	//_RPT1(0,"acos(0) = %f\n", acos(0));
+	axe.x = q.R_component_2() / sin(angle / 2);
+	axe.y = q.R_component_3() / sin(angle / 2);
+	axe.z = q.R_component_4() / sin(angle / 2);
 }
 
 
@@ -86,12 +84,7 @@ void afficherQuat(quaternion<double> q)
 	cout << q.R_component_4() << endl;
 }
 
-/**
-* \brief realise la rotation decrite par le quaternion sur le vecteur v
-* \param q quaternion representatn la rotation
-* \param v vecteur sur lequel on effectue la rotation
-* \return un vecteur 3D qui correspond a v apres rotation
-*/
+
 vect3D rotateVector(quaternion<double> q, vect3D v)
 {
 	quaternion<double> qb(q.R_component_1(), -q.R_component_2(), -q.R_component_3(), -q.R_component_4());
@@ -103,20 +96,16 @@ vect3D rotateVector(quaternion<double> q, vect3D v)
 	return v;
 }
 
-/**
-* \brief calcul la norme du quaternion q
-* permet de mettre le quaternion sous forme unitaire
-* \return norme du quaternion
-*/
-double calculateNorm(quaternion<double> q)
+
+void normalizeQuat(quaternion<double> &q, double tolerance)
 {
-	double norm = sqrt(pow(q.R_component_1(), 2) + pow(q.R_component_2(), 2) + pow(q.R_component_3(), 2) + pow(q.R_component_4(), 2));
-	return norm;
+	double norm2 = pow(q.R_component_1(), 2) + pow(q.R_component_2(), 2) + pow(q.R_component_3(), 2) + pow(q.R_component_4(), 2);
+	if (norm2 > 1 + tolerance)
+		q = q / sqrt(norm2);
+
 }
 
-/**
-* \brief produit hamiltonien de 2 quaternions
-*/
+
 quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2)
 {
 	double a, b, c, d;
@@ -143,4 +132,18 @@ matrix<double> quatToMat(quaternion<double> q)
 	rotation(2, 1) = 2 * (q.R_component_3()*q.R_component_4() - q.R_component_1()*q.R_component_2());
 
 	return rotation;
+}
+
+
+/* Surcharge operateur * et / pour les quaternions */
+
+quaternion<double> operator*(quaternion<double> q1, quaternion<double> q2)
+{
+	return hamiltonProduct(q1, q2);
+}
+
+quaternion<double> operator/(quaternion<double> q1, double b)
+{
+	quaternion<double> result(q1.R_component_1() / b, q1.R_component_2() / b, q1.R_component_3() / b, q1.R_component_4() / b);
+	return result;
 }

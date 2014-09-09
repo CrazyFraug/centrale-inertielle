@@ -36,7 +36,7 @@ public:
 	//méthodes:
 	bool InitialiserFenetre();
 	bool iniGL();
-	int bouclePrincipale(vect3D anglesCube);
+	int bouclePrincipale(vect3D &axe, double &angle);
 
 private:
 

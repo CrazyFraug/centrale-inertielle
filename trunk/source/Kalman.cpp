@@ -1,6 +1,8 @@
+
+#include <boost/numeric/ublas/operation.hpp>
 #include "Kalman.h"
 #include "Tools.h"
-#include <boost/numeric/ublas/operation.hpp>
+
 
 /** \brief Constructor d'un objet Kalman
 

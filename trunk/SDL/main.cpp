@@ -1,5 +1,6 @@
 #include "SceneOpenGL.h"
 #include "Tools.h"
+#include "Quaternion.h"
 
 int main(int argc, char *argv[]) {
 
@@ -7,17 +8,21 @@ int main(int argc, char *argv[]) {
 	int _mode = 0;		// Mode de simulation -- affecter dans la partie déclaration des instruments
 	int _step = 0;		// 
 	double _wx, _wy, _wz, _Ax, _Ay, _Az, _dt;
+	double angle;
+
 	vect4D _vAngulaire_t, _acceleration_t, _magnetic_t, _orientation_t, _vAngulaire_t_deg;
 	vect4D _initKalman = { 0, 0, 0, 0 };
 	vect4D _vAngulaireInit = { 0, 0, 0, 0 };
 	vect3D	angles;		// Les 3 angles de résultats
 	vect3D	orientationData;	// Orientations lits du capteur 
+	vect3D	axe;
 
 	bool _headingResult(false);		// Variable pour le test du heading du fichier de résultat
 	bool terminer(false);		// Indique la fin de la simulation
 
 	quaternion<double> _quatResult;		// Quaternion contenant le résultat
 	quaternion<double> _quatMeasure;		// Quaternion d'observation
+	quaternion<double> q_base(1, 0, 0, 0);
 
 	matrix<double> _matObs, _matResult, _matCmde;	// Les matrices contenant les valeurs d'observation, du résultat et de la commande
 
@@ -84,8 +89,23 @@ int main(int argc, char *argv[]) {
 
 	if (!scene.iniGL()) 	{ system("PAUSE"); return -1; }
 
+
+	if (_mode == 3)
+	{
+		createMeasureFile(FILENAME, DIRECTIONS, SAMPLETIME, 1, 0);
+		srand(time(NULL));
+	}
+	else if (_mode == 4)
+	{
+		Serial link(PORTSERIE, BAUD);
+		int nbMes;
+		std::cout << "entrez le nombre de mesures a copier : " << std::endl;
+		std::cin >> nbMes;
+		fileFromSerial("serial.txt", link, nbMes);
+	}
+
 	/* Boucle Principale (avec Traitement Filtre Kalman + Affichage SDL */
-	while (!terminer){
+	while (!terminer && (_mode == 1 || _mode == 2)){
 
 		/* Récupère les mesures d'accélération, de vitesse angulaire et du magnétomètre */
 		if (_mode == 1){
@@ -93,23 +113,26 @@ int main(int argc, char *argv[]) {
 			trait_accel.stockerValeurs();
 			trait_magne.stockerValeurs();
 			trait_orient.stockerValeurs();
-			_vAngulaire_t = gyros.getMesures();
-			_acceleration_t = accel.getMesures();
-			_magnetic_t = magne.getMesures();
-			_orientation_t = orient.getMesures();
 			filefromSensor("gyro.csv", filegyro, _vAngulaire_t);
 			filefromSensor("acce.csv", fileacce, _acceleration_t);
 			filefromSensor("mnet.csv", filemnet, _magnetic_t);
 			filefromSensor("orie.csv", fileorie, _orientation_t);
 		}
-		else{
-			_vAngulaire_t = readDatafromFile("gyro.csv", filegyro, _step);
-			_acceleration_t = readDatafromFile("acce.csv", fileacce, _step);
-			_magnetic_t = readDatafromFile("mnet.csv", filemnet, _step);
-			_orientation_t = readDatafromFile("orie.csv", fileorie, _step);
+		else if (_mode == 2){
+			trait_gyros.stockerValeurs(readDatafromFile("gyro.csv", filegyro, _step));
+			trait_accel.stockerValeurs(readDatafromFile("acce.csv", fileacce, _step));
+			trait_magne.stockerValeurs(readDatafromFile("mnet.csv", filemnet, _step));
+			trait_orient.stockerValeurs(readDatafromFile("orie.csv", fileorie, _step));
 		}
 
+		_vAngulaire_t = trait_gyros.moyenner(2);
+		_acceleration_t = trait_accel.moyenner(2);
+		_magnetic_t = trait_magne.moyenner(2);
+		_orientation_t = trait_orient.moyenner(2);
+
+
 		/* Traitement des données et le filtre de Kalman */
+		/* Vitesse angulaire ->> dans le repère global */
 		_wx = _vAngulaire_t.x;
 		_wy = _vAngulaire_t.y;
 		_wz = _vAngulaire_t.z;
@@ -128,6 +151,8 @@ int main(int argc, char *argv[]) {
 		une_rotation.majSystem(true, 'A', A, B, C);
 
 		_quatMeasure = anglesToQuat(_orientation_t.x, _orientation_t.y, _orientation_t.z);
+		q_base = q_base*_quatResult;
+		quatComp(q_base, axe, angle);
 
 		_matObs(0, 0) = _quatMeasure.R_component_1();
 		_matObs(1, 0) = _quatMeasure.R_component_2();
@@ -161,7 +186,15 @@ int main(int argc, char *argv[]) {
 		_step++;
 
 		/* Affichage SDL */
-		terminer = scene.bouclePrincipale(angles);
+		if ((_acceleration_t.x == 0 && _acceleration_t.y == 0 && _acceleration_t.z == 0) &&
+			(_vAngulaire_t.x == 0 && _vAngulaire_t.y == 0 && _vAngulaire_t.z == 0) &&
+			(_magnetic_t.x == 0 && _magnetic_t.y == 0 && _magnetic_t.z == 0) &&
+			(_orientation_t.x == 0 && _orientation_t.y == 0 && _orientation_t.z == 0)){
+			terminer = true;
+		}
+		else{
+			terminer = scene.bouclePrincipale(axe, angle);
+		}
 	}
 
 	return 0;
