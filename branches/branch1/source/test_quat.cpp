@@ -13,7 +13,7 @@ void test_eulerQuat(void)
 
 	system("cls");
 	_RPT0(0, "\n");
-	phi = 90;
+	phi = 15;
 	teta = 0;
 	psi = 0;
 	std::cout << std::endl << "Angle avant conversion :\nphi = " << phi << "\nteta = "<< teta << "\npsi = " << psi << std::endl;
@@ -36,7 +36,7 @@ void test_eulerQuat(void)
 	std::cout << "angle apres conversion :\nphi = " << angle.x << "\nteta = " << angle.y << "\npsi =" << angle.z << std::endl << std::endl;
 
 	phi = 0;
-	teta = 180;
+	teta = 380;
 	psi = 0;
 	std::cout << "Angle avant conversion :\nphi = " << phi << "\nteta = "<< teta << "\npsi = " << psi << std::endl;
 	q1 = danglesToQuat(phi, teta, psi);

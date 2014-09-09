@@ -188,7 +188,6 @@ void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 		_RPT0(0, "GYROSCOPE\n");
 		
 
-
 		//anglePlus = tabTrait[0]->renvoyerVal(1);
 		//_RPT0(0, "ACCELEROMETRE\n");
 		//vect3D acce = tabTrait[1]->renvoyerVal(1);

@@ -49,18 +49,10 @@ int main(int argc, char *argv[]) {
 			tab[3] = new Traitement("orie","simMeasures.txt");
 			tabDefine = true;
 		}
-
 		else if (mode == 3)
 		{
 			createMeasureFile(FILENAME, DIRECTIONS, SAMPLETIME,1);
 			srand(time(NULL));
-			/*matrix<double> predict_vector(4,1,0);
-			matrix<double> cov_estimate(4,4,0);
-			for (int i = 0; i < 4; i++)
-			{
-				predict_vector(i, 0) = 1.0;
-				cov_estimate(i, i) = 1.0;
-			}*/
 		}
 		else if (mode == 4)
 		{
@@ -99,24 +91,6 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-//Kalman init_kalman(int nb_in, int nb_out, int nb_state, int nb_step)
-//{
-//	matrix<double> *_p_cov, *_p_predict;
-//	/* Initialisation du filtre de Kalman + Système */
-//	//matrix<double> mat_cov(nb_state, nb_state, 0), init_predict(nb_state, 1, 0);
-//	_p_cov = new matrix<double>(nb_state, nb_state, 0);
-//	_p_predict = new matrix<double>(nb_state, 1, 0);
-//
-//	for (int i = 0; i < nb_state; i++){
-//	(*_p_cov)(i, i) = 1;
-//	(*_p_predict)(i, 0) = 1;
-//	}
-//
-//	/* Instanciation */
-//	Kalman rotation(nb_in, nb_out, nb_state, nb_step, *_p_predict, *_p_cov);
-//
-//	return rotation;
-//}
 
 /**
 * \brief Créé un fichier de mesures à partir des directions indiquée dans un autre fichier
@@ -124,13 +98,14 @@ int main(int argc, char *argv[]) {
 * et les mets sous forme de fichier pouvant etre lu par la classe Traitement
 * \param filename : nom du fichier de mesures à créer
 * \param direction : nom du fichier dans lequel la fonction va puiser ces information
-* \param sampleTime : temps d'échantillonage que l'on veut utiliser lors de la simulation
+* \param sampleTime : temps d'échantillonage que l'on veut utiliser lors de la simulation (en millisecondes)
 * \param variation (défaut = 0) : erreur absolue qui peut s'ajouter ou se soustraire à chaque mesure
 * \param bias (défaut = 0) : biais à ajouter à chaque mesure
 */
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation, double bias)
 {
 	std::fstream fDirection, fMeas;
+	vect3D orientation = {0,0,0};
 	fDirection.open(direction, std::ios::in);
 	fMeas.open(filename, std::fstream::out);
 	if ((fDirection.rdstate() && std::ifstream::failbit) != 0)
@@ -159,6 +134,8 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 				{
 					fMeas << "gyro:" << '\n';
 					fMeas << 'x' << addError(0,variation,bias) << ';' << 'y' << addError(0,variation,bias) << ';' << 'z' << addError(0,variation,bias) << ';' << 't' << tEcoule << ';' << '\n';
+					fMeas << "orie;" << '\n';
+					fMeas << 'x' << 0 << ';' << 'y' << 0 << ';' << 'z' << 0 << ';' << 't' << tEcoule << ';' << '\n';
 					tEcoule += sampleTime;
 				}
 
@@ -170,6 +147,11 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 					val3e = addError(val3,variation,bias);
 					fMeas << "gyro:" << '\n';
 					fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
+					orientation.x += val1*SAMPLETIME/1000;
+					orientation.y += val2*SAMPLETIME/1000;
+					orientation.z += val3*SAMPLETIME/1000;
+					fMeas << "orie:" << '\n';
+					fMeas << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
 					tEcoule += sampleTime;
 				}
 			}
