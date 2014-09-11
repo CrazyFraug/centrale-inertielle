@@ -42,13 +42,9 @@ vect4D operator+(vect4D v1, vect3D v2)
 	return result;
 }
 
+/************************************************************************/
 
-/**
-* \brief Constructeur d'Instrument
-* prend en argument un objet de type Serial
-* \param nom : chaine de caractere qui identifie l'instrument
-* \param link : communication série associée
-*/
+/*	Constructeur	*/
 Instrument::Instrument(char* nom, int mode) :ID(nom)
 {
 	if (mode == 1){
@@ -70,23 +66,19 @@ Instrument::Instrument(char* nom, int mode) :ID(nom)
 	_t_acq[2] = clock();
 }
 
-/** \brief Destructeur
-*/
+/************************************************************************/
+
+/*	Destructeur	*/
 Instrument::~Instrument()
 {
 }
 
+/************************************************************************/
 
-/**Getter**/
+/*	Getter	*/
 
-/** brief return the "mesures" 4D vector
-*/
 vect4D Instrument::getMesures(void) { return _mesures; }
 
-/**
-* \brief Return the last measure of the Instrument relative to an axe
-* \param [in] axe is the axe you want the measure from (axe = 1 -> X axis | ... | axe = 4 -> time axis
-*/
 double Instrument::getMesure(int axe)
 {
 	switch (axe)
@@ -111,20 +103,19 @@ double Instrument::getMesure(int axe)
 
 clock_t* Instrument::getTemps(void) { return _t_acq; }
 
-/**
-* \brief return the time of the last measure according to the parameter axe
-*/
 clock_t Instrument::getTemps(int axe) { return _t_acq[axe - 1]; }
 
+std::string Instrument::getnomfichier(void){
+	return fileName;
+}
 char* Instrument::getID(void){
 	return ID;
 }
 
+/************************************************************************/
 
-/**Setter**/
+/*	Setter	*/
 
-/** \brief fills the _t_acq table with the new values (as parameter)
-*/
 void Instrument::setTemps(clock_t* nvTemps)
 {
 	_t_acq[0] = nvTemps[0];
@@ -132,8 +123,6 @@ void Instrument::setTemps(clock_t* nvTemps)
 	_t_acq[2] = nvTemps[2];
 }
 
-/** \brief fills the _valeursInitiales table with the new values (as parameter)
-*/
 void Instrument::setVI(vect3D valeurs)
 {
 	_valeursInitiales.x = valeurs.x;
@@ -146,21 +135,28 @@ void Instrument::setMesuresX(double val){ _mesures.x = val; }
 void Instrument::setMesuresY(double val){ _mesures.y = val; }
 void Instrument::setMesuresZ(double val){ _mesures.z = val; }
 void Instrument::setMesuresT(double val){ _mesures.temps = val; }
-/** Autres methodes **/
+
+/************************************************************************/
 
 void Instrument::majMesures()
 {
 	if (_serialLink != NULL){
-		majSerial();
+		_RPT1(0, "SENSOR NAME: %s \n", getID());
+		packDatas data = _serialLink->readDatas(getID());
+		if (strcmp(getID(), data.sensor_name.c_str()) == 0){
+			setMesuresX(data.datas.x);
+			setMesuresY(data.datas.y);
+			setMesuresZ(data.datas.z);
+			setMesuresT(data.datas.temps);
+		}
+		else{
+			_RPT2(0, "CAPTEUR COM %s N'EST PAS LE CAPTEUR DEMANDE %s \n", data.sensor_name.c_str(), getID());
+		}
 	}
 }
 
+/************************************************************************/
 
-std::string Instrument::getnomfichier(void){
-	return fileName;
-}
-
-/** \brief retire les conditions initiales (in progress)*/
 void Instrument::soustraireVI(void)
 {
 	_mesures.x -= _valeursInitiales.x;
@@ -168,10 +164,8 @@ void Instrument::soustraireVI(void)
 	_mesures.z -= _valeursInitiales.z;
 }
 
+/************************************************************************/
 
-
-
-//calibrer l'instrument en initialisant les valeurs initiales
 void Instrument::calibrer(void)
 {
 	majMesures();
@@ -189,6 +183,8 @@ void Instrument::calibrer(void)
 	_valeursInitiales.z = _mesures.z;
 
 }
+
+/************************************************************************/
 
 void Instrument::afficherMesures() const
 {
@@ -232,43 +228,5 @@ void Instrument::afficherVI() const
 
 }
 
-///** Sous-classe Instrument_serie **/
-//
-//
-///**
-//* \brief Constructeur d'Instrument_serie
-//* prend en argument un objet de type Serial
-//* \param nom : chaine de caractere qui identifie l'instrument
-//* \param link : communication série associée
-//*/
-//Instrument_serie::Instrument_serie(char* nom, Serial *link) :Instrument(nom), _serialLink(link)
-//{
-//	std::string filename = getID();
-//	filename += ".txt";
-//	nom_fichier = filename;
-//}
-//
-//Instrument_serie::~Instrument_serie() { }
-//
-//void Instrument_serie::majMesures()
-//{
-//	majSerial();
-//}
-//
-///**
-//* \brief mise a jour des valeurs de l'instrument avec les données envoyées via le port série
-//*/
-void Instrument::majSerial(/*char *IDSensor*/)
-{
-	_RPT1(0, "SENSOR NAME: %s \n", getID());
-	packDatas data = _serialLink->readData_s(getID());
-	if (strcmp(getID(), data.sensor_name.c_str()) == 0){
-		setMesuresX(data.datas.x);
-		setMesuresY(data.datas.y);
-		setMesuresZ(data.datas.z);
-		setMesuresT(data.datas.temps);
-	}
-	else{
-		_RPT2(0, "CAPTEUR COM %s N'EST PAS LE CAPTEUR DEMANDE %s \n", data.sensor_name.c_str(), getID());
-	}
-}
+/************************************************************************/
+

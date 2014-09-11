@@ -1,8 +1,7 @@
 #include "Traitement.h"
 #include "Tools.h"
 #include <iostream>
-#include <hash_map>
-#define _DEFINE_DEPRECATED_HASH_CLASSES 0
+
 /** Constructeur **/
 Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 {
@@ -13,15 +12,6 @@ Traitement::Traitement(Instrument* inst) :_compteur(0), _dt(0)
 		_valeurs[i] = new double[NB_VALEURS];
 	}
 }
-Traitement::Traitement(std::string nom_capteur) :_compteur(0), _dt(0)
-{
-	/** Allocation mémoire de la matrice de valeurs **/
-	for (int i = 0; i < 3; i++)
-	{
-		_valeurs[i] = new double[NB_VALEURS];
-	}
-}
-
 
 /** Destructeur **/
 Traitement::~Traitement()
@@ -32,17 +22,12 @@ Traitement::~Traitement()
 	}
 }
 
-Instrument* Traitement::getInstrument(void){
-	return (_capteur);
-}
-
+/*	Getter	*/
 double	Traitement::get_dt(){
 	return _dt;
 }
 
-void Traitement::setInstrument(Instrument *un_Instrument){
-	_capteur = un_Instrument;
-}
+/***************************************************************************/
 
 void Traitement::stockerValeurs(vect4D val)
 {
@@ -84,12 +69,8 @@ void Traitement::stockerValeurs(vect4D val)
 	//_RPT1(0, "compteur = %d\n", _compteur);
 }
 
-/**
-*      \brief stocke des valeurs passées en argument dans la matrice de valeur attribut
-*      la variable compteur permet de savoir si la matrice est remplie ou pas
-*      si la matrice est deja remplie, elle se contente de remplacer la premiere valeur de chaque ligne avec les valeurs en argument
-*      \param val vect3D défini dans structure.h contenant les mesures a stocker
-*/
+/***************************************************************************/
+
 void Traitement::stockerValeurs()
 {
 	_capteur->majMesures(/*_capteur->getID()*/);
@@ -123,11 +104,8 @@ void Traitement::stockerValeurs()
 	//_RPT1(0, "compteur = %d\n", _compteur);
 }
 
-/**
-*  \brief realise la moyenne des valeurs d'une ligne de la matrice
-*  \param axe numero de la ligne que l'on veut moyenner
-*  \return la moyenne d'une ligne
-*/
+/***************************************************************************/
+
 double Traitement::moyennerAxe(int axe)
 {
 	double moyenne = 0;
@@ -139,10 +117,7 @@ double Traitement::moyennerAxe(int axe)
 	return (moyenne / _compteur);
 }
 
-/**
-* \brief renvoie la moyenne des valeurs de chaque axe sous forme de vect3D
-* \param nb : nombre de valeurs à moyenner. La fonction réalisera la moyenne des "nb" dernières valeurs mesurées
-*/
+
 vect4D Traitement::moyenner(int nb)
 {
 	vect4D res = { 0, 0, 0, 0 };
@@ -167,12 +142,8 @@ vect4D Traitement::moyenner(int nb)
 	return res;
 }
 
+/***************************************************************************/
 
-/**
-* \brief calcul la variation d'angle (en degré)
-* la fonction utilise les attributs privés _dt et appelle la fonction Traitement::moyenner pour calculer l'angle
-* \return angles d'euler sous forme d'un vect3D
-*/
 vect3D Traitement::calculerAngle_deg()
 {
 	vect3D angles;
@@ -184,19 +155,8 @@ vect3D Traitement::calculerAngle_deg()
 	return angles;
 }
 
-/** A CHANGER
-* \brief Soustraction de l'influence de l'accélération g sur chacun des axes de l'accéléromètre
-*/
-void substractG(double matrice[3][3], double* accel_x, double* accel_y, double* accel_z)
-{
-	(*accel_x) = G*matrice[0][2];
-	(*accel_y) = G*matrice[1][2];
-	(*accel_z) = G*matrice[2][2];
-}
+/***************************************************************************/
 
-/**
-* \brief affiche les moyennes de chaque axe sur la sortie et sur la console
-*/
 void Traitement::afficherValeurs()
 {
 	_RPT1(0, "CAPTEUR %s : \n", _capteur->getID());
@@ -212,12 +172,8 @@ void Traitement::afficherValeurs()
 	}
 }
 
+/***************************************************************************/
 
-/**
-* \brief indique si le tableau _valeurs est rempli
-* i.e. si le nombres de mesures relevées suffit à remplir le tableau au moins une fois
-* \return boolean
-*/
 bool Traitement::tabFull()
 {
 	if (_compteur == NB_VALEURS)
@@ -226,4 +182,5 @@ bool Traitement::tabFull()
 		return false;
 }
 
+/***************************************************************************/
 

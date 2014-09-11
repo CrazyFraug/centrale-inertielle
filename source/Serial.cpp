@@ -1,37 +1,25 @@
 #include "Serial.h"
 #include "Tools.h"
-//for arduino: SCL to A5, SDA to A4, GND to ground and Vin to 5V
 
 
-/**
-* Constructor.
-* \param port device name, example "/dev/ttyUSB0" or "COM4"
-* \param baud_rate communication speed, example 9600 or 115200
-* \throws boost::system::system_error if cannot open the
-* serial device
-*/
+/******************************************************************************/
+
+/*	Constructor	*/
 Serial::Serial(std::string port, unsigned int baud_rate)
 : io(), serial(io, port)
 {
 	serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
 }
 
-/**
-* Write a string to the serial device.
-* \param s string to write
-* \throws boost::system::system_error on failure
-*/
+/******************************************************************************/
+
 void Serial::writeString(std::string s)
 {
 	boost::asio::write(serial, boost::asio::buffer(s.c_str(), s.size()));
 }
 
-/**
-* Blocks until a line is received from the serial device.
-* Eventual '\n' or '\r\n' characters at the end of the string are removed.
-* \return a string containing the received line
-* \throws boost::system::system_error on failure
-*/
+/******************************************************************************/
+
 std::string Serial::readLine()
 {
 	//Reading data char by char, code is optimized for simplicity, not speed
@@ -53,87 +41,9 @@ std::string Serial::readLine()
 	}
 }
 
-/** version gyro seul
-* \brief lit les valeurs qu'envoie l'arduino
-* les valeurs doivent être sous un format spécifique (on pourra le changer après):
-* string + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
-* exemple : "gyro:0.45y;0.12x;-5.2z;"
-* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
-*/
-double Serial::readDatas(int &axe)
-{
-	using namespace boost;
-	using namespace std;
-	char c;
-	string result;
-	axe = 0;
-	double testo = 0;
+/******************************************************************************/
 
-	for (;;)
-
-	{
-		asio::read(serial, asio::buffer(&c, 1));
-		switch (c)
-		{//crlf \r\n
-
-		case '\r':
-			break;
-		case ':':
-			result.clear();
-			break;
-		case '\n':
-			result.clear();
-			break;
-		case ';':
-			break;
-
-		case 'x':
-			asio::read(serial, asio::buffer(&c, 1));
-			if (c == ';')
-			{
-				axe = 1;
-				return string_to_double(result);
-			}
-			else result.clear();
-
-		case 'y':
-			asio::read(serial, asio::buffer(&c, 1));
-			if (c == ';')
-			{
-				axe = 2;
-				return string_to_double(result);
-			}
-			else result.clear();
-
-		case 'z':
-			asio::read(serial, asio::buffer(&c, 1));
-			if (c == ';')
-			{
-				axe = 3;
-				return string_to_double(result);
-			}
-			else result.clear();
-
-		case 't':
-			asio::read(serial, asio::buffer(&c, 1));
-			if (c == ';')
-			{
-				axe = 4;
-				return string_to_double(result);
-			}
-			else result.clear();
-
-		default:
-			result += c;
-		}
-	}
-}
-
-/**
-*	Lire les données viennent de l'arduino
-*	\return	packresult	packDatas	paquet de données contient le nom du capteur, les données selon les 3 axes et le temps
-*/
-packDatas Serial::readData_s(std::string name_sensor){
+packDatas Serial::readDatas(std::string name_sensor){
 	static double t_pred_out, average_pred_out = 0, t_begin = 0;
 
 	using namespace boost;
@@ -145,9 +55,9 @@ packDatas Serial::readData_s(std::string name_sensor){
 	packDatas packresult;
 
 	name.clear();
-	t_begin = clock();
-	average_pred_out = 0.8*average_pred_out + (1 - 0.8)*(clock() - t_pred_out);
-	_RPT1(0, "AVERAGE PRED OUT : %f \n", average_pred_out);
+	//t_begin = clock();
+	//average_pred_out = 0.8*average_pred_out + (1 - 0.8)*(clock() - t_pred_out);
+	//_RPT1(0, "AVERAGE PRED OUT : %f \n", average_pred_out);
 	/* Tant qu'on n'a pas fini de lire tout le paquet de donées */
 	asio::read(serial, asio::buffer(&c, 1));
 	if (name_sensor == "acce"){
@@ -227,100 +137,11 @@ packDatas Serial::readData_s(std::string name_sensor){
 			break;
 		}
 	}
-	_RPT1(0, "DUREE READ_DATA_S : %f \n", clock() - t_begin);
-	_RPT1(0, "TOTAL : %f \n", clock() - t_pred_out);
-	t_pred_out = clock();
+	//_RPT1(0, "DUREE READ_DATA_S : %f \n", clock() - t_begin);
+	//_RPT1(0, "TOTAL : %f \n", clock() - t_pred_out);
+	//t_pred_out = clock();
 
 	return packresult;
 }
 
-/**
-* \brief lit les valeurs qu'envoie l'arduino
-* les valeurs doivent être sous un format spécifique (on pourra le changer après):
-* type(char*) + ":" + valeur1 + "y"+";" + valeur2 + "x"+";" + valeur3 + "z"+";" + endl
-* exemple : "gyro:0.45y;0.12x;-5.2z;"
-* \param [out] axe :la variable axe représente l'axe dont la valeur à été mesurée : axe = 1 -> axe X | axe = 2 -> axe Y | axe = 3 -> axe Z |
-*/
-double Serial::readDatas(int &axe, char* type, bool &capteur)
-{
-	using namespace boost;
-	using namespace std;
-	char c;
-	string result;
-	axe = 0;
-
-	for (;;)
-
-	{
-		asio::read(serial, asio::buffer(&c, 1));
-		switch (c)
-		{//crlf \r\n
-
-		case '\r':
-			break;
-
-		case '\n':
-			result.clear();
-			break;
-
-		case ';':
-			result.clear();
-			break;
-
-		case 'x':
-			asio::read(serial, asio::buffer(&c, 1));
-
-			if (c == ';' && capteur)
-			{
-				axe = 1;
-				return string_to_double(result);
-			}
-			//else result.clear();
-
-			break;
-
-		case 'y':
-			asio::read(serial, asio::buffer(&c, 1));
-			if (c == ';' && capteur)
-			{
-				axe = 2;
-				return string_to_double(result);
-			}
-			else { result += 'y'; result += c; }
-			break;
-
-		case 'z':
-			asio::read(serial, asio::buffer(&c, 1));
-			if (c == ';' && capteur)
-			{
-				axe = 3;
-				return string_to_double(result);
-			}
-
-			//else result.clear();
-			break;
-
-		case 't':
-			asio::read(serial, asio::buffer(&c, 1));
-			if (c == ';' && capteur)
-			{
-				axe = 4;
-				return string_to_double(result);
-			}
-			else result.clear();
-			break;
-
-		case ':':
-			if (result == type)
-			{
-				capteur = true;
-			}
-			else capteur = false;
-			result.clear();
-			break;
-		default:
-			result += c;
-		}
-
-	}
-}
+/******************************************************************************/
