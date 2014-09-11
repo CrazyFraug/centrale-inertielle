@@ -7,8 +7,9 @@ int main(int argc, char *argv[]) {
 	/* Déclaration des variables locaux */
 	int _mode = 0;		// Mode de simulation -- affecter dans la partie déclaration des instruments
 	int _step = 0;		// 
-	double _wx, _wy, _wz, _Ax, _Ay, _Az, _dt;
+	double _wx, _wy, _wz, _Ax, _Ay, _Az;
 	double angle;
+	double _dt, _tPred, _tAct;
 
 	vect4D _vAngulaire_t, _acceleration_t, _magnetic_t, _orientation_t, _vAngulaire_t_deg;
 	vect4D _initKalman = { 0, 0, 0, 0 };
@@ -17,15 +18,18 @@ int main(int argc, char *argv[]) {
 	vect3D	orientationData;	// Orientations lits du capteur 
 	vect3D	axe;
 
+	bool tabMajSys[3];			// Tableau contenant la maj du Système 0->A, 1->B, 2->C
 	bool _headingResult(false);		// Variable pour le test du heading du fichier de résultat
 	bool terminer(false);		// Indique la fin de la simulation
 
 	quaternion<double> _quatResult;		// Quaternion contenant le résultat
 	quaternion<double> _quatMeasure;		// Quaternion d'observation
 	quaternion<double> q_base(1, 0, 0, 0);
+	quaternion<double> _quatInit;		// Quaternion initialisation (déclaré avec la conversion d'angle initial)
+	quaternion<double> _quatBias;		// Biais de mesure convertis en quaternion
 
 	matrix<double> _matObs, _matResult, _matCmde;	// Les matrices contenant les valeurs d'observation, du résultat et de la commande
-
+	matrix<double> _obsInit;
 	/* L'objet de OpenGL pour l'affichage */
 	SceneOpenGL scene("letitre", 800, 600);
 
@@ -51,18 +55,22 @@ int main(int argc, char *argv[]) {
 	matrix<double> mat_cov(4, 4, 0), init_predict(4, 1, 0);
 
 	C(0, 0) = C(1, 1) = C(2, 2) = C(3, 3) = 1;
-	R(0, 0) = 0.05;
-	R(1, 1) = 0.05;
-	R(2, 2) = 0.05;
-	R(3, 3) = 0.05;
 
+	_quatBias = anglesToQuat(0.02, 0.01, 0);
+
+	R(0, 0) = _quatBias.R_component_1();
+	R(1, 1) = _quatBias.R_component_2();
+	R(2, 2) = _quatBias.R_component_3();
+	R(3, 3) = _quatBias.R_component_4();
+
+	_quatInit = anglesToQuat(90, 1.5, 0);
 
 	for (int i = 0; i < 4; i++)
-		mat_cov(i, i) = 0.5;
-	init_predict(0, 0) = 0.7071067811865476;
-	init_predict(1, 0) = 0;
-	init_predict(2, 0) = -0.7071067811865476;
-	init_predict(3, 0) = 0;
+		mat_cov(i, i) = 0.7;
+	init_predict(0, 0) = _quatInit.R_component_1();
+	init_predict(1, 0) = _quatInit.R_component_2();
+	init_predict(2, 0) = _quatInit.R_component_3();
+	init_predict(3, 0) = _quatInit.R_component_4();
 
 
 	Kalman une_rotation(0, 4, 4, 100);
@@ -72,6 +80,15 @@ int main(int argc, char *argv[]) {
 	_matCmde = zero_matrix<double>(une_rotation.getSizeIn(), 1);
 	_matObs.resize(une_rotation.getSizeState(), 1);
 	_matResult.resize(une_rotation.getSizeState(), 1);
+	_obsInit.resize(une_rotation.getSizeState(), 1);
+	_obsInit(0, 0) = 1;
+	_obsInit(1, 0) = _obsInit(2, 0) = _obsInit(3, 0) = 0;
+
+	_dt = _tPred = _tAct = 0;
+	tabMajSys[0] = true;
+	tabMajSys[1] = false;
+	tabMajSys[2] = false;
+
 
 	/* Déclaration des fichiers d'écriture/lecture des valeurs */
 	std::fstream filegyro;
@@ -107,36 +124,57 @@ int main(int argc, char *argv[]) {
 	/* Boucle Principale (avec Traitement Filtre Kalman + Affichage SDL */
 	while (!terminer && (_mode == 1 || _mode == 2)){
 
+		_RPT1(0, "----------	STEP %d		---------------\n", _step);
+
 		/* Récupère les mesures d'accélération, de vitesse angulaire et du magnétomètre */
 		if (_mode == 1){
-			trait_gyros.stockerValeurs();
-			trait_accel.stockerValeurs();
-			trait_magne.stockerValeurs();
-			trait_orient.stockerValeurs();
+			//trait_gyros.stockerValeurs();
+			//trait_accel.stockerValeurs();
+			//trait_magne.stockerValeurs();
+			//trait_orient.stockerValeurs();
+			gyros.majMesures();
+			accel.majMesures();
+			magne.majMesures();
+			orient.majMesures();
+			_vAngulaire_t = gyros.getMesures();/*trait_gyros.moyenner(2);*/
+			_acceleration_t = accel.getMesures();/*trait_accel.moyenner(2);*/
+			_magnetic_t = magne.getMesures();/*trait_magne.moyenner(2);*/
+			_orientation_t = orient.getMesures();/* trait_orient.moyenner(2);*/
+		}
+		else if (_mode == 2){
+			//trait_gyros.stockerValeurs(readDatafromFile("gyro.csv", filegyro, _step));
+			//trait_accel.stockerValeurs(readDatafromFile("acce.csv", fileacce, _step));
+			//trait_magne.stockerValeurs(readDatafromFile("mnet.csv", filemnet, _step));
+			//trait_orient.stockerValeurs(readDatafromFile("orie.csv", fileorie, _step));
+			_vAngulaire_t = readDatafromFile("gyro.csv", filegyro, _step)/*trait_gyros.moyenner(2)*/;
+			_acceleration_t = readDatafromFile("acce.csv", fileacce, _step)/*trait_accel.moyenner(2)*/;
+			_magnetic_t = readDatafromFile("mnet.csv", filemnet, _step)/*trait_magne.moyenner(2)*/;
+			_orientation_t = readDatafromFile("orie.csv", fileorie, _step)/*trait_orient.moyenner(2)*/;
+		}
+
+		/* Ecriture les données dans le cas simulation avec capteur */
+		if (_mode == 1){
 			filefromSensor("gyro.csv", filegyro, _vAngulaire_t);
 			filefromSensor("acce.csv", fileacce, _acceleration_t);
 			filefromSensor("mnet.csv", filemnet, _magnetic_t);
 			filefromSensor("orie.csv", fileorie, _orientation_t);
 		}
-		else if (_mode == 2){
-			trait_gyros.stockerValeurs(readDatafromFile("gyro.csv", filegyro, _step));
-			trait_accel.stockerValeurs(readDatafromFile("acce.csv", fileacce, _step));
-			trait_magne.stockerValeurs(readDatafromFile("mnet.csv", filemnet, _step));
-			trait_orient.stockerValeurs(readDatafromFile("orie.csv", fileorie, _step));
-		}
-
-		_vAngulaire_t = trait_gyros.moyenner(2);
-		_acceleration_t = trait_accel.moyenner(2);
-		_magnetic_t = trait_magne.moyenner(2);
-		_orientation_t = trait_orient.moyenner(2);
-
 
 		/* Traitement des données et le filtre de Kalman */
 		/* Vitesse angulaire ->> dans le repère global */
-		_wx = _vAngulaire_t.x;
-		_wy = _vAngulaire_t.y;
-		_wz = _vAngulaire_t.z;
-		_dt = trait_gyros.get_dt();
+		if (_step < 100){
+			_wx = _wy = _wz = 0;
+		}
+		else{
+			_wx = _vAngulaire_t.x;
+			_wy = _vAngulaire_t.y;
+			_wz = _vAngulaire_t.z;
+		}
+		_tAct = _vAngulaire_t.temps;
+		_dt = (_tAct - _tPred) / 1000;
+		_tPred = _tAct;
+
+		_RPT1(0, "DT : %f \n", _dt);
 
 		_Ax = 0.5*_wx*_dt;
 		_Ay = 0.5*_wy*_dt;
@@ -148,11 +186,9 @@ int main(int argc, char *argv[]) {
 		A(2, 0) = _Ay; A(2, 1) = -_Az; A(2, 3) = _Ax;
 		A(3, 0) = _Az; A(3, 1) = _Ay; A(3, 2) = -_Ax;
 
-		une_rotation.majSystem(true, 'A', A, B, C);
+		une_rotation.majSystem(tabMajSys, A, B, C);
 
 		_quatMeasure = anglesToQuat(_orientation_t.x, _orientation_t.y, _orientation_t.z);
-		q_base = q_base*_quatResult;
-		quatComp(q_base, axe, angle);
 
 		_matObs(0, 0) = _quatMeasure.R_component_1();
 		_matObs(1, 0) = _quatMeasure.R_component_2();
@@ -161,7 +197,7 @@ int main(int argc, char *argv[]) {
 
 		/* Filtre de Kalman */
 		if (_step < 100){
-			_matResult = kalmanTraitement(une_rotation, _matCmde, _matObs);
+			_matResult = kalmanTraitement(une_rotation, _matCmde, _obsInit);
 		}
 		else{
 			/*if ((v_angulaire_t.x > 0.001 || v_angulaire_t.x < -0.001)  &&
@@ -172,7 +208,8 @@ int main(int argc, char *argv[]) {
 		}
 		_quatResult = quaternion<double>(_matResult(0, 0), _matResult(1, 0), _matResult(2, 0), _matResult(3, 0));
 		angles = quatToAngles_deg(_quatResult);
-
+		q_base = q_base*_quatResult;
+		quatComp(_quatResult, axe, angle);
 
 		/* Ecriture du résultat (angles calculés avec Kalman + orientation écriture capteur) */
 		orientationData.x = _orientation_t.x;
@@ -193,8 +230,9 @@ int main(int argc, char *argv[]) {
 			terminer = true;
 		}
 		else{
-			terminer = scene.bouclePrincipale(axe, angle);
+			terminer = scene.bouclePrincipale(/*angles*/axe, angle);
 		}
+		_RPT1(0, "----------	FIN STEP	---------------\n", _step);
 	}
 
 	return 0;

@@ -3,17 +3,9 @@
 #include "Kalman.h"
 #include "Tools.h"
 
-
 /** \brief Constructor d'un objet Kalman
-
-*	\param	int				nb_in				--	Nombre d'entrées du système
-\param	int				nb_out				--	Nombre de sorties du système
-\param	int				nb_state			--	Nombre de variables d'état du système
-\param	int				nb_step				--	Nombre d'échantillon d'initialisation du système
-\param	matrix<double>	init_predict		--	Vector d'initialisation du vecteur d'état
-\param	matrix<double>	init_cov_estimate	--	Matrice d'initialisation de la matrice de covariance
 */
-Kalman::Kalman(int nb_in, int nb_out, int nb_state, int step) : test_value(0)
+Kalman::Kalman(int nb_in, int nb_out, int nb_state, int step)
 {
 	/********************************************************************/
 	/* Affectation les nombres d'entrées, sorties et d'état du système	*
@@ -58,12 +50,17 @@ Kalman::Kalman(int nb_in, int nb_out, int nb_state, int step) : test_value(0)
 
 }
 
-/** \brief	Destructor
+/*******************************************************************************************************/
+
+/* \brief	Destructor
 */
 Kalman::~Kalman()
 {
 }
 
+/*******************************************************************************************************/
+
+/* Getter */
 int Kalman::getSizeIn(){
 	return sys.size_in;
 }
@@ -76,41 +73,44 @@ int Kalman::getSizeState(){
 	return sys.size_state;
 }
 
-/** \brief	Fonction déclare le système sur lequel on veut travailler/filtrer
+/*******************************************************************************************************/
 
-*	\param	matrix<double>	A	--	matrice de transition, matrice carrée de taille = nombre d'états du système
-\param	matrix<double>	B	--	matrice de commande, matrice de taille : nombre d'états du système x nombre d'entrées
-\param	matrix<double>	C	--	matrice de sortie, matrice de taille : nombre de sortie x nombre d'états du système
-
-*	\return void
-*/
 void Kalman::declare_system(matrix<double> A, matrix<double> B, matrix<double> C){
 	sys.mat_transition = A;
 	sys.mat_cmde = B;
 	sys.mat_sortie = C;
 }
 
-/** \brief	Fonction déclare les matrices de covariance des bruits de commande et de mesure du système
+/*******************************************************************************************************/
 
-*	\param	matrix<double>	Q	-- matrice de covariance de commande, matrice carrée de taille = nombre d'états du système
-\param	matrix<double>	R	-- matrice de covariance de mesure, matrice de taille : nombre de sortie x nombre d'états du système
-
-*	\return void
-*/
 void Kalman::declare_noise(matrix<double> Q, matrix<double> R){
 	kalm_sys.cov_cmde = Q;
 
 	kalm_sys.cov_mesure = R;
 }
 
-/** \brief Etape prédiction du filtre de Kalman à partir des données de la commande
+/*******************************************************************************************************/
 
-*	\param	matrix<double>	value_cmd	--	matrice des valeurs de la commande, matrice de taille : nombre d'états du système x nombre d'entrées
+void Kalman::initSystem(matrix<double> A, matrix<double> B, matrix<double> C, matrix<double> Q, matrix<double> R, matrix<double> init_predict, matrix<double> init_cov_estimate){
+	kalm_sys.cov_estimate = init_cov_estimate;
+	kalm_sys.predict_vector = init_predict;
+	declare_system(A, B, C);
+	declare_noise(Q, R);
+}
 
-*	\return void
+/*******************************************************************************************************/
 
-*	\test	test_Kalman	inclus dans le test_Kalman_rotation
-*/
+void Kalman::majSystem(bool maj[3], matrix<double> A, matrix<double> B, matrix<double> C){
+	if (maj[0] == true)
+		sys.mat_transition = A;
+	if (maj[1] == true)
+		sys.mat_cmde = B;
+	if (maj[2] == true)
+		sys.mat_sortie = C;
+}
+
+/*******************************************************************************************************/
+
 void Kalman::predict_step(matrix<double> value_cmd)
 {
 	/****************************************/
@@ -142,14 +142,8 @@ void Kalman::predict_step(matrix<double> value_cmd)
 	printMatrix(kalm_sys.cov_estimate);*/
 }
 
-/** \brief Etape mettre à jour les prédictions d'état et de covariance du filtre de Kalman grâce aux valeurs mesurées
+/*******************************************************************************************************/
 
-*	\param	matrix<double>	value_measure			--	 matrice des valeurs mesurées, matrice de taille : nombre de sortie x nombre d'états du système
-
-*	\return	matrix<double>	kalm_sys.predict_vector	--	matrice des valeurs estimées
-
-*	\test	test_Kalman		VALIDE!
-*/
 matrix<double> Kalman::update_step(matrix<double> value_measure){
 	/****************************************/
 	/* Hk*Xk-1								*/
@@ -181,8 +175,7 @@ matrix<double> Kalman::update_step(matrix<double> value_measure){
 	/* Kk = Pk-1*trans(Hk)*Sk^-1			*/
 	/****************************************/
 	matrix<double> aux_2 = product_matrix(kalm_sys.cov_estimate, trans(sys.mat_sortie));
-	_RPT0(0, "AUX_2 : \n");
-	printMatrix(aux_2);
+
 	kalm_sys.kalman_gain = product_matrix(aux_2, conj(innov_covariance));
 	_RPT0(0, "KALMAN GAIN : \n");
 	printMatrix(kalm_sys.kalman_gain);
@@ -206,23 +199,5 @@ matrix<double> Kalman::update_step(matrix<double> value_measure){
 	return kalm_sys.predict_vector;
 }
 
-void Kalman::initSystem(matrix<double> A, matrix<double> B, matrix<double> C, matrix<double> Q, matrix<double> R, matrix<double> init_predict, matrix<double> init_cov_estimate){
-	kalm_sys.cov_estimate = init_cov_estimate;
-	kalm_sys.predict_vector = init_predict;
-	declare_system(A, B, C);
-	declare_noise(Q, R);
-}
+/*******************************************************************************************************/
 
-void Kalman::majSystem(bool maj, char mat, matrix<double> A, matrix<double> B, matrix<double> C){
-	if (maj == true){
-		if (mat = 'A'){
-			sys.mat_transition = A;
-		}
-		else if (mat = 'B'){
-			sys.mat_cmde = B;
-		}
-		else if (mat = 'C'){
-			sys.mat_sortie = C;
-		}
-	}
-}

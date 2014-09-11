@@ -3,14 +3,9 @@
 #include <hash_map>
 
 #define _DEFINE_DEPRECATED_HASH_CLASSES 0
-/** A CHANGER
-*	\brief Ecrire les données récupérées d'un capteur dans un fichier
-*
-*	\param filename	string		le nom du fichier - doit être en format "nom.txt" et doit être ouvert
-*   \param inst		Instrument	le capteur  dont on récupère les données
-*
-*   \test  test_filefromSensor
-*/
+
+/*****************************************************************************************/
+
 void writeHeading(std::string filename, std::fstream &myfile){
 	myfile.open(filename.c_str(), std::ios::app);
 	if (filename == "gyro.csv"){
@@ -28,9 +23,8 @@ void writeHeading(std::string filename, std::fstream &myfile){
 	myfile.close();
 }
 
-/**
-* \brief Ecrit dans un fichier les mesures prises par le capteur
-*/
+/*****************************************************************************************/
+
 void filefromSensor(std::string filename, std::fstream &myfile, vect4D data){
 
 	if (!myfile.is_open()){
@@ -50,16 +44,12 @@ void filefromSensor(std::string filename, std::fstream &myfile, vect4D data){
 	myfile.flush();
 }
 
-/**
-*	\brief Lire les données à partir d'un fichier
-*	\param	filename	string		le nom du fichier - doit être en format "nom.txt"
-*   \return data		vect4D		vecteur de 4 éléments (données selon l'axe x,y,z et le temps) pour un traitement
-*   \test  test_readDatafromFile
-*/
+/*****************************************************************************************/
+
 vect4D readDatafromFile(std::string filename, std::fstream &myfile, int cursor)
 {
 	vect4D data = { 0, 0, 0, 0 };
-	static stdext::hash_map<int, std::string> dataFromFile;
+	static stdext::hash_map<int, std::string> dataFromFile;	// Hash map contenant les valeurs du fichier
 	int i = 0;
 	std::string chaine;
 	if (!myfile.is_open()){
@@ -116,7 +106,7 @@ vect4D readDatafromFile(std::string filename, std::fstream &myfile, int cursor)
 	return data;
 }
 
-
+/*****************************************************************************************/
 
 int choiceMode(){
 
@@ -145,6 +135,8 @@ int choiceMode(){
 	return mode;
 }
 
+/*****************************************************************************************/
+
 void writeResult(double temps, vect3D angles_measure, vect3D angles_calcul, std::string fileResult, bool headingWrited)
 {
 	static std::fstream file_excel;
@@ -160,10 +152,8 @@ void writeResult(double temps, vect3D angles_measure, vect3D angles_calcul, std:
 	file_excel.flush();
 }
 
-/**
-* Convert a string into a double type variable
-* return 0 if function failed
-*/
+/*****************************************************************************************/
+
 float string_to_double(const std::string& s)
 {
 	std::stringstream convert(s);
@@ -176,6 +166,8 @@ float string_to_double(const std::string& s)
 	}
 	return x;
 }
+
+/*****************************************************************************************/
 
 double normAngle(double alpha)
 {
@@ -190,17 +182,7 @@ double normAngle(double alpha)
 	return result;
 }
 
-/** \brief	Filtre de Kalman avec les étapes de prédiction et mettre à jour d'état
-
-*	\param	Kalman			&rotation		--	Système à filtrer
-\param	matrix<double>	value_cmd		--	matrice contenant les données de la commande
-\param	matrix<double>	value_obs		--	matrice contenant les données d'observation
-
-*	\return matrix<double>	estimate_result	--	matrice contenant l'état estimé
-
-*	\test	test_Kalman_rotation	à tester les constants pour valider l'algorithme!
-
-*/
+/*****************************************************************************************/
 
 matrix<double> kalmanTraitement(Kalman &rotation, matrix<double> value_cmd, matrix<double> value_obs){
 
@@ -220,14 +202,8 @@ matrix<double> kalmanTraitement(Kalman &rotation, matrix<double> value_cmd, matr
 	/********************************************************************/
 }
 
+/*****************************************************************************************/
 
-/** \brief	Produit de deux matrices
-
-*	\param	matrix<double>	M1		--	Matrice gauche de taille m x n
-\param	matrix<double>	M2		--	Matrice gauche de taille n x o
-
-*	\return	matrix<double>	result	-- Résultat du produit de taille m x o (cas normal) || Message d'erreur si la taille des matrices ne convient pas
-*/
 matrix<double> product_matrix(matrix<double> M1, matrix<double> M2){
 	if (M1.size2() != M2.size1()){
 		_RPT0(_CRT_ERROR, "ERROR SIZE MATRIX \n");
@@ -245,6 +221,8 @@ matrix<double> product_matrix(matrix<double> M1, matrix<double> M2){
 	}
 }
 
+/*****************************************************************************************/
+
 void printMatrix(matrix<double> A){
 	for (int i = 0; i < A.size1(); i++){
 		_RPT0(0, "| ");
@@ -255,6 +233,7 @@ void printMatrix(matrix<double> A){
 	}
 }
 
+/*****************************************************************************************/
 
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation, double bias)
 {
@@ -334,6 +313,8 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 
 }
 
+/*****************************************************************************************/
+
 void fileFromSerial(std::string filename, Serial &link, int nbMes)
 {
 	std::fstream file;
@@ -352,6 +333,8 @@ void fileFromSerial(std::string filename, Serial &link, int nbMes)
 	}
 	file.close();
 }
+
+/*****************************************************************************************/
 
 void getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree)
 {
@@ -372,6 +355,7 @@ void getDirection(std::fstream &file, double &val1, double &val2, double &val3, 
 
 }
 
+/*****************************************************************************************/
 
 double addError(double baseValeur, double variation, double bias)
 {
@@ -381,3 +365,5 @@ double addError(double baseValeur, double variation, double bias)
 	meas += erreur*(variation * 2);
 	return (meas + bias);
 }
+
+/*****************************************************************************************/
