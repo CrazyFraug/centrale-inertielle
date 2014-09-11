@@ -2,40 +2,13 @@
 
 #define _USE_MATH_DEFINES
 
-/**Fonction non verifiée, utiliser danglesToQuat() de préférence */
-quaternion<double> anglesToQuat(double phi, double teta, double rho)
-{
-
-	double c1, c2, c3;
-	double s1, s2, s3;
-	double q1, q2, q3, q0;
-	double a, b1, b2, b3;
-	c1 = cos(phi / 2);
-	c2 = cos(teta / 2);
-	c3 = cos(rho / 2);
-	s1 = sin(phi / 2);
-	s2 = sin(teta / 2);
-	s3 = sin(rho / 2);
-	q0 = c1*s2*c3 - s1*c2*s3;
-	q1 = c1*c2*c3 + s1*s2*s3;
-	q2 = c1*c2*s3 - s1*s2*c3;
-	q3 = s1*c2*c3 + c1*s2*s3;
-	a = 2 * acos(q0);
-	b1 = acos(q1/sin(a/2));
-	b2 = acos(q2/sin(a/2));
-	b3 = acos(q3/sin(a/2));
-	quaternion<double> quat_resultat(q0, q1 , q2, q3);
-
-
-	return quat_resultat;
-}
-
 /** 
-* \brief convertie des angles d'Euler (en degrés) en un quaternion unitaire
+* \brief converti des angles d'Euler (en degrés) en un quaternion unitaire
 * body 3-2-1 sequence (yaw, pitch, roll)
-* with euler angles : psi = yaw (body-Z), teta = pitch (body-Y), phi = roll (body-X)
+* angles d'euler: psi = yaw (body-Z), teta = pitch (body-Y), phi = roll (body-X)
 * l'axe z est dirigé vers le haut
-* http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+* le sens diirect(positif) est le sens inverse des aiguilles d'une montre
+* basé sur : http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 * \param phi,teta,psi : angles en degrés autour des axes de rotation x,y,z (respectivement)
 */
 quaternion<double> danglesToQuat(double phi, double teta, double psi)
@@ -51,14 +24,15 @@ quaternion<double> danglesToQuat(double phi, double teta, double psi)
 	result = result*q3*q2*q1;
 	normalizeQuat(result);
 
-	_RPT4(0, "q = %f  %f  %f  %f \n", result.R_component_1(), result.R_component_2(), result.R_component_3(), result.R_component_4());
-
 	return result;
 }
 
 
 /**
-* \brief donne la valeur de l'axe et de l'angle de rotation à partir d'un quaternion
+* \brief donne les coordonées de l'axe de rotation ainsi que son angle à partir d'un quaternion
+* \param [in]q		: quaternion représentatn la rotation
+* \param [out]axe	: coordonées de l'axe données dans le repère inertiel
+* \param [out]angle	: angle de la rotation en radians
 */
 void quatComp(quaternion<double> q, vect3D &axe, double &angle)
 {
@@ -72,10 +46,11 @@ void quatComp(quaternion<double> q, vect3D &axe, double &angle)
 
 
 /**
+* \brief donne, à partir d'un quaternion, les angles d'euler (en degrés)
 * angles_result.x = phi (roll)
 * angles_result.y = teta (pitch)
 * angles_result.z = psi (yaw)
-* singularity if 2*(qw*qy - qz*qx) = +/- 1
+* singularité quand 2*(qw*qy - qz*qx) = +/- 1
 */
 vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 {
@@ -94,7 +69,7 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 
 	if (test > 0.499999999)
 	{
-		// Singularity at north pole
+		// Singularity at +1
 		angles_result.x = 0;									// Roll
 		angles_result.y = M_PI/2;								// Pitch
 		angles_result.z = 2 * (float)atan2(qx, qw);				// Yaw
@@ -102,7 +77,7 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 	}
 	else if (test < -0.499999999)
 	{
-		// Singularity at south pole
+		// Singularity at -1
 		angles_result.x = 0;									// Roll
 		angles_result.y = -M_PI/2;								// Pitch
 		angles_result.z = -2 * (float)atan2(qx, qw);			// Yaw
@@ -114,6 +89,7 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 		angles_result.z = (float)atan2(2*(qw*qz + qx*qy), 1 - 2*(qy2 + qz2));			// Yaw
 	}
 
+	//Conversion en degrés
 	angles_result.x *= (double)(180/M_PI);
 	angles_result.y *= (double)(180/M_PI);
 	angles_result.z *= (double)(180/M_PI);
@@ -121,20 +97,32 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 }
 
 
-void afficherQuat(quaternion<double> q)
+/**
+* \brief donne la matrice de rotation à partir d'un quaternion
+*/
+matrix<double> quatToMat(quaternion<double> q)
 {
-	using namespace std;
-	cout << q.R_component_1() << endl;
-	cout << q.R_component_2() << endl;
-	cout << q.R_component_3() << endl;
-	cout << q.R_component_4() << endl;
+	matrix<double> rotation(3, 3);
+	rotation(0, 0) = pow(q.R_component_1(), 2) + pow(q.R_component_2(), 2) - pow(q.R_component_3(), 2) - pow(q.R_component_4(), 2);
+	rotation(1, 1) = pow(q.R_component_1(), 2) - pow(q.R_component_2(), 2) + pow(q.R_component_3(), 2) - pow(q.R_component_4(), 2);
+	rotation(2, 2) = pow(q.R_component_1(), 2) - pow(q.R_component_2(), 2) - pow(q.R_component_3(), 2) + pow(q.R_component_4(), 2);
+
+	rotation(0, 1) = 2 * (q.R_component_2()*q.R_component_3() - q.R_component_1()*q.R_component_4());
+	rotation(0, 2) = 2 * (q.R_component_1()*q.R_component_3() + q.R_component_2()*q.R_component_4());
+	rotation(1, 0) = 2 * (q.R_component_1()*q.R_component_4() + q.R_component_2()*q.R_component_3());
+	rotation(1, 2) = 2 * (q.R_component_3()*q.R_component_4() - q.R_component_1()*q.R_component_2());
+	rotation(2, 0) = 2 * (q.R_component_2()*q.R_component_4() - q.R_component_1()*q.R_component_3());
+	rotation(2, 1) = 2 * (q.R_component_1()*q.R_component_2() + q.R_component_3()*q.R_component_4());
+
+	return rotation;
 }
+
 
 /**
 * \brief realise la rotation decrite par le quaternion sur le vecteur v
 * \param q quaternion representatn la rotation
 * \param v vecteur sur lequel on effectue la rotation
-* \return un vecteur 3D qui correspond a v apres rotation
+* \return un vecteur 3D qui correspond au param v apres rotation
 */
 vect3D rotateVector(quaternion<double> q, vect3D v)
 {
@@ -147,22 +135,64 @@ vect3D rotateVector(quaternion<double> q, vect3D v)
 	return v;
 }
 
+
+/**
+* \brief renvoie les vitesses angulaires dans le repère inertiel à partir de mesures satellitaires
+* \param q : quaternion définissant l'orientation du mobile
+* \param v : vitesses angulaires (repère satellitaire)
+* \return vitesse angulaire dans repère inertiel
+*/
+vect3D changeRepere (quaternion<double> q, vect3D v)
+{
+	matrix<double> rotation = quatToMat(q); //obtention de la matrice de rotation 
+	rotation = transposerMat(rotation); //inversion de la matrice, revient à effectuer sa transposée dans ce cas précis (rotation autour de x, y, z)
+	
+	//_RPT3(0, "Matrice transposée = \n\t%f\t%f\t%f\n", rotation(0,0), rotation(0,1), rotation(0,2)); 
+	//_RPT3(0, "\t%f\t%f\t%f\n", rotation(1,0), rotation(1,1), rotation(1,2)); 
+	//_RPT3(0, "\t%f\t%f\t%f\n", rotation(2,0), rotation(2,1), rotation(2,2)); 
+	
+	v = rotation*v; // V = PV' avec P la matrice de passage
+	return v;
+}
+
+
 /**
 * \brief normalise le quaternion
 * permet de mettre le quaternion sous forme unitaire quand sa norme est au dela de (1 + tolerance)
 * \param tolerance : (facultatif, défaut = 0)
-* \return norme du quaternion
 */
 void normalizeQuat(quaternion<double> &q, double tolerance)
 {
 	double norm2 = pow(q.R_component_1(), 2) + pow(q.R_component_2(), 2) + pow(q.R_component_3(), 2) + pow(q.R_component_4(), 2);
 	if ( norm2 > 1+tolerance)
 		q = q/sqrt(norm2);
-
 }
+
+
+/**
+* \brief renvoi la transposée d'une matrice 3x3
+* aussi utilisé pour effectuer l'inverse d'une matrice dans le cas de rotations selon x,y,z
+*/
+matrix<double> transposerMat(matrix<double> mat)
+{
+	matrix<double> transpose(3,3);
+	transpose(0,0) = mat(0,0);
+	transpose(1,1) = mat(1,1);
+	transpose(2,2) = mat(2,2);
+	transpose(0,1) = mat(1,0);
+	transpose(0,2) = mat(2,0);
+	transpose(1,0) = mat(0,1);
+	transpose(1,2) = mat(2,1);
+	transpose(2,0) = mat(0,2);
+	transpose(2,1) = mat(1,2);
+
+	return transpose;
+}
+
 
 /**
 * \brief centre les angles sur 0 dans un intervalle de [-180;+180]
+* \param [in/out]angle : angle en degré à recentrer
 */
 void centrerAngle(double &angle)
 {
@@ -178,6 +208,7 @@ void centrerAngle(double &angle)
 
 /**
 * \brief produit hamiltonien de 2 quaternions
+* operateur* surchargé pour prendre en compte cette multiplication ed quaternions
 */
 quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2)
 {
@@ -191,28 +222,55 @@ quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2)
 	return result;
 }
 
-matrix<double> quatToMat(quaternion<double> q)
-{
-	matrix<double> rotation(3, 3);
-	rotation(0, 0) = (pow(q.R_component_2(), 2) + pow(q.R_component_1(), 2)) - (pow(q.R_component_3(), 2) + pow(q.R_component_4(), 2));
-	rotation(1, 1) = (pow(q.R_component_3(), 2) + pow(q.R_component_1(), 2)) - (pow(q.R_component_4(), 2) + pow(q.R_component_2(), 2));
-	rotation(2, 2) = (pow(q.R_component_4(), 2) + pow(q.R_component_1(), 2)) - (pow(q.R_component_3(), 2) + pow(q.R_component_2(), 2));
-	rotation(0, 1) = 2 * (q.R_component_2()*q.R_component_3() - q.R_component_1()*q.R_component_4());
-	rotation(0, 2) = 2 * (q.R_component_2()*q.R_component_4() + q.R_component_1()*q.R_component_3());
-	rotation(1, 0) = 2 * (q.R_component_2()*q.R_component_3() + q.R_component_1()*q.R_component_4());
-	rotation(1, 2) = 2 * (q.R_component_3()*q.R_component_4() - q.R_component_1()*q.R_component_2());
-	rotation(2, 0) = 2 * (q.R_component_2()*q.R_component_4() - q.R_component_1()*q.R_component_3());
-	rotation(2, 1) = 2 * (q.R_component_3()*q.R_component_4() - q.R_component_1()*q.R_component_2());
 
-	return rotation;
+/** Affiche le quaternion sur la console */
+void afficherQuat(quaternion<double> q)
+{
+	using namespace std;
+	cout << "Quaternion = " << endl;
+	cout << q.R_component_1() << endl;
+	cout << q.R_component_2() << endl;
+	cout << q.R_component_3() << endl;
+	cout << q.R_component_4() << endl;
 }
 
 
+	/**OPERATEURS**/
+
+
+/**
+* \brief opérateur de multiplication entre une matrice 3x3 et un vecteur 3x1
+* \return vecteur 3x1
+*/
+vect3D operator*(matrix<double> m, vect3D v)
+{
+	vect3D vRes = {0,0,0};
+
+	if (m.size1() == 3 && m.size2() == 3)
+	{
+			vRes.x = v.x*m(0,0) + v.y*m(0,1) + v.z*m(0,2);
+			vRes.y = v.x*m(1,0) + v.y*m(1,1) + v.z*m(1,2);
+			vRes.z = v.x*m(2,0) + v.y*m(2,1) + v.z*m(2,2);
+	}
+	else
+		std::cout << "erreur : matrix dimensions" << std::endl;
+
+	return vRes;
+}
+
+
+/**
+* \brief operateur multiplication entre quaternions
+*/
 quaternion<double> operator*(quaternion<double> q1, quaternion<double> q2)
 {
 	return hamiltonProduct(q1,q2);
 }
 
+
+/**
+* \brief operateur division entre un quaternion et un double 
+*/
 quaternion<double> operator/(quaternion<double> q1, double b)
 {
 	quaternion<double> result(q1.R_component_1()/b, q1.R_component_2()/b, q1.R_component_3()/b, q1.R_component_4()/b);

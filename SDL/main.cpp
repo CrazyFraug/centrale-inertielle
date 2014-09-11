@@ -9,7 +9,7 @@
 
 
 double addError(double average, double variation, double bias=0);
-void getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree);
+bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree);
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
 void fileFromSerial(std::string filename, Serial &link, int nbMes);
 
@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
 		else if (mode == 5)
 		{
 			test_eulerQuat();
+			test_changeRepere();
 		}
 
 		if (tabDefine)
@@ -106,6 +107,8 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 {
 	std::fstream fDirection, fMeas;
 	vect3D orientation = {0,0,0};
+	bool endOfFile(false);
+	int i = 0;
 	fDirection.open(direction, std::ios::in);
 	fMeas.open(filename, std::fstream::out);
 	if ((fDirection.rdstate() && std::ifstream::failbit) != 0)
@@ -123,55 +126,63 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 		_RPT0(0,"Fichier mesures ouvert correctement\n");
 		double val1,val2,val3, tEcoule(0.0), temps, duree;
 		double val1e, val2e, val3e;
-		while (fDirection.eof() == false)
-		{
-			getDirection(fDirection, val1, val2, val3, temps, duree);
-			std::cout << "valeur 1 : "<< val1 << " ; valeur 2 : " << val2 << " ; valeur 3 : " << val3 << " ; temps : " << temps << " ; duree : " << duree << std::endl;
-
-			if (temps >= tEcoule)
-			{
-				while ( tEcoule < temps)
-				{
-					fMeas << "gyro:" << '\n';
-					fMeas << 'x' << addError(0,variation,bias) << ';' << 'y' << addError(0,variation,bias) << ';' << 'z' << addError(0,variation,bias) << ';' << 't' << tEcoule << ';' << '\n';
-					fMeas << "orie;" << '\n';
-					fMeas << 'x' << 0 << ';' << 'y' << 0 << ';' << 'z' << 0 << ';' << 't' << tEcoule << ';' << '\n';
-					tEcoule += sampleTime;
-				}
-
-				while (tEcoule < temps+duree)
-				{
-					//Ajout des erreurs de mesure:
-					val1e = addError(val1,variation,bias);
-					val2e = addError(val2,variation,bias);
-					val3e = addError(val3,variation,bias);
-					fMeas << "gyro:" << '\n';
-					fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
-					orientation.x += val1*SAMPLETIME/1000;
-					orientation.y += val2*SAMPLETIME/1000;
-					orientation.z += val3*SAMPLETIME/1000;
-					fMeas << "orie:" << '\n';
-					fMeas << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
-					tEcoule += sampleTime;
-				}
-			}
 		
-			else 
+		while (1)
+		{
+			if (!getDirection(fDirection, val1, val2, val3, temps, duree))
 			{
-					_RPT0(0, "temps inferieur a celui de la derniere ligne + duree, temps remanié");
-					temps = tEcoule;
+
+				std::cout << "valeur 1 : "<< val1 << " ; valeur 2 : " << val2 << " ; valeur 3 : " << val3 << " ; temps : " << temps << " ; duree : " << duree << std::endl;
+
+				if (temps >= tEcoule)
+				{
+					while ( tEcoule < temps)
+					{
+						fMeas << "gyro:" << '\n';
+						fMeas << 'x' << addError(0,variation,bias) << ';' << 'y' << addError(0,variation,bias) << ';' << 'z' << addError(0,variation,bias) << ';' << 't' << tEcoule << ';' << '\n';
+						fMeas << "orie;" << '\n';
+						fMeas << 'x' << 0 << ';' << 'y' << 0 << ';' << 'z' << 0 << ';' << 't' << tEcoule << ';' << '\n';
+						tEcoule += sampleTime;
+					}
 
 					while (tEcoule < temps+duree)
 					{
-					val1e = addError(val1,variation,bias);
-					val2e = addError(val2,variation,bias);
-					val3e = addError(val3,variation,bias);
-					fMeas << "gyro:" << '\n';
-					fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
-					tEcoule += sampleTime;
+						//Ajout des erreurs de mesure:
+						val1e = addError(val1,variation,bias);
+						val2e = addError(val2,variation,bias);
+						val3e = addError(val3,variation,bias);
+						fMeas << "gyro:" << '\n';
+						fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
+						orientation.x += val1*SAMPLETIME/1000;
+						orientation.y += val2*SAMPLETIME/1000;
+						orientation.z += val3*SAMPLETIME/1000;
+						fMeas << "orie:" << '\n';
+						fMeas << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
+						tEcoule += sampleTime;
 					}
-			}
-		}
+				}
+		
+				else 
+				{
+						_RPT0(0, "temps inferieur a celui de la derniere ligne + duree, temps remanié");
+						temps = tEcoule;
+
+						while (tEcoule < temps+duree)
+						{
+						val1e = addError(val1,variation,bias);
+						val2e = addError(val2,variation,bias);
+						val3e = addError(val3,variation,bias);
+						fMeas << "gyro:" << '\n';
+						fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
+						tEcoule += sampleTime;
+						}
+				}
+
+			} //end if(!geDirection())
+
+			else break;
+
+		} //end while
 
 		fMeas.close();
 		fDirection.close();
@@ -202,7 +213,7 @@ void fileFromSerial(std::string filename, Serial &link, int nbMes)
 /**
 * \brief recupere les informations du fichier file et les stocke dans les differentes variables
 */
-void getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree)
+bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree)
 {
 	char c;
 	file >> temps;
@@ -219,6 +230,7 @@ void getDirection(std::fstream &file, double &val1, double &val2, double &val3, 
 	val2 /= (duree/1000.0);
 	val3 /= (duree/1000.0);
 
+	return file.eof();
 }
 
 /**

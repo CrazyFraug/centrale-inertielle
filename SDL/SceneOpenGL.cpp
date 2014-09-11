@@ -204,9 +204,9 @@ void SceneOpenGL::bouclePrincipale(Mobile &gant, Traitement **tabTrait)
 		//_RPT1(0, "$$Valeurs d'angle en z : %f\n", angle.z);
 
 		_RPT1(0, "$$$ angle du quaternion = %f\n", quat_angle);
-		_RPT3(0, "$$$ axe du quaternion = %f  %f  %f\n", quat_axe.x, quat_axe.y, quat_axe.z);
+		_RPT3(0, "$$$ axe du quaternion = %f  %f  %f\n", quat_axe.x, quat_axe.z, quat_axe.y);
 
-		modelview = rotate(modelview, (float)(quat_angle), vec3(quat_axe.x, quat_axe.y, quat_axe.z));
+		modelview = rotate(modelview, (float)(quat_angle), vec3(quat_axe.x, quat_axe.z, quat_axe.y));
 
 		lecube.afficher(projection, modelview);
 		axeX.afficher(projection, modelview);
