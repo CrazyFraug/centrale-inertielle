@@ -345,9 +345,7 @@ vect4D Traitement::readDatafromFile()
 			myfile >> c;
 			myfile >> data.z;
 			myfile >> c;
-			_RPT1(0, "char 2 = %c\n", c);
 			myfile >> c;
-			_RPT1(0, "char 3 = %c\n", c);
 			myfile >> data.temps;
 			myfile >> c;
 

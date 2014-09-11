@@ -311,7 +311,7 @@ quaternion<double> Kalman::kalman_rotation(vect4D v_angulaire, vect4D accelerati
 	angle_meas.z = atan2(mz*sin(angle_meas.x) - my*cos(angle_meas.x), mx*cos(angle_meas.y) + my*sin(angle_meas.y)*sin(angle_meas.x) + mz*sin(angle_meas.y)*cos(angle_meas.x)) * 180 / (atan(1) * 4);//atan(mz*cos(angle_meas.x) + my*sin(angle_meas.x) / mx*cos(angle_meas.z)+mz*sin(angle_meas.z)*sin(angle_meas.x)+my*sin(angle_meas.z)*cos(angle_meas.x))*180/(atan(1)*4);
 
 
-	quat_meas = anglesToQuat(angle_meas.x, angle_meas.y, angle_meas.z);
+	quat_meas = danglesToQuat(angle_meas.x, angle_meas.y, angle_meas.z);
 	/********************************************************************/
 
 	/********************************************************************/
