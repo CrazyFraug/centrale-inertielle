@@ -2,6 +2,43 @@
 #include "Tools.h"
 #include <math.h>
 
+/************************************************************************************************************/
+
+/* Surcharge operateur * et / pour les quaternions */
+
+quaternion<double> operator*(quaternion<double> q1, quaternion<double> q2)
+{
+	return hamiltonProduct(q1, q2);
+}
+
+quaternion<double> operator/(quaternion<double> q1, double b)
+{
+	quaternion<double> result(q1.R_component_1() / b, q1.R_component_2() / b, q1.R_component_3() / b, q1.R_component_4() / b);
+	return result;
+}
+
+/*
+\brief opérateur de multiplication entre une matrice 3x3 et un vecteur 3x1
+\return vecteur 3x1
+*/
+vect3D operator*(matrix<double> m, vect3D v)
+{
+	vect3D vRes = { 0, 0, 0 };
+
+	if (m.size1() == 3 && m.size2() == 3)
+	{
+		vRes.x = v.x*m(0, 0) + v.y*m(0, 1) + v.z*m(0, 2);
+		vRes.y = v.x*m(1, 0) + v.y*m(1, 1) + v.z*m(1, 2);
+		vRes.z = v.x*m(2, 0) + v.y*m(2, 1) + v.z*m(2, 2);
+	}
+	else
+		std::cout << "erreur : matrix dimensions" << std::endl;
+
+	return vRes;
+}
+
+/************************************************************************************************************/
+
 quaternion<double> anglesToQuat(double phi_deg, double teta_deg, double rho_deg)
 {
 	normAngle(phi_deg);
@@ -20,6 +57,7 @@ quaternion<double> anglesToQuat(double phi_deg, double teta_deg, double rho_deg)
 	return result;
 }
 
+/************************************************************************************************************/
 
 vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 {
@@ -64,6 +102,7 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 	return angles_result;
 }
 
+/************************************************************************************************************/
 
 void quatComp(quaternion<double> q, vect3D &axe, double &angle)
 {
@@ -74,6 +113,7 @@ void quatComp(quaternion<double> q, vect3D &axe, double &angle)
 	axe.z = q.R_component_4() / sin(angle / 2);
 }
 
+/************************************************************************************************************/
 
 void afficherQuat(quaternion<double> q)
 {
@@ -84,6 +124,7 @@ void afficherQuat(quaternion<double> q)
 	cout << q.R_component_4() << endl;
 }
 
+/************************************************************************************************************/
 
 vect3D rotateVector(quaternion<double> q, vect3D v)
 {
@@ -96,6 +137,7 @@ vect3D rotateVector(quaternion<double> q, vect3D v)
 	return v;
 }
 
+/************************************************************************************************************/
 
 void normalizeQuat(quaternion<double> &q, double tolerance)
 {
@@ -105,6 +147,26 @@ void normalizeQuat(quaternion<double> &q, double tolerance)
 
 }
 
+
+
+/************************************************************************************************************/
+
+vect3D changeRepere(quaternion<double> q, vect3D v)
+{
+	matrix<double> rotation = quatToMat(q); //obtention de la matrice de rotation 
+	rotation = trans(rotation); //inversion de la matrice, revient à effectuer sa transposée dans ce cas précis (rotation autour de x, y, z)
+
+	//_RPT3(0, "Matrice transposée = \n\t%f\t%f\t%f\n", rotation(0,0), rotation(0,1), rotation(0,2)); 
+	//_RPT3(0, "\t%f\t%f\t%f\n", rotation(1,0), rotation(1,1), rotation(1,2)); 
+	//_RPT3(0, "\t%f\t%f\t%f\n", rotation(2,0), rotation(2,1), rotation(2,2)); 
+
+	v = rotation*v; // V = PV' avec P la matrice de passage
+	return v;
+}
+
+
+
+/************************************************************************************************************/
 
 quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2)
 {
@@ -117,6 +179,8 @@ quaternion<double> hamiltonProduct(quaternion<double> q1, quaternion<double> q2)
 
 	return result;
 }
+
+/************************************************************************************************************/
 
 matrix<double> quatToMat(quaternion<double> q)
 {
@@ -135,15 +199,4 @@ matrix<double> quatToMat(quaternion<double> q)
 }
 
 
-/* Surcharge operateur * et / pour les quaternions */
-
-quaternion<double> operator*(quaternion<double> q1, quaternion<double> q2)
-{
-	return hamiltonProduct(q1, q2);
-}
-
-quaternion<double> operator/(quaternion<double> q1, double b)
-{
-	quaternion<double> result(q1.R_component_1() / b, q1.R_component_2() / b, q1.R_component_3() / b, q1.R_component_4() / b);
-	return result;
-}
+/************************************************************************************************************/
