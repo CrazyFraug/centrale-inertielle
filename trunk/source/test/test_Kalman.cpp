@@ -1,22 +1,23 @@
+#include "Tools.h"
 #include "Kalman.h"
 #include "Quaternion.h"
 #include <fstream>
-#include "Tools.h"
 
-/***************************************************************************************
-Test du filtre de Kalman - Selon l'exemple d'Alex Blekhman
+
+/*
+\brief	Test du filtre de Kalman - Selon l'exemple d'Alex Blekhman
 Les états sont la position et la vitesse
 L'observation est la position qui est calculé par la formule X = X + V*t
 La vitesse est fixée à 10m/s
-Test validé	-- Résultat présenté dans le fichier resultTestKalman.xlsx
-*****************************************************************************************/
-
+\result	Test validé	-- Résultat présenté dans le fichier resultTestKalman.xlsx
+*/
 void testKalman(){
 	/* Déclaration des variables locaux */
 	double _dt;
 	double sigmaMeas;
 	double vTrue;
 	double posTrue;
+	double normKalmanGain = 0;
 
 	/* Déclaration des matrices utilisées par le filtre Kalman */
 	matrix<double> A(2, 2, 0), B(0, 0, 0), C(1, 2, 0);
@@ -24,6 +25,7 @@ void testKalman(){
 	matrix<double> X(2, 1, 0), P(2, 2, 0);
 	matrix<double> matCmde, matObs;
 	matrix<double> matResult;
+	matrix<double> kalmanGain;
 
 	/* Affectation des valeurs initiaux */
 	_dt = .1;
@@ -41,9 +43,9 @@ void testKalman(){
 	R(0, 0) = sigmaMeas*sigmaMeas;
 
 	X(0, 0) = 0;
-	X(1, 0) = 0.5*vTrue;
+	X(1, 0) = 0.7*vTrue;
 
-	P(0, 0) = P(1, 1) = 1;
+	P(0, 0) = P(1, 1) = 0.5;
 
 	kalmTest.initSystem(A, B, C, Q, R, X, P);
 
@@ -54,7 +56,7 @@ void testKalman(){
 	/* Fichier stocké le résultat du filtre */
 	std::fstream fileResult;
 	fileResult.open("resultTest.csv", std::ios::app);
-	fileResult << "Step;PositionKalman;PositionTrue;VitesseKalman;VitesseTrue";
+	fileResult << "Step;PositionKalman;PositionTrue;VitesseKalman;VitesseTrue;KalmanGain";
 	fileResult << "\n";
 
 
@@ -62,13 +64,14 @@ void testKalman(){
 		posTrue += vTrue*_dt;
 		matObs(0, 0) = posTrue;
 		matResult = kalmanTraitement(kalmTest, matCmde, matObs);
+		kalmanGain = kalmTest.getKalmanGain();
+		for (int i = 0; i < kalmanGain.size1(); i++){
+			normKalmanGain += pow(kalmanGain(i, 0), 2);
+		}
+		normKalmanGain = sqrt(normKalmanGain);
 		fileResult << step << ";";
 		fileResult << matResult(0, 0) << "; " << posTrue << ";";
-		fileResult << matResult(1, 0) << ";" << vTrue << "\n";
+		fileResult << matResult(1, 0) << ";" << vTrue << ";";
+		fileResult << normKalmanGain << "\n";
 	}
 }
-//
-//int main(){
-//	testKalman();
-//	return 0;
-//}

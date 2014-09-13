@@ -1,12 +1,14 @@
 #include "SceneOpenGL.h"
 #include "Tools.h"
 #include "Quaternion.h"
+#include "source\test\test_Kalman.cpp"
+#include "source\test\test_quat.cpp"
 
 int main(int argc, char *argv[]) {
 
 	/* Déclaration des variables locaux */
 	int _mode = 0;		// Mode de simulation -- affecter dans la partie déclaration des instruments
-	int _step = 0;		// 
+	int _step = 0;		// Compteur d'échantillon de Simulation 
 	double _wx, _wy, _wz, _Ax, _Ay, _Az;
 	double angle;
 	double _dt, _tPred, _tAct;
@@ -101,24 +103,45 @@ int main(int argc, char *argv[]) {
 	writeHeading("mnet.csv", filemnet);
 	writeHeading("orie.csv", fileorie);
 
-	/* Initialisation du SDL */
-	if (scene.InitialiserFenetre() == false) { system("PAUSE"); return -1; }
 
-	if (!scene.iniGL()) 	{ system("PAUSE"); return -1; }
+	if (_mode == 1 || _mode == 2)			/*	cas de Simulation	*/
+	{
+		/* Initialisation du SDL */
+		if (scene.InitialiserFenetre() == false) { system("PAUSE"); return -1; }
 
+		if (!scene.iniGL()) 	{ system("PAUSE"); return -1; }
 
-	if (_mode == 3)
+	}
+	else if (_mode == 3)					/*	cas création de fichier	*/
 	{
 		createMeasureFile(FILENAME, DIRECTIONS, SAMPLETIME, 1, 0);
 		srand(time(NULL));
 	}
-	else if (_mode == 4)
+	else if (_mode == 4)					/*	cas création de fichier à partir de la liaison série	*/
 	{
 		Serial link(PORTSERIE, BAUD);
 		int nbMes;
 		std::cout << "entrez le nombre de mesures a copier : " << std::endl;
 		std::cin >> nbMes;
 		fileFromSerial("serial.txt", link, nbMes);
+	}
+	else if (_mode == 5)					/*	cas Test	*/
+	{
+		int test = 0;
+		std::cout << "Rentrez le test à faire : \n";
+		std::cout << "  1 - Kalman\n";
+		std::cout << "  2 - Conversion Quaternion \n";
+		std::cout << "  3 - Changement Repère Vitesse Angulaire \n";
+		std::cin >> test;
+		if (test == 1){
+			testKalman();
+		}
+		else if (test == 2){
+			test_eulerQuat();
+		}
+		else if (test == 3){
+			test_changeRepere();
+		}
 	}
 
 	/* Boucle Principale (avec Traitement Filtre Kalman + Affichage SDL */
@@ -162,7 +185,7 @@ int main(int argc, char *argv[]) {
 
 		/* Traitement des données et le filtre de Kalman */
 		/* Vitesse angulaire ->> dans le repère global */
-		if (_step < 100){
+		if (_step < 100){		/*	Fixer le cube dans les 100 premiers étapes	*/
 			_wx = _wy = _wz = 0;
 		}
 		else{
