@@ -2,6 +2,7 @@
 
 #define _USE_MATH_DEFINES
 
+
 /** 
 * \brief converti des angles d'Euler (en degrés) en un quaternion unitaire
 * body 3-2-1 sequence (yaw, pitch, roll)
