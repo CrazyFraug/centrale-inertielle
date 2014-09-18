@@ -11,6 +11,7 @@
 double addError(double average, double variation, double bias=0);
 bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree);
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
+void createMeasureFile_separate(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
 void fileFromSerial(std::string filename, Serial &link, int nbMes);
 
 int Traitement::_cursor = 0;
@@ -51,7 +52,7 @@ int main(int argc, char *argv[]) {
 		}
 		else if (mode == 3)
 		{
-			createMeasureFile(FILENAME, DIRECTIONS, SAMPLETIME,1);
+			createMeasureFile_separate(FILENAME, DIRECTIONS, SAMPLETIME,1);
 			srand(time(NULL));
 		}
 		else if (mode == 4)
@@ -97,10 +98,12 @@ int main(int argc, char *argv[]) {
 * \brief Créé un fichier de mesures à partir des directions indiquée dans un autre fichier
 * la fonction recupere les indication dans le fichier direction 
 * et les mets sous forme de fichier pouvant etre lu par la classe Traitement
+* si les parametres variation et biais sont différents de 0, un deuxième fichier ("fichier_vrai.txt") est créé,
+* ce fichier contient les mm mesures mais sans les erreurs. Il servira de référence
 * \param filename : nom du fichier de mesures à créer
 * \param direction : nom du fichier dans lequel la fonction va puiser ces information
 * \param sampleTime : temps d'échantillonage que l'on veut utiliser lors de la simulation (en millisecondes)
-* \param variation (défaut = 0) : erreur absolue qui peut s'ajouter ou se soustraire à chaque mesure
+* \param variation (défaut = 0) : erreur absolue maximale qui peut s'ajouter ou se soustraire à chaque mesure
 * \param bias (défaut = 0) : biais à ajouter à chaque mesure
 */
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation, double bias)
@@ -184,6 +187,121 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 
 		} //end while
 
+		fMeas.close();
+		fDirection.close();
+		system("PAUSE");
+	}
+
+}
+
+void createMeasureFile_separate(std::string filename, std::string direction, double sampleTime, double variation, double bias)
+{
+	std::fstream fDirection, fMeas, fMeas_vrai;
+	vect3D orientation = {0,0,0};
+	bool endOfFile(false), fichier_vrai(false);
+	int i = 0;
+	fDirection.open(direction, std::ios::in);
+	fMeas.open((filename+".txt"), std::fstream::out);
+
+	if ((fDirection.rdstate() && std::ifstream::failbit) != 0)
+	{
+		_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier direction\n");
+	}
+	else if ((fMeas.rdstate() && std::ifstream::failbit) != 0)
+	{
+		_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier de mesure gyro\n");
+		fDirection.close();
+	}
+	else
+	{
+		_RPT0(0,"Fichier mesures ouverts correctement\n");
+		double val1,val2,val3, tEcoule(0.0), temps, duree;
+		double val1e, val2e, val3e;
+
+		if (fichier_vrai = (variation !=0 || bias !=0))
+		{
+			fMeas_vrai.open(filename+"_vrai.txt",std::fstream::out);
+			if ((fMeas_vrai.rdstate() && std::ifstream::failbit) != 0)
+			{
+				_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier _vrai\n");
+				fichier_vrai = false;
+			}
+		}
+
+		while (1)
+		{
+			if (!getDirection(fDirection, val1, val2, val3, temps, duree))
+			{
+
+				std::cout << "valeur 1 : "<< val1 << " ; valeur 2 : " << val2 << " ; valeur 3 : " << val3 << " ; temps : " << temps << " ; duree : " << duree << std::endl;
+
+				if (temps >= tEcoule)
+				{
+					while ( tEcoule < temps)
+					{
+						fMeas << filename+":" << '\n';
+						fMeas << 'x' << addError(0,variation,bias) << ';' << 'y' << addError(0,variation,bias) << ';' << 'z' << addError(0,variation,bias) << ';' << 't' << tEcoule << ';' << '\n';
+						if(fichier_vrai)
+						{
+							fMeas_vrai << filename+"_vrai:" << '\n';
+							fMeas_vrai << 'x' << 0 << ';' << 'y' << 0 << ';' << 'z' << 0 << ';' << 't' << tEcoule << ';' << '\n';
+						}
+						tEcoule += sampleTime;
+					}
+
+					while (tEcoule < temps+duree)
+					{
+						//Ajout des erreurs de mesure:
+						val1e = addError(val1,variation,bias);
+						val2e = addError(val2,variation,bias);
+						val3e = addError(val3,variation,bias);
+						fMeas << filename+":" << '\n';
+						fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
+						/*orientation.x += val1*SAMPLETIME/1000;
+						orientation.y += val2*SAMPLETIME/1000;
+						orientation.z += val3*SAMPLETIME/1000;
+						fMeas_orie << "orie:" << '\n';
+						fMeas_orie << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
+						*/
+						if(fichier_vrai)
+						{
+							fMeas_vrai << filename+"_vrai:" << '\n';
+							fMeas_vrai << 'x' << val1 << ';' << 'y' << val2 << ';' << 'z' << val3 << ';' << 't' << tEcoule << ';' << '\n';
+						}
+						tEcoule += sampleTime;
+					}
+				}
+		
+				else 
+				{
+						_RPT0(0, "temps inferieur a celui de la derniere ligne + duree, temps remanié");
+						temps = tEcoule;
+
+						while (tEcoule < temps+duree)
+						{
+						val1e = addError(val1,variation,bias);
+						val2e = addError(val2,variation,bias);
+						val3e = addError(val3,variation,bias);
+						fMeas << filename+":" << '\n';
+						fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
+						if(fichier_vrai)
+						{
+							fMeas_vrai << filename+"_vrai:" << '\n';
+							fMeas_vrai << 'x' << val1 << ';' << 'y' << val2 << ';' << 'z' << val3 << ';' << 't' << tEcoule << ';' << '\n';
+						}
+						tEcoule += sampleTime;
+						}
+				}
+
+			} //end if(!geDirection())
+
+			else break;
+
+		} //end while
+
+
+		if(fichier_vrai)
+			fMeas_vrai.close();
 		fMeas.close();
 		fDirection.close();
 		system("PAUSE");
