@@ -11,8 +11,8 @@
 
 #define NB_VALEURS 2
 #define G 9.81
-#define FILENAME "simMeasures.txt"
-#define DIRECTIONS "directions2.txt"
+#define FILENAME "simMeasures_gyro"
+#define DIRECTIONS "directions.txt"
 
 class Traitement
 {
