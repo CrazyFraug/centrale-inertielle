@@ -9,6 +9,8 @@
 
 
 double addError(double average, double variation, double bias=0);
+bool getHeader( std::fstream &file, double &variation, double &bias);
+void writeHeader(std::fstream& file, std::string& name, const double& variation, const double& biais);
 bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree);
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
 void createMeasureFile_separate(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]) {
 		}
 		else if (mode == 3)
 		{
-			createMeasureFile_separate(FILENAME, DIRECTIONS, SAMPLETIME,1);
+			createMeasureFile_separate(FILENAME, DIRECTIONS, SAMPLETIME);
 			srand(time(NULL));
 		}
 		else if (mode == 4)
@@ -218,6 +220,8 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 		double val1,val2,val3, tEcoule(0.0), temps, duree;
 		double val1e, val2e, val3e;
 
+		getHeader(fDirection, variation, bias);
+
 		if (fichier_vrai = (variation !=0 || bias !=0))
 		{
 			fMeas_vrai.open(filename+"_vrai.txt",std::fstream::out);
@@ -226,7 +230,11 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 				_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier _vrai\n");
 				fichier_vrai = false;
 			}
+			else
+				writeHeader(fMeas_vrai, filename+"_vrai", 0, 0);
 		}
+
+		writeHeader(fMeas,filename, variation, bias);
 
 		while (1)
 		{
@@ -328,27 +336,71 @@ void fileFromSerial(std::string filename, Serial &link, int nbMes)
 	file.close();
 }
 
+bool getHeader( std::fstream &file, double &variation, double &bias)
+{
+	char buffer[128];
+	file >> buffer[0];
+
+	while (buffer[0] == '%')
+	{
+		file.getline(buffer, 128);
+		std::cout << "getHeader - buffer =" << buffer << "-- strcmp = " << strcmp("variation", buffer) << std::endl;
+		if (strcmp("variation", buffer) == 0) {
+			file.get(buffer[0]);
+			file >> variation;
+			std::cout << "variation = fdzjfbzqkdgfsqjdfzyk" << variation << std::endl;
+			file.get(buffer[0]);//recupere le caractere de fin de ligne
+		}
+		else if (strcmp("biais",buffer) == 0)
+		{
+			file.get(buffer[0]);
+			file >> bias;
+			std::cout << "biais = " << bias << std::endl;
+			file.get(buffer[0]);//recupere le caractere de fin de ligne
+		}
+		file.get(buffer[0]);
+		std::cout << buffer[0] << std::endl;
+
+	}
+
+	return true;
+}
+
+void writeHeader(std::fstream& file, std::string& name, const double& variation, const double& biais)
+{
+	file << '%' << name << '\n';
+	file << '%' << "variation = " << variation << "; biais = " << biais << '\n\n';
+}
+
+
 /**
 * \brief recupere les informations du fichier file et les stocke dans les differentes variables
 */
 bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree)
 {
-	char c;
+	char buffer[128];
+
+	file >> buffer[0];
+		
+	std::cout << "else unget :: " << std::endl;
+	file.unget();
+
 	file >> temps;
-	file >> c;
+	file >> buffer[0];
 	file >> duree;
-	file >> c;
+	file >> buffer[0];
 	file >> val1;
-	file >> c;
+	file >> buffer[0];
 	file >> val2;
-	file >> c;
+	file >> buffer[0];
 	file >> val3;
 
 	val1 /= (duree/1000.0);
 	val2 /= (duree/1000.0);
 	val3 /= (duree/1000.0);
-
+	std::cout << "buffer[0] = " << buffer[0] << std::endl << "temps = " << temps << std::endl;
 	return file.eof();
+
 }
 
 /**
