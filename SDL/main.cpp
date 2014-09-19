@@ -15,6 +15,7 @@ bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, 
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
 void createMeasureFile_separate(std::string filename, std::string direction, double sampleTime, double variation=0, double bias=0);
 void fileFromSerial(std::string filename, Serial &link, int nbMes);
+void calculateAccel(const double &phi, const double &teta, double &accX, double &accY, double &accZ);
 
 int Traitement::_cursor = 0;
 bool Traitement::_finFichier = false;
@@ -201,7 +202,8 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 	std::fstream fDirection, fMeas, fMeas_vrai;
 	vect3D orientation = {0,0,0};
 	bool endOfFile(false), fichier_vrai(false);
-	int i = 0;
+	bool orie, gyro;
+	//int i = 0;
 	fDirection.open(direction, std::ios::in);
 	fMeas.open((filename+".txt"), std::fstream::out);
 
@@ -211,7 +213,7 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 	}
 	else if ((fMeas.rdstate() && std::ifstream::failbit) != 0)
 	{
-		_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier de mesure gyro\n");
+		_RPT0(_CRT_ERROR, "Erreur lors de l'ouverture du fichier de mesure \n");
 		fDirection.close();
 	}
 	else
@@ -265,12 +267,15 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 						val3e = addError(val3,variation,bias);
 						fMeas << filename+":" << '\n';
 						fMeas << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
-						/*orientation.x += val1*SAMPLETIME/1000;
-						orientation.y += val2*SAMPLETIME/1000;
-						orientation.z += val3*SAMPLETIME/1000;
-						fMeas_orie << "orie:" << '\n';
-						fMeas_orie << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
-						*/
+						
+						if(orie)
+						{
+							orientation.x += val1*SAMPLETIME/1000;
+							orientation.y += val2*SAMPLETIME/1000;
+							orientation.z += val3*SAMPLETIME/1000;
+							fMeas_orie << "orie:" << '\n';
+							fMeas_orie << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
+						}
 						if(fichier_vrai)
 						{
 							fMeas_vrai << filename+"_vrai:" << '\n';
@@ -348,7 +353,7 @@ bool getHeader( std::fstream &file, double &variation, double &bias)
 		if (strcmp("variation", buffer) == 0) {
 			file.get(buffer[0]);
 			file >> variation;
-			std::cout << "variation = fdzjfbzqkdgfsqjdfzyk" << variation << std::endl;
+			std::cout << "variation = " << variation << std::endl;
 			file.get(buffer[0]);//recupere le caractere de fin de ligne
 		}
 		else if (strcmp("biais",buffer) == 0)
@@ -358,10 +363,11 @@ bool getHeader( std::fstream &file, double &variation, double &bias)
 			std::cout << "biais = " << bias << std::endl;
 			file.get(buffer[0]);//recupere le caractere de fin de ligne
 		}
+
 		file.get(buffer[0]);
 		std::cout << buffer[0] << std::endl;
-
 	}
+	file.unget();
 
 	return true;
 }
@@ -381,9 +387,6 @@ bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, 
 	char buffer[128];
 
 	file >> buffer[0];
-		
-	std::cout << "else unget :: " << std::endl;
-	file.unget();
 
 	file >> temps;
 	file >> buffer[0];
@@ -402,6 +405,35 @@ bool getDirection(std::fstream &file, double &val1, double &val2, double &val3, 
 	return file.eof();
 
 }
+
+bool getDirection_acce(std::fstream &file, double &val1, double &val2, double &val3, const double duree)
+{
+	char buffer[128];
+
+	file >> buffer[0];
+
+	file >> buffer[0];
+	file >> val1;
+	file >> buffer[0];
+	file >> val2;
+	file >> buffer[0];
+	file >> val3;
+
+	val1 /= (duree/1000.0);
+	val2 /= (duree/1000.0);
+	val3 /= (duree/1000.0);
+	std::cout << "buffer[0] = " << buffer[0] << std::endl << "temps = " << temps << std::endl;
+	return file.eof();
+}
+
+
+void calculateAccel(const double &phi, const double &teta, double &accX, double &accY, double &accZ)
+{
+	accX -= sin(teta)*cos(phi)*G;
+	accY -= sin(phi)*G; 
+	accZ -= cos(teta)*cos(phi)*G;
+}
+
 
 /**
 * \brief rajoute une erreur sur la mesure pour simuler une instabilité ou un biais
