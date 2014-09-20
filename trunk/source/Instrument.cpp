@@ -1,4 +1,5 @@
 #include "Instrument.h"
+#include "Tools.h"
 /**Surcharge d'operateur les vecteur 3D et 4D**/
 
 /* \brief Surcharge operateur+ pour 2 vecteurs 3D*/
@@ -45,7 +46,7 @@ vect4D operator+(vect4D v1, vect3D v2)
 /************************************************************************/
 
 /*	Constructeur	*/
-Instrument::Instrument(char* nom, int mode) :ID(nom)
+Instrument::Instrument(char* nom, int mode) :ID(nom), _step(0)
 {
 	if (mode == 1){
 		static Serial link("COM8", 115200);
@@ -64,7 +65,11 @@ Instrument::Instrument(char* nom, int mode) :ID(nom)
 	_t_acq[0] = clock();
 	_t_acq[1] = clock();
 	_t_acq[2] = clock();
+	_fileName = nom;
+	_fileName += ".csv";
 }
+
+
 
 /************************************************************************/
 
@@ -101,14 +106,23 @@ double Instrument::getMesure(int axe)
 	}
 }
 
-clock_t* Instrument::getTemps(void) { return _t_acq; }
-
-clock_t Instrument::getTemps(int axe) { return _t_acq[axe - 1]; }
-
-std::string Instrument::getnomfichier(void){
-	return fileName;
+clock_t* Instrument::getTemps(void)
+{
+	return _t_acq;
 }
-char* Instrument::getID(void){
+
+clock_t Instrument::getTemps(int axe)
+{
+	return _t_acq[axe - 1];
+}
+
+std::string Instrument::getnomfichier(void)
+{
+	return _fileName;
+}
+
+char* Instrument::getID(void)
+{
 	return ID;
 }
 
@@ -140,9 +154,10 @@ void Instrument::setMesuresT(double val){ _mesures.temps = val; }
 
 void Instrument::majMesures()
 {
+	packDatas data;
 	if (_serialLink != NULL){
 		_RPT1(0, "SENSOR NAME: %s \n", getID());
-		packDatas data = _serialLink->readDatas(getID());
+		data = _serialLink->readDatas(getID());
 		if (strcmp(getID(), data.sensor_name.c_str()) == 0){
 			setMesuresX(data.datas.x);
 			setMesuresY(data.datas.y);
@@ -153,6 +168,14 @@ void Instrument::majMesures()
 			_RPT2(0, "CAPTEUR COM %s N'EST PAS LE CAPTEUR DEMANDE %s \n", data.sensor_name.c_str(), getID());
 		}
 	}
+	else{
+		data.datas = readDatafromFile(getnomfichier(), _fileData, _step);
+		setMesuresX(data.datas.x);
+		setMesuresY(data.datas.y);
+		setMesuresZ(data.datas.z);
+		setMesuresT(data.datas.temps);
+	}
+	_step++;
 }
 
 /************************************************************************/
@@ -229,4 +252,3 @@ void Instrument::afficherVI() const
 }
 
 /************************************************************************/
-
