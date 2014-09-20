@@ -9,16 +9,16 @@
 void writeHeading(std::string filename, std::fstream &myfile){
 	myfile.open(filename.c_str(), std::ios::app);
 	if (filename == "gyro.csv"){
-		myfile << "Gyr_X;Gyr_Y;Gyr_Z;temps\n";
+		myfile << "Temps;Gyr_X;Gyr_Y;Gyr_Z\n";
 	}
 	else if (filename == "acce.csv"){
-		myfile << "Acc_X;Acc_Y;Acc_Z;temps\n";
+		myfile << "Temps;Acc_X;Acc_Y;Acc_Z\n";
 	}
 	else if (filename == "mnet.csv"){
-		myfile << "Mag_X;Mag_Y;Mag_Z;temps\n";
+		myfile << "Temps;Mag_X;Mag_Y;Mag_Z\n";
 	}
 	else if (filename == "orie.csv"){
-		myfile << "Ori_X;Ori_Y;Ori_Z;temps\n";
+		myfile << "Temps;Ori_X;Ori_Y;Ori_Z\n";
 	}
 	myfile.close();
 }
@@ -31,13 +31,13 @@ void filefromSensor(std::string filename, std::fstream &myfile, vect4D data){
 		myfile.open(filename, std::ios::app);
 	}
 
+	myfile << data.temps;
+	myfile << ";";
 	myfile << data.x;
 	myfile << ";";
 	myfile << data.y;
 	myfile << ";";
 	myfile << data.z;
-	myfile << ";";
-	myfile << data.temps;
 	myfile << ";";
 
 	myfile << "\n";
@@ -72,16 +72,16 @@ vect4D readDatafromFile(std::string filename, std::fstream &myfile, int cursor)
 			while (dataFromFile[cursor][m] != ';')
 			{
 				if (n == 0){
-					val_x += dataFromFile[cursor][m];
+					val_t += dataFromFile[cursor][m];
 				}
 				else if (n == 1){
-					val_y += dataFromFile[cursor][m];
+					val_x += dataFromFile[cursor][m];
 				}
 				else if (n == 2){
-					val_z += dataFromFile[cursor][m];
+					val_y += dataFromFile[cursor][m];
 				}
 				else if (n == 3){
-					val_t += dataFromFile[cursor][m];
+					val_z += dataFromFile[cursor][m];
 				}
 
 				m++;
@@ -121,12 +121,12 @@ int choiceMode(){
 	std::cout << "2 - Simulation avec fichier de valeurs" << std::endl;
 	std::cout << "3 - Generer fichier de valeurs" << std::endl;
 	std::cout << "4 - Generer fichier a partir de la liaison serie" << std::endl;
-	std::cout << "5 - Test conversion quaternion" << std::endl;
+	std::cout << "5 - Test " << std::endl;
 	std::cout << "Le mode de simulation choisi : ";
 	std::cin >> mode;
 	std::cout << std::endl;
 
-	while (mode != 1 && mode != 2 && mode != 3 && mode != 0 && mode != 4 && mode != 5)
+	while (mode != 0 && mode != 1 && mode != 2 && mode != 3 && mode != 4 && mode != 5)
 	{
 		std::cout << "Le mode choisi est incorrect : ";
 		std::cin >> mode;
@@ -137,12 +137,11 @@ int choiceMode(){
 
 /*****************************************************************************************/
 
-void writeResult(double temps, vect3D angles_measure, vect3D angles_calcul, std::string fileResult, bool headingWrited)
+void writeResult(double temps, vect3D angles_measure, vect3D angles_calcul, std::string fileResult, std::fstream &file_excel)
 {
-	static std::fstream file_excel;
 	if (!file_excel.is_open())
+	{
 		file_excel.open(fileResult, std::ios::app);
-	if (!headingWrited){
 		file_excel << "Temps;X_Mesure;X_Calcul;Y_Mesure;Y_Calcul;Z_Mesure;Z_Calcul\n";
 	}
 	file_excel << temps << ";";
@@ -156,14 +155,9 @@ void writeResult(double temps, vect3D angles_measure, vect3D angles_calcul, std:
 
 float string_to_double(const std::string& s)
 {
-	std::stringstream convert(s);
 	float x = 0;
-
-	if (!(convert >> x))
-	{
-		_RPT0(_CRT_ERROR, "Problem Conversion string to double \n");
-		return 0;
-	}
+	std::string::size_type sz;
+	x = std::stod(s, &sz);
 	return x;
 }
 
@@ -189,7 +183,7 @@ matrix<double> kalmanTraitement(Kalman &rotation, matrix<double> value_cmd, matr
 	/********************************************************************/
 	/*	Etape update les données du filtre de Kalman					*
 	/********************************************************************/
-	rotation.predict_step(value_cmd);
+	rotation.predictStep(value_cmd);
 	/********************************************************************/
 
 
@@ -197,7 +191,7 @@ matrix<double> kalmanTraitement(Kalman &rotation, matrix<double> value_cmd, matr
 	/*	Etape update les données du filtre de Kalman					*
 	/********************************************************************/
 	matrix<double> estimate_result(4, 1, 0);
-	estimate_result = rotation.update_step(value_obs);
+	estimate_result = rotation.updateStep(value_obs);
 	return estimate_result;
 	/********************************************************************/
 }
@@ -367,3 +361,16 @@ double addError(double baseValeur, double variation, double bias)
 }
 
 /*****************************************************************************************/
+
+//Instrument *createInstrument(char* nomSensor, int mode){
+//	Instrument *test;
+//	if (mode == 1){
+//		InstrumentSerie inst(nomSensor);
+//		test = &inst;
+//	}
+//	else {
+//		Instrument inst(nomSensor, 2);
+//		test = &inst;
+//	}
+//	return test;
+//}
