@@ -108,7 +108,7 @@ bool SceneOpenGL::iniGL() {
 }
 
 
-int SceneOpenGL::bouclePrincipale(vect3D &axe, double &angle)
+int SceneOpenGL::bouclePrincipale(vect3D &axe, double &angle, int rate)
 {
 
 	static bool terminer(false);

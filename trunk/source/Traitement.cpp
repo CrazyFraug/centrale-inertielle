@@ -40,7 +40,9 @@ void Traitement::stockerValeurs(vect4D val)
 	_RPT1(0, "val.y = %f\n", val.y);
 	_RPT1(0, "val.x = %f\n", val.z);
 #endif
-
+	tabData[val.temps].x = val.x;
+	tabData[val.temps].y = val.y;
+	tabData[val.temps].z = val.z;
 	if (_compteur < NB_VALEURS) // cas ou le tableau n'est pas plein
 	{
 		_valeurs[0][_compteur] = val.x;
@@ -73,10 +75,13 @@ void Traitement::stockerValeurs(vect4D val)
 
 void Traitement::stockerValeurs()
 {
-	_capteur->majMesures(/*_capteur->getID()*/);
 	_tempsAct = _capteur->getMesure(4); /* 4 correspond à l'axe temporel (mesures.temps) */
 	_dt = (_tempsAct - _tempsPrec) / 1000.0;
 	_tempsPrec = _tempsAct;
+
+	tabData[_capteur->getMesure(4)].x = _capteur->getMesure(1);
+	tabData[_capteur->getMesure(4)].y = _capteur->getMesure(2);
+	tabData[_capteur->getMesure(4)].z = _capteur->getMesure(3);
 
 	if (_compteur < NB_VALEURS) // cas ou le tableau n'est pas plein
 	{
@@ -88,6 +93,7 @@ void Traitement::stockerValeurs()
 
 	else // cas ou le tableau est deja rempli
 	{
+
 		//_RPT0(0, "tableau rempli !\n");
 		for (int i = 0; i < NB_VALEURS - 1; i++)
 		{
@@ -121,13 +127,13 @@ double Traitement::moyennerAxe(int axe)
 vect4D Traitement::moyenner(int nb)
 {
 	vect4D res = { 0, 0, 0, 0 };
-	if (nb>_compteur)
+	if (nb > _compteur)
 	{
 		nb = _compteur;
 	}
 	//_RPT1(0,"(moyenner) _tempsPrec= %f\n",_tempsPrec);
 	//_RPT1(0,"(moyenner) valeur de nb : %d\n", nb);
-	for (int i = 0; i<nb; i++)
+	for (int i = 0; i < nb; i++)
 	{
 		res.x += _valeurs[0][_compteur - i - 1];
 		res.y += _valeurs[1][_compteur - i - 1];
@@ -140,6 +146,32 @@ vect4D Traitement::moyenner(int nb)
 	res.temps = _tempsAct;
 	//_RPT1(0,"(moyenner) valeur de res.x : %f\n", res.x);
 	return res;
+}
+
+vect4D Traitement::moyenner(double temps, int nb)
+{
+	double tpsNext;
+	vect4D res = { 0, 0, 0, 0 };
+	while (tabData.count(temps) == 0){
+		temps++;
+	}
+	res.x = tabData[temps].x;
+	res.y = tabData[temps].y;
+	res.z = tabData[temps].z;
+
+	tpsNext = temps;
+
+	for (int i = 0; i < nb; i++){
+		tpsNext += 30;
+		while (tabData.count(tpsNext) == 0){
+			tpsNext++;
+		}
+		res.x += tabData[tpsNext].x;
+		res.y += tabData[tpsNext].y;
+		res.z += tabData[tpsNext].z;
+	}
+
+	return{ res.x / nb, res.y / nb, res.z / nb, tpsNext };
 }
 
 /***************************************************************************/

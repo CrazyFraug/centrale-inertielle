@@ -5,48 +5,48 @@
 
 /** \brief Constructor d'un objet Kalman
 */
-Kalman::Kalman(int nb_in, int nb_out, int nb_state, int step)
+Kalman::Kalman(int nbIn, int nbOut, int nbState, int step)
 {
 	/********************************************************************/
 	/* Affectation les nombres d'entrées, sorties et d'état du système	*
 	*  Déclaration le nombre d'échantillon d'initialisation				*/
 	/********************************************************************/
-	sys.size_in = nb_in;
-	sys.size_out = nb_out;
-	sys.size_state = nb_state;
-	kalm_sys.nb_step = step;
+	_sys.sizeIn = nbIn;
+	_sys.sizeOut = nbOut;
+	_sys.sizeState = nbState;
+	_kalmsys.nbstep = step;
 
 	/********************************************************************/
 	/* Affectation les matrices aux tailles du système					*/
 	/********************************************************************/
-	sys.mat_transition.resize(sys.size_state, sys.size_state);
+	_sys.matTransition.resize(_sys.sizeState, _sys.sizeState);
 #pragma warning(suppress: 6282)
-	if (sys.size_in != 0){
-		sys.mat_cmde.resize(sys.size_in, sys.size_state);
-		kalm_sys.noise_cmde.resize(1, sys.size_in);
+	if (_sys.sizeIn != 0){
+		_sys.matCommande.resize(_sys.sizeIn, _sys.sizeState);
+		_kalmsys.noiseCommande.resize(1, _sys.sizeIn);
 	}
-	sys.mat_sortie.resize(sys.size_out, sys.size_state);
+	_sys.matSortie.resize(_sys.sizeOut, _sys.sizeState);
 
-	kalm_sys.matrix_ident.resize(sys.size_state, sys.size_state);
-	for (int i = 0; i < kalm_sys.matrix_ident.size1(); i++){
-		for (int j = 0; j < kalm_sys.matrix_ident.size2(); j++){
+	_kalmsys.matIdent.resize(_sys.sizeState, _sys.sizeState);
+	for (int i = 0; i < _kalmsys.matIdent.size1(); i++){
+		for (int j = 0; j < _kalmsys.matIdent.size2(); j++){
 			if (i == j){
-				kalm_sys.matrix_ident(i, j) = 1;
+				_kalmsys.matIdent(i, j) = 1;
 			}
 			else{
-				kalm_sys.matrix_ident(i, j) = 0;
+				_kalmsys.matIdent(i, j) = 0;
 			}
 		}
 	}
 
-	kalm_sys.cov_cmde.resize(sys.size_state, sys.size_state);
-	kalm_sys.noise_mesure.resize(1, sys.size_out);
-	kalm_sys.cov_mesure.resize(sys.size_out, sys.size_state);
-	kalm_sys.cov_estimate.resize(sys.size_state, sys.size_state);
+	_kalmsys.covCommande.resize(_sys.sizeState, _sys.sizeState);
+	_kalmsys.noiseMesure.resize(1, _sys.sizeOut);
+	_kalmsys.covMesure.resize(_sys.sizeOut, _sys.sizeState);
+	_kalmsys.covEstimate.resize(_sys.sizeState, _sys.sizeState);
 
 
-	kalm_sys.predict_vector.resize(sys.size_state, 1);
-	kalm_sys.kalman_gain.resize(sys.size_state, sys.size_out);
+	_kalmsys.predictVector.resize(_sys.sizeState, 1);
+	_kalmsys.kalmanGain.resize(_sys.sizeState, _sys.sizeOut);
 
 }
 
@@ -62,93 +62,100 @@ Kalman::~Kalman()
 
 /* Getter */
 int Kalman::getSizeIn(){
-	return sys.size_in;
+	return _sys.sizeIn;
 }
 
 int Kalman::getSizeOut(){
-	return sys.size_out;
+	return _sys.sizeOut;
 }
 
 int Kalman::getSizeState(){
-	return sys.size_state;
+	return _sys.sizeState;
+}
+
+matrix<double> Kalman::getKalmanGain(){
+	return _kalmsys.kalmanGain;
+}
+
+matrix<double> Kalman::getCovEstimate(){
+	return _kalmsys.covEstimate;
+}
+/*******************************************************************************************************/
+
+void Kalman::declare_system(matrix<double> &A, matrix<double> &B, matrix<double> &C){
+	_sys.matTransition = A;
+	_sys.matCommande = B;
+	_sys.matSortie = C;
 }
 
 /*******************************************************************************************************/
 
-void Kalman::declare_system(matrix<double> A, matrix<double> B, matrix<double> C){
-	sys.mat_transition = A;
-	sys.mat_cmde = B;
-	sys.mat_sortie = C;
+void Kalman::declare_noise(matrix<double> &Q, matrix<double> &R){
+	_kalmsys.covCommande = Q;
+
+	_kalmsys.covMesure = R;
 }
 
 /*******************************************************************************************************/
 
-void Kalman::declare_noise(matrix<double> Q, matrix<double> R){
-	kalm_sys.cov_cmde = Q;
-
-	kalm_sys.cov_mesure = R;
-}
-
-/*******************************************************************************************************/
-
-void Kalman::initSystem(matrix<double> A, matrix<double> B, matrix<double> C, matrix<double> Q, matrix<double> R, matrix<double> init_predict, matrix<double> init_cov_estimate){
-	kalm_sys.cov_estimate = init_cov_estimate;
-	kalm_sys.predict_vector = init_predict;
+void Kalman::initsystem(matrix<double> &A, matrix<double> &B, matrix<double> &C, matrix<double> &Q, matrix<double> &R, matrix<double> &init_predict, matrix<double> &init_cov_estimate){
+	_kalmsys.covEstimate = init_cov_estimate;
+	_kalmsys.predictVector = init_predict;
 	declare_system(A, B, C);
 	declare_noise(Q, R);
 }
 
 /*******************************************************************************************************/
 
-void Kalman::majSystem(bool maj[3], matrix<double> A, matrix<double> B, matrix<double> C){
+void Kalman::majsystem(bool maj[3], matrix<double> &A, matrix<double> &B, matrix<double> &C){
 	if (maj[0] == true)
-		sys.mat_transition = A;
+		_sys.matTransition = A;
 	if (maj[1] == true)
-		sys.mat_cmde = B;
+		_sys.matCommande = B;
 	if (maj[2] == true)
-		sys.mat_sortie = C;
+		_sys.matSortie = C;
 }
 
 /*******************************************************************************************************/
 
-void Kalman::predict_step(matrix<double> value_cmd)
+void Kalman::predictStep(matrix<double> &value_cmd)
 {
 	/****************************************/
 	/* ^Xk = A*Xk-1 + B*u	(cas normal)	*
 	* ^Xk = A*Xk-1	(cas non entrée)		*/
 	/****************************************/
-	if (sys.size_in == 0){
+	if (_sys.sizeIn == 0){
 		_RPT0(0, "MAT TRANSITION : \n");
-		printMatrix(sys.mat_transition);
+		printMatrix(_sys.matTransition);
 
 		_RPT0(0, "PREDICT VECTOR : \n");
-		printMatrix(kalm_sys.predict_vector);
+		printMatrix(_kalmsys.predictVector);
 
-		kalm_sys.predict_vector = product_matrix(sys.mat_transition, kalm_sys.predict_vector);
+		_kalmsys.predictVector = product_matrix(_sys.matTransition, _kalmsys.predictVector);
 
 	}
 	else{
-		kalm_sys.predict_vector = product_matrix(sys.mat_transition, kalm_sys.predict_vector) + product_matrix(sys.mat_cmde, value_cmd);
+		_kalmsys.predictVector = product_matrix(_sys.matTransition, _kalmsys.predictVector) + product_matrix(_sys.matCommande, value_cmd);
 	}
 
 	/****************************************/
 	/* Pk = F*Pk-1*trans(F) + Q				*/
 	/****************************************/
-	matrix<double> aux_2 = product_matrix(sys.mat_transition, kalm_sys.cov_estimate);
-	aux_2 = product_matrix(aux_2, trans(sys.mat_transition));
-	kalm_sys.cov_estimate = aux_2 + kalm_sys.cov_cmde;
+	matrix<double> aux_2 = product_matrix(_sys.matTransition, _kalmsys.covEstimate);
+	aux_2 = product_matrix(aux_2, trans(_sys.matTransition));
+	_kalmsys.covEstimate = aux_2 + _kalmsys.covCommande;
 
 	/*_RPT0(0, "MATRICE DE COVARIANCE : \n");
-	printMatrix(kalm_sys.cov_estimate);*/
+	printMatrix(_kalmsys.covEstimate);*/
 }
 
 /*******************************************************************************************************/
 
-matrix<double> Kalman::update_step(matrix<double> value_measure){
+matrix<double> Kalman::updateStep(matrix<double> &value_measure){
 	/****************************************/
 	/* Hk*Xk-1								*/
 	/****************************************/
-	matrix<double> predict_measure = product_matrix(sys.mat_sortie, kalm_sys.predict_vector);
+	matrix<double> predict_measure = product_matrix(_sys.matSortie, _kalmsys.predictVector);
 	_RPT0(0, "PREDICT MEASURE : \n");
 	printMatrix(predict_measure);
 	/****************************************/
@@ -165,38 +172,38 @@ matrix<double> Kalman::update_step(matrix<double> value_measure){
 	/****************************************/
 	matrix<double> aux;
 	matrix<double> innov_covariance;
-	aux = product_matrix(sys.mat_sortie, kalm_sys.cov_estimate);
-	aux = product_matrix(aux, trans(sys.mat_sortie));
-	innov_covariance = aux + kalm_sys.cov_mesure;
+	aux = product_matrix(_sys.matSortie, _kalmsys.covEstimate);
+	aux = product_matrix(aux, trans(_sys.matSortie));
+	innov_covariance = aux + _kalmsys.covMesure;
 
 	_RPT0(0, "INNOVATION COVARIANCE : \n");
 	printMatrix(innov_covariance);
 	/****************************************/
 	/* Kk = Pk-1*trans(Hk)*Sk^-1			*/
 	/****************************************/
-	matrix<double> aux_2 = product_matrix(kalm_sys.cov_estimate, trans(sys.mat_sortie));
+	matrix<double> aux_2 = product_matrix(_kalmsys.covEstimate, trans(_sys.matSortie));
 
-	kalm_sys.kalman_gain = product_matrix(aux_2, conj(innov_covariance));
+	_kalmsys.kalmanGain = product_matrix(aux_2, conj(innov_covariance));
 	_RPT0(0, "KALMAN GAIN : \n");
-	printMatrix(kalm_sys.kalman_gain);
+	printMatrix(_kalmsys.kalmanGain);
 	/****************************************/
 	/* ^Xk = ^Xk-1 +  Kk*Yk					*/
 	/****************************************/
-	matrix<double> aux_3 = product_matrix(kalm_sys.kalman_gain, innov_measure);
+	matrix<double> aux_3 = product_matrix(_kalmsys.kalmanGain, innov_measure);
 
-	kalm_sys.predict_vector = kalm_sys.predict_vector + aux_3;
+	_kalmsys.predictVector = _kalmsys.predictVector + aux_3;
 	_RPT0(0, "PREDICT VECTOR : \n");
-	printMatrix(kalm_sys.predict_vector);
+	printMatrix(_kalmsys.predictVector);
 	/****************************************/
 	/* Pk = (I - Kk*Hk)*Pk-1				*/
 	/****************************************/
-	matrix<double> aux_4 = product_matrix(kalm_sys.kalman_gain, sys.mat_sortie);
-	aux_4 = kalm_sys.matrix_ident - aux_4;
+	matrix<double> aux_4 = product_matrix(_kalmsys.kalmanGain, _sys.matSortie);
+	aux_4 = _kalmsys.matIdent - aux_4;
 
-	kalm_sys.cov_estimate = product_matrix(aux_4, kalm_sys.cov_estimate);
+	_kalmsys.covEstimate = product_matrix(aux_4, _kalmsys.covEstimate);
 	/*_RPT0(0, "COVARIANCE ESTIMATE : \n");
-	printMatrix(kalm_sys.cov_estimate);*/
-	return kalm_sys.predict_vector;
+	printMatrix(_kalmsys.covEstimate);*/
+	return _kalmsys.predictVector;
 }
 
 /*******************************************************************************************************/

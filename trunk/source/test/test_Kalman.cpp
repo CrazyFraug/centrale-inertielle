@@ -15,9 +15,10 @@ void testKalman(){
 	/* Déclaration des variables locaux */
 	double _dt;
 	double sigmaMeas;
+	double sigmaModel;
 	double vTrue;
 	double posTrue;
-	double normKalmanGain = 0;
+	double normKalmanGain;
 
 	/* Déclaration des matrices utilisées par le filtre Kalman */
 	matrix<double> A(2, 2, 0), B(0, 0, 0), C(1, 2, 0);
@@ -26,13 +27,15 @@ void testKalman(){
 	matrix<double> matCmde, matObs;
 	matrix<double> matResult;
 	matrix<double> kalmanGain;
+	matrix<double> covEstimate;
 
 	/* Affectation des valeurs initiaux */
 	_dt = .1;
 	vTrue = 10;
 	posTrue = 0;
 	Kalman kalmTest(0, 1, 2, 100);
-	A(0, 0) = A(1, 1) = 1;
+	A(0, 0) = 1;
+	A(1, 1) = 1;
 	A(0, 1) = _dt;
 	A(1, 0) = 0;
 
@@ -43,11 +46,13 @@ void testKalman(){
 	R(0, 0) = sigmaMeas*sigmaMeas;
 
 	X(0, 0) = 0;
-	X(1, 0) = 0.7*vTrue;
+	X(1, 0) = 0.5*vTrue;
 
-	P(0, 0) = P(1, 1) = 0.5;
+	sigmaModel = 0.85;
+	P(0, 0) = sigmaModel*sigmaModel;
+	P(1, 1) = sigmaModel*sigmaModel;
 
-	kalmTest.initSystem(A, B, C, Q, R, X, P);
+	kalmTest.initsystem(A, B, C, Q, R, X, P);
 
 	matCmde.resize(kalmTest.getSizeIn(), 1, 0);
 	matObs.resize(kalmTest.getSizeOut(), 1, 0);
@@ -56,22 +61,24 @@ void testKalman(){
 	/* Fichier stocké le résultat du filtre */
 	std::fstream fileResult;
 	fileResult.open("resultTest.csv", std::ios::app);
-	fileResult << "Step;PositionKalman;PositionTrue;VitesseKalman;VitesseTrue;KalmanGain";
+	fileResult << "Step;PositionKalman;PositionTrue;VitesseKalman;VitesseTrue;normKalmanGain;K1;K2;P(1,1);P(1,2);P(2,1);P(2,2)";
 	fileResult << "\n";
 
 
 	for (int step = 0; step < 100; step++){
-		posTrue += vTrue*_dt;
+		normKalmanGain = 0;
+		posTrue = posTrue + vTrue*_dt + (rand() / (double)RAND_MAX);
 		matObs(0, 0) = posTrue;
-		matResult = kalmanTraitement(kalmTest, matCmde, matObs);
 		kalmanGain = kalmTest.getKalmanGain();
-		for (int i = 0; i < kalmanGain.size1(); i++){
-			normKalmanGain += pow(kalmanGain(i, 0), 2);
-		}
+		normKalmanGain = pow(kalmanGain(0, 0), 2) + pow(kalmanGain(1, 0), 2);
 		normKalmanGain = sqrt(normKalmanGain);
+		covEstimate = kalmTest.getCovEstimate();
+		matResult = kalmanTraitement(kalmTest, matCmde, matObs);
 		fileResult << step << ";";
 		fileResult << matResult(0, 0) << "; " << posTrue << ";";
 		fileResult << matResult(1, 0) << ";" << vTrue << ";";
-		fileResult << normKalmanGain << "\n";
+		fileResult << normKalmanGain << ";";
+		fileResult << kalmanGain(0, 0) << ";" << kalmanGain(1, 0) << "; ";
+		fileResult << covEstimate(0, 0) << ";" << covEstimate(0, 1) << ";" << covEstimate(1, 0) << ";" << covEstimate(1, 1) << "\n";
 	}
 }
