@@ -14,7 +14,9 @@ private:
 	vect4D _mesures;
 	vect3D _valeursInitiales;
 	clock_t _t_acq[3];
-	std::string fileName;
+	int _step;
+	std::string _fileName;
+	std::fstream _fileData;
 
 	//retire les valeurs initiales des mesures
 	void soustraireVI(void);
