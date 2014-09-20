@@ -1,5 +1,6 @@
-#include <boost/numeric/ublas/operation.hpp>
 #include "SceneOpenGL.h"
+#include "Kalman.h"
+#include <boost/numeric/ublas/operation.hpp>
 //#include "source\test\test_Traitement.cpp"
 //#include "Mobile.h"
 
@@ -111,7 +112,7 @@ int SceneOpenGL::bouclePrincipale(vect3D &axe, double &angle)
 {
 
 	static bool terminer(false);
-	unsigned int frameRate(1000 / 200);
+	unsigned int frameRate(rate);
 	Uint32 debutBoucle(0), finBoucle(0), tempsEcoule(0);
 
 	// Matrices
@@ -144,6 +145,9 @@ int SceneOpenGL::bouclePrincipale(vect3D &axe, double &angle)
 		modelview = lookAt(vec3(4, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 
 		modelview = rotate(modelview, (float)(angle), vec3(axe.x, axe.y, axe.z));// Rotation du repère
+		/*	modelview = rotate(modelview, (float)(angle.x), vec3(1, 0, 0));
+		modelview = rotate(modelview, (float)(angle.y), vec3(0, 1, 0));
+		modelview = rotate(modelview, (float)(angle.z), vec3(0, 0, 1));*/
 		lecube.afficher(projection, modelview);
 
 		// Actualisation de la fenêtre

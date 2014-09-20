@@ -7,18 +7,14 @@
 #include <SDL2\SDL.h>
 #include <GL\glew.h>
 
-//glm libs
 #define GLM_FORCE_RADIANS
 #include <glm.hpp>
 #include <gtx\transform.hpp>
 #include <gtc\type_ptr.hpp>
 
 #include <time.h>
-//#include "Shader.h" 
 #include "Cube.h"
-#include "Simulation.h"	
 #include "Mobile.h"
-//#include "Instrument.h"
 
 #define M_2PI 6.28318530718 
 #define bufferSize 4
@@ -36,7 +32,7 @@ public:
 	//méthodes:
 	bool InitialiserFenetre();
 	bool iniGL();
-	int bouclePrincipale(vect3D &axe, double &angle);
+	int bouclePrincipale(vect3D &axe, double &angle, int rate);
 
 private:
 
