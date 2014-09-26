@@ -97,13 +97,19 @@ et les mets sous forme de fichier pouvant etre lu
 */
 void createMeasureFile(std::string filename, std::string direction, double sampleTime, double variation, double bias);
 
+void createMeasureFile_separate(std::string filename, std::string direction, double sampleTime);
+
+bool verifierOuverture (const std::fstream &file1, const char* name, int reportType);
 
 void fileFromSerial(std::string filename, Serial &link, int nbMes);
 
+bool getHeader( std::fstream &file, double &variation1, double &variation2, double &variation3, double &bias1, double &bias2, double &bias3);
+
+void writeHeader(std::fstream& file, std::string& name, const double& variation, const double& biais);
 
 /*	\brief	Recupere les informations du fichier file et les stocke dans les differentes variables
 */
-void getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree);
+bool getDirection(std::fstream &file, double &temps, double &duree, double &val1, double &val2, double &val3, double &vitX, double &vitY, double &vitZ);
 
 
 /*	\brief	Rajoute une erreur sur la mesure pour simuler une instabilité ou un biais
@@ -113,6 +119,7 @@ void getDirection(std::fstream &file, double &val1, double &val2, double &val3, 
 */
 double addError(double baseValeur, double variation, double bias);
 
+void calculateAccel(const double &phi, const double &teta, double &accX, double &accY, double &accZ);
 
 //Instrument *createInstrument(char* nomSensor, int mode);
 #endif	//TOOLS_H

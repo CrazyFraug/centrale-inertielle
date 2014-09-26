@@ -74,7 +74,7 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 	qz2 = qz*qz;
 	double test = qx* qy - qz* qw;
 
-	if (test > 0.499999999)
+	if (test > 0.49999999999)
 	{
 		// Singularity at north pole
 		angles_result.x = 0;									// Roll
@@ -82,7 +82,7 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 		angles_result.z = 2 * (float)atan2(qx, qw);				// Yaw
 
 	}
-	else if (test < -0.499999999)
+	else if (test < -0.49999999999)
 	{
 		// Singularity at south pole
 		angles_result.x = 0;									// Roll
@@ -90,7 +90,8 @@ vect3D quatToAngles_deg(quaternion<double> a_quaternion)
 		angles_result.z = -2 * (float)atan2(qx, qw);			// Yaw
 
 	}
-	else{
+	else
+	{
 		angles_result.x = (float)atan2(2 * (qx*qw + qy*qz), 1 - 2 * (qx2 + qy2));		// Roll
 		angles_result.y = (float)asin(2 * (qw*qy - qz*qx));								// Pitch 
 		angles_result.z = (float)atan2(2 * (qw*qz + qx*qy), 1 - 2 * (qy2 + qz2));		// Yaw
