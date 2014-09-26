@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
 	}
 	else if (mode == MODE_CREATE_FILE)					/*	cas création de fichier	*/
 	{
-		createMeasureFile(FILENAME, DIRECTIONS, SAMPLETIME, 1, 0);
+		createMeasureFile_separate(FILENAME, DIRECTIONS, SAMPLETIME);
 		srand(time(NULL));
 	}
 	else if (mode == MODE_CREATE_FILE_SENSOR)					/*	cas création de fichier à partir de la liaison série	*/

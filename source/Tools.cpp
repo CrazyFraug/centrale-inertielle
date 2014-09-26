@@ -309,6 +309,221 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 
 /*****************************************************************************************/
 
+void createMeasureFile_separate(std::string filename, std::string direction, double sampleTime)
+{
+	std::fstream fDirection, fMeas_gyro, fMeas_gyro_vrai, fMeas_acce, fMeas_acce_vrai, fMeas_orie, fMeas_orie_vrai;
+	double variation1, variation2, variation3, bias1, bias2, bias3;
+	vect3D orientation = {0,0,0};
+	vect3D orientation_err = {0,0,0};
+	vect3D acce = {0,0,0};
+	bool bGyro_vrai(false), bAcce_vrai(false), bOrie_vrai(false);
+	bool bGyro(true), bOrie(true), bAcce(true);
+	quaternion<double> qOrie(1,0,0,0);
+	quaternion<double> qOrie_err(1,0,0,0);
+	quaternion<double> qRot(1,0,0,0);
+	int i(0), j(0);
+
+	fDirection.open(direction, std::ios::in);
+	verifierOuverture(fDirection, "direction", _CRT_ERROR);
+	
+	getHeader(fDirection, variation1, variation2, variation3, bias1, bias2, bias3);
+
+
+	fMeas_gyro.open((filename+"_gyro.txt"), std::fstream::out);
+	if(!verifierOuverture(fMeas_gyro, "_gyro"))
+		bGyro = false;
+
+	fMeas_orie.open((filename+"_orie.txt"), std::fstream::out);
+	if (!verifierOuverture(fMeas_gyro, "_orie"))
+		bOrie = false;
+
+	fMeas_acce.open((filename+"_acce.txt"), std::fstream::out);
+	if(!verifierOuverture(fMeas_gyro, "_acce"))
+		bAcce = false;
+
+
+	double val1,val2,val3, tEcoule(0.0), temps, duree;
+	double vitX, vitY, vitZ;
+
+	if(bGyro)
+		writeHeader(fMeas_gyro,filename, variation1, bias1);
+	if(bOrie)
+		writeHeader(fMeas_orie,filename, variation1, bias1);
+	if(bAcce)
+		writeHeader(fMeas_acce,filename, variation2, bias2);
+
+	std::cout << "bGyro = " << bGyro << std::endl; 
+	std::cout << "bOrie = " << bOrie << std::endl;
+	std::cout << "bAcce = " << bAcce << std::endl;
+
+	if (bGyro_vrai = ((variation1 !=0 || bias1 !=0) && bGyro)) //attribution + condition
+	{
+		std::cout << "bool gyro_vrai = true " << std::endl;
+		fMeas_gyro_vrai.open(filename+"gyro_vrai.txt",std::fstream::out);
+		if (!verifierOuverture(fMeas_gyro_vrai, "gyro_vrai"))
+			bGyro_vrai = false;
+		else
+			writeHeader(fMeas_gyro_vrai, filename+"gyro_vrai", 0, 0);
+	}
+				
+	if (bOrie_vrai = ((variation1 !=0 || bias1 !=0) && bOrie)) //attribution + condition
+	{
+		std::cout << "bool orie_vrai = true " << std::endl;
+		fMeas_orie_vrai.open(filename+"orie_vrai.txt",std::fstream::out);
+		if (!verifierOuverture(fMeas_orie_vrai, "orie_vrai"))
+			bOrie_vrai = false;
+		else
+			writeHeader(fMeas_orie_vrai, filename+"orie_vrai.txt", 0, 0);
+	}
+
+	if (bAcce_vrai = ((variation2 !=0 || bias2 !=0) && bAcce)) //attribution + condition
+	{
+		std::cout << "bool acce_vrai = true " << std::endl;
+		fMeas_acce_vrai.open(filename+"acce_vrai.txt",std::fstream::out);
+		if (!verifierOuverture(fMeas_acce_vrai, "acce_vrai"))
+			bAcce_vrai = false;
+		else
+			writeHeader(fMeas_acce_vrai, filename+"acce_vrai", 0, 0);
+	}
+		
+	while (1)
+	{
+		system("PAUSE");
+		if (!getDirection(fDirection, temps, duree, val1, val2, val3, vitX, vitY, vitZ))
+		{
+			j++;
+
+			std::cout << "valeur 1 : "<< val1 << " ; valeur 2 : " << val2 << " ; valeur 3 : " << val3 << " ; temps : " << temps << " ; duree : " << duree << std::endl;
+			std::cout << "vitesse x : "<< vitX << " ; vitesse y : " << vitY << " ; vitesse z : " << vitZ << std::endl;
+
+			// Conversion des angles en vitesse angulaire //
+			val1 /= duree/1000;
+			val2 /= duree/1000;
+			val3 /= duree/1000;
+
+			if (temps < tEcoule) 
+			{
+				temps = tEcoule;
+				_RPT0(_CRT_WARN, "temps indique inferieur au temps ecoule, temps remanie...\n");
+			}
+
+			while ( tEcoule < temps)
+			{
+				if(bGyro)
+				{
+					fMeas_gyro << 'x' << addError(0,variation1,bias1) << ';' << 'y' << addError(0,variation1,bias1) << ';' << 'z' << addError(0,variation1,bias1) << ';' << 't' << tEcoule << ';' << '\n';
+					if(bGyro_vrai)
+					{
+						fMeas_gyro_vrai << 'x' << 0 << ';' << 'y' << 0 << ';' << 'z' << 0 << ';' << 't' << tEcoule << ';' << '\n';
+					}
+				}
+
+				if(bOrie)
+				{
+
+					qRot = danglesToQuat(addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000);
+					qOrie_err = qOrie_err*qRot;
+					orientation_err = quatToAngles_deg(qOrie_err);
+					fMeas_orie << 'x' << orientation_err.x << ';' << 'y' << orientation_err.y << ';' << 'z' << orientation_err.z << ';' << 't' << tEcoule << ';' << '\n';
+					
+					if(bGyro_vrai)
+						fMeas_orie_vrai << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
+				}
+
+				if(bAcce)
+				{
+					calculateAccel(orientation.x, orientation.y, acce.x, acce.y, acce.z);
+					fMeas_acce << 'x' << acce.x << ';' << 'y' << acce.y << ';' << 'z' << acce.z << ';' << 't' << tEcoule << ';' << '\n';
+
+				}
+		
+				tEcoule += sampleTime;
+
+			}
+
+			while (tEcoule < temps+duree)
+			{
+				if (bGyro)
+				{
+					//Ajout des erreurs de mesure:
+					fMeas_gyro << 'x' << addError(val1,variation1,bias1) << ';' << 'y' << addError(val2,variation1,bias1) << ';' << 'z' << addError(val3,variation1,bias1) << ';' << 't' << tEcoule << ';' << '\n';
+
+					if(bGyro_vrai)
+					{
+						fMeas_gyro_vrai << 'x' << val1 << ';' << 'y' << val2 << ';' << 'z' << val3 << ';' << 't' << tEcoule << ';' << '\n';
+					}
+				}
+				if(bOrie)
+				{
+					i++;
+					qRot = danglesToQuat(addError(val1,variation2,bias2)*SAMPLETIME/1000, addError(val2,variation2,bias2)*SAMPLETIME/1000, addError(val3,variation2,bias2)*SAMPLETIME/1000);
+					qOrie_err = qOrie_err*qRot;
+					orientation_err = quatToAngles_deg(qOrie_err);
+					fMeas_orie << 'x' << orientation_err.x << ';' << 'y' << orientation_err.y << ';' << 'z' << orientation_err.z << ';' << 't' << tEcoule << ';' << '\n';
+					
+					if(bGyro_vrai)
+					{
+						qRot = danglesToQuat(val1*SAMPLETIME/1000, val2*SAMPLETIME/1000, val3*SAMPLETIME/1000);
+						qOrie = qOrie*qRot;
+						orientation = quatToAngles_deg(qOrie);
+						fMeas_orie_vrai << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
+					}
+				}
+				if(bAcce)
+				{
+					calculateAccel(orientation.x, orientation.y, acce.x, acce.y, acce.z);
+					acce.x += vitX*1000/duree;
+					acce.y += vitY*1000/duree;
+					acce.z += vitZ*1000/duree;
+					fMeas_acce << 'x' << acce.x << ';' << 'y' << acce.y << ';' << 'z' << acce.z << ';' << 't' << tEcoule << ';' << '\n';
+
+				}
+		
+				tEcoule += sampleTime;
+			}
+
+
+		} //end if(!getDirection())
+
+		else break; // getDirection = true quand on atteint la fin du fichier ( file.eof() ). On sort alors de la boucle
+
+	} //end while
+
+	std::cout << i << "---i" <<std::endl;
+
+	if(bGyro_vrai)
+		fMeas_gyro_vrai.close();
+	if(bOrie_vrai)
+		fMeas_orie_vrai.close();
+	if(bAcce_vrai)
+		fMeas_acce_vrai.close();
+	if(bGyro)
+		fMeas_gyro.close();
+	if(bOrie)
+		fMeas_orie.close();
+	if(bAcce)
+		fMeas_acce.close();
+
+	fDirection.close();
+	system("PAUSE");
+
+}
+
+/*****************************************************************************************/
+
+bool verifierOuverture (const std::fstream &file1, const char* name, int reportType)
+{
+	if ((file1.rdstate() && std::ifstream::failbit) != 0)
+	{
+		_RPT1(reportType, "Erreur lors de l'ouverture du fichier \'%s\'\n", name);
+		return false;
+	}
+	else
+		return true;
+}
+
+/*****************************************************************************************/
+
 void fileFromSerial(std::string filename, Serial &link, int nbMes)
 {
 	std::fstream file;
@@ -330,22 +545,78 @@ void fileFromSerial(std::string filename, Serial &link, int nbMes)
 
 /*****************************************************************************************/
 
-void getDirection(std::fstream &file, double &val1, double &val2, double &val3, double &temps, double &duree)
+bool getHeader( std::fstream &file, double &variation1, double &variation2, double &variation3, double &bias1, double &bias2, double &bias3)
 {
-	char c;
-	file >> temps;
-	file >> c;
-	file >> duree;
-	file >> c;
-	file >> val1;
-	file >> c;
-	file >> val2;
-	file >> c;
-	file >> val3;
+	char buffer[128];
+	file >> buffer[0];
 
-	val1 /= (duree / 1000.0);
-	val2 /= (duree / 1000.0);
-	val3 /= (duree / 1000.0);
+	while (buffer[0] == '%')
+	{
+		file.getline(buffer, 128);
+		if (strcmp("variation", buffer) == 0) {
+			file.get(buffer[0]);
+			file >> variation1;
+			file.get(buffer[0]);
+			file >> variation2;
+			file.get(buffer[0]);
+			file >> variation3;
+			std::cout << "variation1 = " << variation1 << "--- variation2 = " << variation2 << "--- variation3 = " << variation3 << std::endl;
+			file.get(buffer[0]);//recupere le caractere de fin de ligne
+		}
+		else if (strcmp("biais",buffer) == 0) {
+			file.get(buffer[0]);
+			file >> bias1;
+			file.get(buffer[0]);
+			file >> bias2;
+			file.get(buffer[0]);
+			file >> bias3;
+			std::cout << "biais1 = " << bias1 << "--- biais2 = " << bias2 << "---bias3 = " << bias3 << std::endl;
+			file.get(buffer[0]);//recupere le caractere de fin de ligne
+		}
+		file.get(buffer[0]);
+	}
+
+	file.unget(); //recule le curseur de 2 caractères si le dernier caractère lu n'est pas un '%' (fin de ligne + premier caractère de la nouvelle ligne)
+	file.unget(); 
+
+	return true;
+}
+
+/*****************************************************************************************/
+
+void writeHeader(std::fstream& file, std::string& name, const double& variation, const double& biais)
+{
+	file << '%' << name << '\n';
+	file << '%' << "variation = " << variation << "; biais = " << biais << '\n';
+}
+
+/*****************************************************************************************/
+
+bool getDirection(std::fstream &file, double &temps, double &duree, double &val1, double &val2, double &val3, double &vitX, double &vitY, double &vitZ)
+{
+	char buffer[128];
+
+	file >> temps;
+	file >> buffer[0];
+	file >> duree;
+	file >> buffer[0];
+	file >> val1;
+	file >> buffer[0];
+	file >> val2;
+	file >> buffer[0];
+	file >> val3;
+	file >> buffer[0];
+	file >> vitX;
+	file >> buffer[0];
+	file >> vitY;
+	file >> buffer[0];
+	file >> vitZ;
+
+	val1 /= (duree/1000.0);
+	val2 /= (duree/1000.0);
+	val3 /= (duree/1000.0);
+
+	return file.eof();
 
 }
 
@@ -356,11 +627,21 @@ double addError(double baseValeur, double variation, double bias)
 	double meas = baseValeur - variation;
 	double erreur = 0;
 	erreur = (double)rand() / RAND_MAX; //generate random number between 0 and 1
-	meas += erreur*(variation * 2);
-	return (meas + bias);
+	meas += erreur*(variation*2);
+	return (meas+bias);
 }
 
 /*****************************************************************************************/
+
+void calculateAccel(const double &phi, const double &teta, double &accX, double &accY, double &accZ)
+{
+	accX -= sin(teta)*cos(phi)*G;
+	accY -= sin(phi)*G; 
+	accZ -= cos(teta)*cos(phi)*G;
+}
+
+/*****************************************************************************************/
+
 
 //Instrument *createInstrument(char* nomSensor, int mode){
 //	Instrument *test;
