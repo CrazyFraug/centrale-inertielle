@@ -233,7 +233,6 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 
 
 	double val1,val2,val3, tEcoule(0.0), temps, duree;
-	double val1e, val2e, val3e;
 	double vitX, vitY, vitZ;
 
 	if(bGyro)
@@ -283,12 +282,14 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 		if (!getDirection(fDirection, temps, duree, val1, val2, val3, vitX, vitY, vitZ))
 		{
 			j++;
-			if (bAcce) {
-				//getVitesse(fDirection, vitX, vitY, vitZ, duree);
-				std::cout << "vitesse x : "<< vitX << " ; vitesse y : " << vitY << " ; vitesse z : " << vitZ << std::endl;
-			}
 
 			std::cout << "valeur 1 : "<< val1 << " ; valeur 2 : " << val2 << " ; valeur 3 : " << val3 << " ; temps : " << temps << " ; duree : " << duree << std::endl;
+			std::cout << "vitesse x : "<< vitX << " ; vitesse y : " << vitY << " ; vitesse z : " << vitZ << std::endl;
+
+			// Conversion des angles en vitesse angulaire //
+			val1 /= duree/1000;
+			val2 /= duree/1000;
+			val3 /= duree/1000;
 
 			if (temps < tEcoule) 
 			{
@@ -300,10 +301,6 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 			{
 				if(bGyro)
 				{
-					val1e = addError(0,variation1,bias1);
-					val2e = addError(0,variation1,bias1);
-					val3e = addError(0,variation1,bias1);
-					i++;
 					fMeas_gyro << 'x' << addError(0,variation1,bias1) << ';' << 'y' << addError(0,variation1,bias1) << ';' << 'z' << addError(0,variation1,bias1) << ';' << 't' << tEcoule << ';' << '\n';
 					if(bGyro_vrai)
 					{
@@ -313,16 +310,10 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 
 				if(bOrie)
 				{
-					if(!bGyro)
-					{
-						val1e = addError(0,variation1,bias1);
-						val2e = addError(0,variation1,bias1);
-						val3e = addError(0,variation1,bias1);
-					}
 
-					qRot = danglesToQuat(val1e*SAMPLETIME/1000, val2e*SAMPLETIME/1000, val3e*SAMPLETIME/1000);
-					qOrie = qOrie*qRot;
-					orientation_err = quatToAngles_deg(qOrie);
+					qRot = danglesToQuat(addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000);
+					qOrie_err = qOrie_err*qRot;
+					orientation_err = quatToAngles_deg(qOrie_err);
 					fMeas_orie << 'x' << orientation_err.x << ';' << 'y' << orientation_err.y << ';' << 'z' << orientation_err.z << ';' << 't' << tEcoule << ';' << '\n';
 					
 					if(bGyro_vrai)
@@ -345,11 +336,8 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 				if (bGyro)
 				{
 					//Ajout des erreurs de mesure:
-					val1e = addError(val1,variation1,bias1);
-					val2e = addError(val2,variation1,bias1);
-					val3e = addError(val3,variation1,bias1);
-					fMeas_gyro << 'x' << val1e << ';' << 'y' << val2e << ';' << 'z' << val3e << ';' << 't' << tEcoule << ';' << '\n';
-					i++;
+					fMeas_gyro << 'x' << addError(val1,variation1,bias1) << ';' << 'y' << addError(val2,variation1,bias1) << ';' << 'z' << addError(val3,variation1,bias1) << ';' << 't' << tEcoule << ';' << '\n';
+
 					if(bGyro_vrai)
 					{
 						fMeas_gyro_vrai << 'x' << val1 << ';' << 'y' << val2 << ';' << 'z' << val3 << ';' << 't' << tEcoule << ';' << '\n';
@@ -357,14 +345,8 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 				}
 				if(bOrie)
 				{
-					if(!bGyro)
-					{
-						val1e = addError(val1,variation1,bias1);
-						val2e = addError(val2,variation1,bias1);
-						val3e = addError(val3,variation1,bias1);
-					}
-
-					qRot = danglesToQuat(val1e*SAMPLETIME/1000, val2e*SAMPLETIME/1000, val3e*SAMPLETIME/1000);
+					i++;
+					qRot = danglesToQuat(addError(val1,variation2,bias2)*SAMPLETIME/1000, addError(val2,variation2,bias2)*SAMPLETIME/1000, addError(val3,variation2,bias2)*SAMPLETIME/1000);
 					qOrie_err = qOrie_err*qRot;
 					orientation_err = quatToAngles_deg(qOrie_err);
 					fMeas_orie << 'x' << orientation_err.x << ';' << 'y' << orientation_err.y << ';' << 'z' << orientation_err.z << ';' << 't' << tEcoule << ';' << '\n';
@@ -380,6 +362,9 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 				if(bAcce)
 				{
 					calculateAccel(orientation.x, orientation.y, acce.x, acce.y, acce.z);
+					acce.x += vitX*1000/duree;
+					acce.y += vitY*1000/duree;
+					acce.z += vitZ*1000/duree;
 					fMeas_acce << 'x' << acce.x << ';' << 'y' << acce.y << ';' << 'z' << acce.z << ';' << 't' << tEcoule << ';' << '\n';
 
 				}
@@ -394,7 +379,7 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 
 	} //end while
 
-	std::cout << "i = " << i << std::endl << "j = " << j << std::endl;;
+	std::cout << i << "---i" <<std::endl;
 
 	if(bGyro_vrai)
 		fMeas_gyro_vrai.close();
@@ -452,13 +437,7 @@ bool getHeader( std::fstream &file, double &variation1, double &variation2, doub
 	while (buffer[0] == '%')
 	{
 		file.getline(buffer, 128);
-		/*if(strcmp("orie",buffer) == 0)
-			bOrie = 1;
-		else if(strcmp("gyro",buffer) == 0)
-			bGyro = 1;
-		else if(strcmp("acce",buffer) == 0)
-			bAcce = 1;
-		else*/ if (strcmp("variation", buffer) == 0) {
+		if (strcmp("variation", buffer) == 0) {
 			file.get(buffer[0]);
 			file >> variation1;
 			file.get(buffer[0]);
@@ -479,7 +458,6 @@ bool getHeader( std::fstream &file, double &variation1, double &variation2, doub
 			file.get(buffer[0]);//recupere le caractere de fin de ligne
 		}
 		file.get(buffer[0]);
-		std::cout << "caractere :" << buffer[0] << "---" << std::endl;
 	}
 
 	file.unget(); //recule le curseur de 2 caractères si le dernier caractère lu n'est pas un '%' (fin de ligne + premier caractère de la nouvelle ligne)
@@ -547,7 +525,7 @@ bool getVitesse(std::fstream &file, double &val1, double &val2, double &val3, co
 	return file.eof();
 }
 
-
+//formule à modifier
 void calculateAccel(const double &phi, const double &teta, double &accX, double &accY, double &accZ)
 {
 	accX -= sin(teta)*cos(phi)*G;
