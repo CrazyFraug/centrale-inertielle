@@ -1,6 +1,4 @@
-%gyro
-%orie
-%acce
+%gyro;orie;acce
 %variation
 %1;3;3
 %biais
