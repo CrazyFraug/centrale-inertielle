@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 
 	/* Déclaration des variables locaux */
 	int mode = 0;		// Mode de simulation -- affecter dans la partie déclaration des instruments
-	int step = 0;		// Compteur d'échantillon de Simulation 
+	int step = 1;		// Compteur d'échantillon de Simulation 
 	double wx, wy, wz, Ax, Ay, Az;
 	double angle;
 	double dt, tPred, tAct;

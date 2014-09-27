@@ -46,7 +46,7 @@ vect4D operator+(vect4D v1, vect3D v2)
 /************************************************************************/
 
 /*	Constructeur	*/
-Instrument::Instrument(char* nom, int mode) :ID(nom), _step(0)
+Instrument::Instrument(char* nom, int mode) :ID(nom), _step(1)
 {
 	if (mode == 1){
 		static Serial link("COM8", 115200);
