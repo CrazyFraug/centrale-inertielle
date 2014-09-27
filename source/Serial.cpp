@@ -82,7 +82,7 @@ packDatas Serial::readDatas(std::string name_sensor){
 			asio::read(serial, asio::buffer(&c, 1));
 		}
 	}
-
+	
 	while (c != ':'){
 		name += c;
 

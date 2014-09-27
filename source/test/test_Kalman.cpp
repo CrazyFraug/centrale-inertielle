@@ -5,11 +5,11 @@
 
 
 /*
-\brief	Test du filtre de Kalman - Selon l'exemple d'Alex Blekhman
-Les états sont la position et la vitesse
-L'observation est la position qui est calculé par la formule X = X + V*t
-La vitesse est fixée à 10m/s
-\result	Test validé	-- Résultat présenté dans le fichier resultTestKalman.xlsx
+	\brief	Test du filtre de Kalman - Selon l'exemple d'Alex Blekhman
+	Les états sont la position et la vitesse
+	L'observation est la position qui est calculé par la formule X = X + V*t
+	La vitesse est fixée à 10m/s
+	\result	Test validé	-- Résultat présenté dans le fichier resultTestKalman.xlsx
 */
 void testKalman(){
 	/* Déclaration des variables locaux */

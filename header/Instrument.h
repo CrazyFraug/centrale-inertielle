@@ -3,7 +3,7 @@
 
 #include "Serial.h"
 #include <time.h>
-#include <iostream>
+#include <fstream>
 #include "Structure.h"
 
 class Instrument {
@@ -22,7 +22,7 @@ private:
 	void soustraireVI(void);
 
 public:
-
+	
 	/*	Constructeur
 		\param	char*	nom		Nom de l'instrument
 		\param	int		mode	Mode de simulation avec l'instrument (1->capteur, 2->fichier)
