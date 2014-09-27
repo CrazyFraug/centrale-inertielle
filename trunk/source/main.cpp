@@ -1,5 +1,6 @@
-#include "SceneOpenGL.h"
 #include "Tools.h"
+#include "SceneOpenGL.h"
+#include "Traitement.h"
 #include "Quaternion.h"
 #include "source\test\test_Kalman.cpp"
 #include "source\test\test_quat.cpp"
@@ -63,15 +64,11 @@ int main(int argc, char *argv[]) {
 	Instrument gyros("gyro", mode);
 	Instrument magne("mnet", mode);
 	Instrument orient("orie", mode);
-	//Instrument *test;
-	//test = createInstrument("acce", mode);
 
-	//Traitement trait_test(test);
 	Traitement trait_accel(&accel);
 	Traitement trait_gyros(&gyros);
 	Traitement trait_magne(&magne);
 	Traitement trait_orient(&orient);
-	//test->afficherCapteur();
 
 	/* Initialisation du filtre de Kalman + système */
 	matrix<double> A(4, 4, 0), B(0, 0, 0), C(4, 4, 0), Q(4, 4, 0), R(4, 4, 0);
@@ -218,10 +215,8 @@ int main(int argc, char *argv[]) {
 
 		if (step < 100){		/*	Fixer le cube dans les 100 premiers étapes	*/
 			wx = wy = wz = 0;
-			//vAngulaireGlobal = changeRepere(quatInit, vAngulaireGlobal);
 		}
 		else{
-			//vAngulaireGlobal = changeRepere(quatResult, vAngulaireGlobal);
 			wx = vAngulaireGlobal.x;
 			wy = vAngulaireGlobal.y;
 			wz = vAngulaireGlobal.z;
@@ -283,7 +278,7 @@ int main(int argc, char *argv[]) {
 			terminer = true;
 		}
 		else{
-			terminer = scene.bouclePrincipale(/*angles*/axe, angle, frameRate);
+			terminer = scene.bouclePrincipale(axe, angle, frameRate);
 		}
 		_RPT1(0, "----------	FIN STEP	---------------\n", step);
 	}

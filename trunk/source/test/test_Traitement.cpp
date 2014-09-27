@@ -98,18 +98,4 @@ void test_readDatafromFile(std::string filename,int turn){
 	}
 }
 
-//int main(){
-//	std::string port = "COM8";
-//	int baud = 115200;
-//	Serial data_serie(port, baud);
-//	Instrument inst("gyro",&data_serie);
-//	Traitement un_traitement(&inst);
-//
-//	std::string filename = "gyro.txt";
-//	_RPT0(0, "Test de l'écriture de fichier \n");
-//	while (1){
-//		un_traitement.stockerValeurs();
-//		test_filefromSensor(filename, &inst, un_traitement);
-//	}
-//}
 #endif //_TEST_TRAITEMENT_H

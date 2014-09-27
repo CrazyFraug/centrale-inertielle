@@ -252,7 +252,7 @@ void createMeasureFile(std::string filename, std::string direction, double sampl
 		double val1e, val2e, val3e;
 		while (fDirection.eof() == false)
 		{
-			getDirection(fDirection, val1, val2, val3, temps, duree);
+			getDirection(fDirection, val1, val2, val3, temps, duree, val1e, val2e, val3e);
 			std::cout << "valeur 1 : " << val1 << " ; valeur 2 : " << val2 << " ; valeur 3 : " << val3 << " ; temps : " << temps << " ; duree : " << duree << std::endl;
 
 			if (temps >= tEcoule)
@@ -330,15 +330,15 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 
 
 	fMeas_gyro.open((filename+"_gyro.txt"), std::fstream::out);
-	if(!verifierOuverture(fMeas_gyro, "_gyro"))
+	if(!verifierOuverture(fMeas_gyro, "_gyro",0))
 		bGyro = false;
 
 	fMeas_orie.open((filename+"_orie.txt"), std::fstream::out);
-	if (!verifierOuverture(fMeas_gyro, "_orie"))
+	if (!verifierOuverture(fMeas_gyro, "_orie",0))
 		bOrie = false;
 
 	fMeas_acce.open((filename+"_acce.txt"), std::fstream::out);
-	if(!verifierOuverture(fMeas_gyro, "_acce"))
+	if(!verifierOuverture(fMeas_gyro, "_acce",0))
 		bAcce = false;
 
 
@@ -360,7 +360,7 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 	{
 		std::cout << "bool gyro_vrai = true " << std::endl;
 		fMeas_gyro_vrai.open(filename+"gyro_vrai.txt",std::fstream::out);
-		if (!verifierOuverture(fMeas_gyro_vrai, "gyro_vrai"))
+		if (!verifierOuverture(fMeas_gyro_vrai, "gyro_vrai",0))
 			bGyro_vrai = false;
 		else
 			writeHeader(fMeas_gyro_vrai, filename+"gyro_vrai", 0, 0);
@@ -370,7 +370,7 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 	{
 		std::cout << "bool orie_vrai = true " << std::endl;
 		fMeas_orie_vrai.open(filename+"orie_vrai.txt",std::fstream::out);
-		if (!verifierOuverture(fMeas_orie_vrai, "orie_vrai"))
+		if (!verifierOuverture(fMeas_orie_vrai, "orie_vrai",0))
 			bOrie_vrai = false;
 		else
 			writeHeader(fMeas_orie_vrai, filename+"orie_vrai.txt", 0, 0);
@@ -380,7 +380,7 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 	{
 		std::cout << "bool acce_vrai = true " << std::endl;
 		fMeas_acce_vrai.open(filename+"acce_vrai.txt",std::fstream::out);
-		if (!verifierOuverture(fMeas_acce_vrai, "acce_vrai"))
+		if (!verifierOuverture(fMeas_acce_vrai, "acce_vrai",0))
 			bAcce_vrai = false;
 		else
 			writeHeader(fMeas_acce_vrai, filename+"acce_vrai", 0, 0);
@@ -421,7 +421,7 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 				if(bOrie)
 				{
 
-					qRot = danglesToQuat(addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000);
+					qRot = anglesToQuat(addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000, addError(0,variation2, bias2)*SAMPLETIME/1000);
 					qOrie_err = qOrie_err*qRot;
 					orientation_err = quatToAngles_deg(qOrie_err);
 					fMeas_orie << 'x' << orientation_err.x << ';' << 'y' << orientation_err.y << ';' << 'z' << orientation_err.z << ';' << 't' << tEcoule << ';' << '\n';
@@ -456,14 +456,14 @@ void createMeasureFile_separate(std::string filename, std::string direction, dou
 				if(bOrie)
 				{
 					i++;
-					qRot = danglesToQuat(addError(val1,variation2,bias2)*SAMPLETIME/1000, addError(val2,variation2,bias2)*SAMPLETIME/1000, addError(val3,variation2,bias2)*SAMPLETIME/1000);
+					qRot = anglesToQuat(addError(val1,variation2,bias2)*SAMPLETIME/1000, addError(val2,variation2,bias2)*SAMPLETIME/1000, addError(val3,variation2,bias2)*SAMPLETIME/1000);
 					qOrie_err = qOrie_err*qRot;
 					orientation_err = quatToAngles_deg(qOrie_err);
 					fMeas_orie << 'x' << orientation_err.x << ';' << 'y' << orientation_err.y << ';' << 'z' << orientation_err.z << ';' << 't' << tEcoule << ';' << '\n';
 					
 					if(bGyro_vrai)
 					{
-						qRot = danglesToQuat(val1*SAMPLETIME/1000, val2*SAMPLETIME/1000, val3*SAMPLETIME/1000);
+						qRot = anglesToQuat(val1*SAMPLETIME/1000, val2*SAMPLETIME/1000, val3*SAMPLETIME/1000);
 						qOrie = qOrie*qRot;
 						orientation = quatToAngles_deg(qOrie);
 						fMeas_orie_vrai << 'x' << orientation.x << ';' << 'y' << orientation.y << ';' << 'z' << orientation.z << ';' << 't' << tEcoule << ';' << '\n';
@@ -627,31 +627,17 @@ double addError(double baseValeur, double variation, double bias)
 	double meas = baseValeur - variation;
 	double erreur = 0;
 	erreur = (double)rand() / RAND_MAX; //generate random number between 0 and 1
-	meas += erreur*(variation*2);
-	return (meas+bias);
+	meas += erreur*(variation * 2);
+	return (meas + bias);
 }
 
 /*****************************************************************************************/
 
 void calculateAccel(const double &phi, const double &teta, double &accX, double &accY, double &accZ)
 {
-	accX -= sin(teta)*cos(phi)*G;
-	accY -= sin(phi)*G; 
-	accZ -= cos(teta)*cos(phi)*G;
+	accX -= sin(teta)*cos(phi)*9.81;//G;
+	accY -= sin(phi)*9.81;// G;
+	accZ -= cos(teta)*cos(phi)*9.81;// G;
 }
 
 /*****************************************************************************************/
-
-
-//Instrument *createInstrument(char* nomSensor, int mode){
-//	Instrument *test;
-//	if (mode == 1){
-//		InstrumentSerie inst(nomSensor);
-//		test = &inst;
-//	}
-//	else {
-//		Instrument inst(nomSensor, 2);
-//		test = &inst;
-//	}
-//	return test;
-//}

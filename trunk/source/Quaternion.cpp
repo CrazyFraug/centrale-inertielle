@@ -18,8 +18,8 @@ quaternion<double> operator/(quaternion<double> q1, double b)
 }
 
 /*
-\brief opérateur de multiplication entre une matrice 3x3 et un vecteur 3x1
-\return vecteur 3x1
+	\brief opérateur de multiplication entre une matrice 3x3 et un vecteur 3x1
+	\return vecteur 3x1
 */
 vect3D operator*(matrix<double> m, vect3D v)
 {

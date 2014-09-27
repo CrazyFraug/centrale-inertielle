@@ -5,7 +5,7 @@
 
 /** \brief Constructor d'un objet Kalman
 */
-Kalman::Kalman(int nbIn, int nbOut, int nbState, int step)
+Kalman::Kalman(int nbIn, int nbOut, int nbState, int step) 
 {
 	/********************************************************************/
 	/* Affectation les nombres d'entrées, sorties et d'état du système	*
@@ -53,7 +53,7 @@ Kalman::Kalman(int nbIn, int nbOut, int nbState, int step)
 /*******************************************************************************************************/
 
 /* \brief	Destructor
-*/
+ */
 Kalman::~Kalman()
 {
 }
@@ -122,7 +122,7 @@ void Kalman::predictStep(matrix<double> &value_cmd)
 {
 	/****************************************/
 	/* ^Xk = A*Xk-1 + B*u	(cas normal)	*
-	* ^Xk = A*Xk-1	(cas non entrée)		*/
+	 * ^Xk = A*Xk-1	(cas non entrée)		*/
 	/****************************************/
 	if (_sys.sizeIn == 0){
 		_RPT0(0, "MAT TRANSITION : \n");
@@ -168,7 +168,7 @@ matrix<double> Kalman::updateStep(matrix<double> &value_measure){
 	printMatrix(innov_measure);
 	/****************************************/
 	/* Hk*Pk-1*trans(Hk)					*
-	* Sk = Hk*Pk-1*trans(Hk) + Rk			*/
+	 * Sk = Hk*Pk-1*trans(Hk) + Rk			*/
 	/****************************************/
 	matrix<double> aux;
 	matrix<double> innov_covariance;
