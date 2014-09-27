@@ -194,6 +194,7 @@ int main(int argc, char *argv[]) {
 		magnetic_t = magne.getMesures();/*trait_magne.moyenner(2);*/
 		orientation_t = orient.getMesures();/* trait_orient.moyenner(2);*/
 
+		_RPT4(0, "VAL GYRO : X-%f Y-%f Z-%f T-%f");
 		trait_accel.stockerValeurs();
 		trait_gyros.stockerValeurs();
 		trait_magne.stockerValeurs();
