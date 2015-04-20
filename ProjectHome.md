@@ -1,0 +1,1 @@
+reconnaissance d'attitude à l'aide d'un accéléromètre et d'un gyromètre destinés à être installés sur un gant. Emploi de wiimote possible
